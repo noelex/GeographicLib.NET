@@ -15,6 +15,8 @@ namespace GeographicLib
             var windir = Environment.GetEnvironmentVariable("windir");
             return !string.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir);
         }
+
+        public static bool IsMacOS() => File.Exists(@"/System/Library/CoreServices/SystemVersion.plist");
     }
 }
 #endif
