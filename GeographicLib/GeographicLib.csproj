@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\GeographicLib.xml</DocumentationFile>
+    <DefineConstants></DefineConstants>
+    <PackageId>GeographicLib.NET</PackageId>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/noelex/GeographicLib.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/noelex/GeographicLib.NET.git</RepositoryUrl>
+    <Authors>noelex</Authors>
+    <Product>GeographicLib.NET</Product>
+    <Company />
+    <Description>A native .NET implementation of GeographicLib written in pure C#.</Description>
+    <Copyright>Copyright (c) 2021 GeographicLib.NET contributors</Copyright>
+    <Version>1.51.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+</Project>
