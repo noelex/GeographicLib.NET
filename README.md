@@ -1,7 +1,6 @@
 # GeographicLib.NET
 
-![ubuntu](https://github.com/noelex/GeographicLib.NET/workflows/ubuntu/badge.svg)
-![windows](https://github.com/noelex/GeographicLib.NET/workflows/windows/badge.svg)
+[![build](https://github.com/noelex/GeographicLib.NET/actions/workflows/build.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/build.yml)
 
 GeographicLib.NET is a native .NET implementation of [GeographicLib](https://sourceforge.net/p/geographiclib) written in pure C#.
 
