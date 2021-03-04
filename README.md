@@ -2,7 +2,6 @@
 
 ![ubuntu](https://github.com/noelex/GeographicLib.NET/workflows/ubuntu/badge.svg)
 ![windows](https://github.com/noelex/GeographicLib.NET/workflows/windows/badge.svg)
-![NuGet Badge](https://buildstats.info/nuget/GeographicLib.NET?includePreReleases=true)]
 
 GeographicLib.NET is a native .NET implementation of [GeographicLib](https://sourceforge.net/p/geographiclib) written in pure C#.
 
@@ -36,11 +35,17 @@ Here's a simple list of what features are implemented and planned.
 Geodesic and GeodesicLine have been tested with the [test set for geodesic](https://zenodo.org/record/32156#.YCFzsFBLQ_0).
 Output of Geodesic and GeodesicLine are verified against the output of the original GeodSolve utility at binary level.
 
-## Nuget package
-This is still a work in progress, thus no Nuget package is available yet. 
-Packages will be released once all major features are implemented and the public API surface gets stablized.
+## Installing
+### Stable
+The library is still under development, thus no stable package release is available currently.
 
-For now, you'll have to build the library from source. Functionalities are not fully tested, use at your own risk.
+### Nightly ![Nightly Builds](https://buildstats.info/nuget/GeographicLib.NET?includePreReleases=true)
+Nightly builds of GeographicLib.NET are hosted on NuGet pre release channel.
+You can install them using the following command:
+
+```
+dotnet add package GeographicLib.NET --prerelease
+```
 
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
