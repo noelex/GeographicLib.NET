@@ -25,7 +25,6 @@ namespace GeographicLib.Tests
             Assert.AreEqual(dsin9, -dsin123456789);
         }
 
-#if CMATH_MANAGED
         [DataTestMethod]
         [DynamicData("Hypot", typeof(MathExTestData))]
         public void TestHypot(long x, long y, long expected)
@@ -83,7 +82,6 @@ namespace GeographicLib.Tests
         {
             Assert.AreEqual(BitConverter.Int64BitsToDouble(expected), MathEx.ScaleB(BitConverter.Int64BitsToDouble(x),n));
         }
-#endif
 #endif
     }
 }

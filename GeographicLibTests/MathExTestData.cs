@@ -1,5 +1,4 @@
-﻿#if CMATH_MANAGED
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -2756,4 +2755,3 @@ new object[]{-4503599627370497L,-40000,-9223372036854775808L},
 #endif
     }
 }
-#endif

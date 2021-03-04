@@ -1,9 +1,6 @@
-﻿#if CMATH_MANAGED
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,8 +9,9 @@ using static System.Math;
 
 namespace GeographicLib
 {
-    static partial class MathEx
+    class CMathManaged : CMath
     {
+
         /// <summary>
         /// Computes the remainder of two integer values, 
         /// and stores an integer value with the sign and approximate magnitude of the quotient in a location that's specified in a parameter.
@@ -24,7 +22,7 @@ namespace GeographicLib
         /// <returns>
         /// Returns the floating-point remainder of <paramref name="x"/> / <paramref name="y"/>.
         /// If the value of <paramref name="y"/> is 0.0, this method returns a quiet <see cref="double.NaN"/>.</returns>
-        public static double Remquo(double x, double y, out int quo)
+        public override double Remquo(double x, double y, out int quo)
         {
             Span<double>
                 u_f = stackalloc[] { x, y };
@@ -134,7 +132,7 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns>Hypotenuse of a right-angled triangle computed as √(x^2+y^2).</returns>
-        public static double Hypot(double x, double y)
+        public override double Hypot(double x, double y)
         {
             const double
                 // SPLIT = 4294967297, // (0x1p32 + 1)
@@ -215,7 +213,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static double Log1p(double x)
+        public override double Log1p(double x)
         {
             const double
                 ln2_hi = 6.93147180369123816490e-01,  /* 3fe62e42 fee00000 */
@@ -296,7 +294,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static double Expm1(double x)
+        public override double Expm1(double x)
         {
             const double
                 _0x1p1023 = 8.98846567431158E+307,
@@ -414,7 +412,7 @@ namespace GeographicLib
         /// <param name="x">A double-precision floating-point number that specifies the base value.</param>
         /// <param name="n">A 32-bit integer that specifies the power.</param>
         /// <returns>x * 2^n computed efficiently.</returns>
-        public static double ScaleB(double x, int n)
+        public override double ScaleB(double x, int n)
         {
             const double
                 _0x1p1023 = 8.98846567431158E+307, // 0x1p1023
@@ -465,7 +463,7 @@ namespace GeographicLib
         /// <param name="x">A number whose magnitude is used in the result.</param>
         /// <param name="y">A number whose sign is the used in the result.</param>
         /// <returns>A value with the magnitude of <paramref name="x"/> and the sign of <paramref name="y"/>.</returns>
-        public static double CopySign(double x, double y)
+        public override double CopySign(double x, double y)
         {
             Span<double>
                 u_f = stackalloc[] { x, y };
@@ -490,7 +488,7 @@ namespace GeographicLib
         /// An angle, θ, measured in radians, such that -∞ &lt; θ &lt; -1, or 1 &lt; θ &lt; ∞.
         /// -or- <see cref="double.NaN"/> if <paramref name="x"/> &lt; -1 or <paramref name="x"/> > 1 or <paramref name="x"/> equals <see cref="double.NaN"/>.
         /// </returns>
-        public static double Atanh(double x)
+        public override double Atanh(double x)
         {
             Span<double> u_f = stackalloc[] { x };
             var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
@@ -535,7 +533,7 @@ namespace GeographicLib
         /// An angle, θ, measured in radians, such that -∞ &lt; θ ≤ -1, or 1 ≤ θ &lt; ∞. -or- <see cref="double.NaN"/>
         /// if <paramref name="x"/> equals <see cref="double.NaN"/>.
         /// </returns>
-        public static double Asinh(double x)
+        public override double Asinh(double x)
         {
             Span<double> u_f = stackalloc[] { x };
             var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
@@ -575,7 +573,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">The number whose cube root is to be found.</param>
         /// <returns>The cube root of <paramref name="x"/>. -or- <see cref="double.NaN"/> if <paramref name="x"/> equals <see cref="double.NaN"/>.</returns>
-        public static double Cbrt(double x)
+        public override double Cbrt(double x)
         {
             const uint
             B1 = 715094163, /* B1 = (1023-1023/3-0.03306235651)*2**20 */
@@ -666,4 +664,3 @@ namespace GeographicLib
 #endif
     }
 }
-#endif
