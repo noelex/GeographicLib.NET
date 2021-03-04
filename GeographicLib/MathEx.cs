@@ -48,7 +48,7 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         /// <summary>
-        /// Gets or sets and value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
         /// other than system implementaions in C runtime library.
         /// </summary>
         /// <remarks>
@@ -67,7 +67,7 @@ namespace GeographicLib
         /// </remarks>
 #elif NETSTANDARD2_1
         /// <summary>
-        /// Gets or sets and value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
         /// other than system implementaions in C runtime library.
         /// </summary>
         /// <remarks>
@@ -83,7 +83,7 @@ namespace GeographicLib
         /// </remarks>
 #else
         /// <summary>
-        /// Gets or sets and value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
         /// other than system implementaions in C runtime library.
         /// </summary>
         /// <remarks>
