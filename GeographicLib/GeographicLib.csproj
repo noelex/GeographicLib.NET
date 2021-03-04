@@ -15,7 +15,7 @@
     <Company />
     <Description>A native .NET implementation of GeographicLib written in pure C#.</Description>
     <Copyright>Copyright (c) 2021 GeographicLib.NET contributors</Copyright>
-    <Version>1.51.0</Version>
+    <VersionPrefix>1.51.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">

@@ -32,11 +32,13 @@ namespace GeographicLib
         public abstract double Cbrt(double x);
 #endif
 
-        public static CMath Current { get; } = OperatingSystem.IsWindows() ? (CMath)new CMathWindows() : new CMathUnix();
+        public static CMath Current { get; } 
+            = OperatingSystem.IsWindows() ? 
+                new CMathWindows() : (OperatingSystem.IsMacOS() ? (CMath)new CMathOSX():new CMathLinux());
 
         private class CMathWindows : CMath
         {
-            private const string CRuntimeLibrary = "ucrtbase";
+            private const string CRuntimeLibrary = "ucrtbase.dll";
 
             [DllImport(CRuntimeLibrary)]
             public static extern double expm1(double x);
@@ -86,9 +88,61 @@ namespace GeographicLib
 #endif
         }
 
-        private class CMathUnix : CMath
+        private class CMathLinux : CMath
         {
             private const string CRuntimeLibrary = "libm.so.6";
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double expm1(double x);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double scalbn(double number, int exp);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double remquo(double x, double y, out int quo);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double hypot(double x, double y);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double log1p(double x);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double copysign(double x, double y);
+
+            public override double Expm1(double x) => expm1(x);
+
+            public override double ScaleB(double number, int exp) => scalbn(number, exp);
+
+            public override double Remquo(double x, double y, out int quo) => remquo(x, y, out quo);
+
+            public override double Hypot(double x, double y) => hypot(x, y);
+
+            public override double Log1p(double x) => log1p(x);
+
+            public override double CopySign(double x, double y) => copysign(x, y);
+
+#if NETSTANDARD2_0
+            [DllImport(CRuntimeLibrary)]
+            public static extern double atanh(double x);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double asinh(double x);
+
+            [DllImport(CRuntimeLibrary)]
+            public static extern double cbrt(double x);
+
+            public override double Atanh(double x) => atanh(x);
+
+            public override double Asinh(double x) => asinh(x);
+
+            public override double Cbrt(double x) => cbrt(x);
+#endif
+        }
+
+        private class CMathOSX : CMath
+        {
+            private const string CRuntimeLibrary = "libSystem.B.dylib";
 
             [DllImport(CRuntimeLibrary)]
             public static extern double expm1(double x);

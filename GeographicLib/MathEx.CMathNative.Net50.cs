@@ -18,15 +18,23 @@ namespace GeographicLib
             NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), (libraryName, assembly, searchPath) =>
             {
                 // Use urcrtbase.dll as C runtime library on Windows.
-                if (libraryName == "libc.so.6" || libraryName == "libm.so.6")
+                if (libraryName == "m")
                 {
                     if (OperatingSystem.IsWindows())
                     {
-                        return NativeLibrary.Load("ucrtbase", assembly, searchPath);
+                        return NativeLibrary.Load("ucrtbase.dll", assembly, searchPath);
+                    }
+                    else if (OperatingSystem.IsMacOS())
+                    {
+                        return NativeLibrary.Load("libSystem.B.dylib", assembly, searchPath);
+                    }
+                    else
+                    {
+                        return NativeLibrary.Load("libm.so.6", assembly, searchPath);
                     }
                 }
 
-                return NativeLibrary.Load(libraryName, assembly, searchPath);
+                return IntPtr.Zero;
             });
         }
 
@@ -35,7 +43,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        [DllImport("libm.so.6", EntryPoint = "expm1")]
+        [DllImport("m", EntryPoint = "expm1")]
         public static extern double Expm1(double x);
 
         /// <summary>
@@ -44,7 +52,7 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns>Hypotenuse of a right-angled triangle computed as √(x^2+y^2).</returns>
-        [DllImport("libm.so.6", EntryPoint = "hypot")]
+        [DllImport("m", EntryPoint = "hypot")]
         public static extern double Hypot(double x, double y);
 
         /// <summary>
@@ -52,7 +60,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        [DllImport("libm.so.6", EntryPoint = "log1p")]
+        [DllImport("m", EntryPoint = "log1p")]
         public static extern double Log1p(double x);
 
         /// <summary>
@@ -65,7 +73,7 @@ namespace GeographicLib
         /// <returns>
         /// Returns the floating-point remainder of <paramref name="x"/> / <paramref name="y"/>.
         /// If the value of <paramref name="y"/> is 0.0, this method returns a quiet <see cref="double.NaN"/>.</returns>
-        [DllImport("libm.so.6", EntryPoint = "remquo")]
+        [DllImport("m", EntryPoint = "remquo")]
         public static extern double Remquo(double x, double y, out int quo);
     }
 }
