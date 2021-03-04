@@ -83,5 +83,37 @@ namespace GeographicLib.Tests
             Assert.AreEqual(BitConverter.Int64BitsToDouble(expected), MathEx.ScaleB(BitConverter.Int64BitsToDouble(x),n));
         }
 #endif
+
+#if NETCOREAPP2_1
+        [DataTestMethod]
+        [DynamicData("Cbrt", typeof(MathExTestData))]
+        public void TestCbrt(long x, long expected)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Cbrt(BitConverter.Int64BitsToDouble(x)));
+            var delta = Math.Abs(expected - result);
+            if (delta > 1) Assert.Fail($"result={result}, expected={expected}, delta={delta}");
+            else Assert.IsTrue(true);
+        }
+
+        [DataTestMethod]
+        [DynamicData("Atanh", typeof(MathExTestData))]
+        public void TestAtanh(long x, long expected)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Atanh(BitConverter.Int64BitsToDouble(x)));
+            var delta = Math.Abs(expected - result);
+            if (delta > 2) Assert.Fail($"result={result}, expected={expected}, delta={delta}");
+            else Assert.IsTrue(true);
+        }
+
+        [DataTestMethod]
+        [DynamicData("Asinh", typeof(MathExTestData))]
+        public void TestAsinh(long x, long expected)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Asinh(BitConverter.Int64BitsToDouble(x)));
+            var delta = Math.Abs(expected - result);
+            if (delta > 1) Assert.Fail($"result={result}, expected={expected}, delta={delta}");
+            else Assert.IsTrue(true);
+        }
+#endif
     }
 }
