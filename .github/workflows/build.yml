@@ -57,7 +57,7 @@ jobs:
         format: YYYYMMDDHHmmss
     
     - name: PublishNightly
-      if: ${BRANCH_NAME} == 'develop' && runner.os == 'ubuntu-latest' && steps.test.conclusion == 'success'
+      if: env.BRANCH_NAME == 'develop' && runner.os == 'ubuntu-latest' && steps.test.conclusion == 'success'
       env:
         VERSION: "nightly.${{ steps.currentTime.outputs.time }}"
         API_KEY: "${{ secrets.NUGET_API_KEY }}"
