@@ -11,15 +11,17 @@ namespace GeographicLib.Tests
     [TestClass]
     public class TransverseMercatorTests
     {
+        private const double tolerance = 1e-8;
+
         [DataTestMethod]
         [DynamicData("Data", typeof(TransverseMercatorTestData))]
         public void TestForward(double lat, double lon, double x, double y, double gamma, double k)
         {
             var (_x, _y) = TransverseMercator.UTM.Forward(0, lat, lon, out var _gamma, out var _k);
-            Assert.AreEqual(x, _x, TransverseMercatorTestData.Tolerance);
-            Assert.AreEqual(y, _y, TransverseMercatorTestData.Tolerance);
-            Assert.AreEqual(gamma, _gamma, TransverseMercatorTestData.Tolerance);
-            Assert.AreEqual(k, _k, TransverseMercatorTestData.Tolerance);
+            Assert.AreEqual(x, _x, tolerance);
+            Assert.AreEqual(y, _y, tolerance);
+            Assert.AreEqual(gamma, _gamma, tolerance);
+            Assert.AreEqual(k, _k, tolerance);
         }
 
         //[DataTestMethod]
@@ -27,10 +29,10 @@ namespace GeographicLib.Tests
         //public void TestReverse(double lat, double lon, double x, double y, double gamma, double k)
         //{
         //    var (_lat, _lon) = TransverseMercator.UTM.Reverse(0, x, y, out var _gamma, out var _k);
-        //    Assert.AreEqual(lat, _lat, TransverseMercatorTestData.ToleranceReverse);
-        //    Assert.AreEqual(lon, _lon, TransverseMercatorTestData.ToleranceReverse);
-        //    Assert.AreEqual(gamma, _gamma, TransverseMercatorTestData.ToleranceReverse);
-        //    Assert.AreEqual(k, _k, TransverseMercatorTestData.ToleranceReverse);
+        //    Assert.AreEqual(lat, _lat, tolerance);
+        //    Assert.AreEqual(lon, _lon, tolerance);
+        //    Assert.AreEqual(gamma, _gamma, 1e-8);
+        //    Assert.AreEqual(k, _k, tolerance);
         //}
     }
 }

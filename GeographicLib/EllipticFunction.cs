@@ -13,7 +13,7 @@ namespace GeographicLib
     /// </summary>
     /// <remarks>
     /// This class provides the elliptic functions and integrals needed for <see cref="Ellipsoid"/>,
-    /// <see cref="GeodesicExact"/>, and <see cref="Projections.TransverseMercatorExact"/>. Two categories of function
+    /// <see cref="GeodesicExact"/>, and <see cref="TransverseMercatorExact"/>. Two categories of function
     /// are provided:
     /// <list type="bullet">
     /// <item>static functions to compute symmetric elliptic integrals(https://dlmf.nist.gov/19.16.i)</item>

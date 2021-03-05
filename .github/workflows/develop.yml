@@ -1,8 +1,6 @@
 name: develop
 
 on:
-  workflow_dispatch:
-    branches: [ develop ]
   push:
     branches: [ develop ]
     paths:
@@ -60,7 +58,7 @@ jobs:
         format: YYYYMMDDHHmmss
     
     - name: Publish NugGet Package (Nightly Build)
-      if: runner.os == 'Linux' && steps.test.conclusion == 'success' 
+      if: runner.os == 'ubuntu-latest' && steps.test.conclusion == 'success' 
       env:
         VERSION: "nightly.${{ steps.currentTime.outputs.time }}"
         API_KEY: "${{ secrets.NUGET_API_KEY }}"

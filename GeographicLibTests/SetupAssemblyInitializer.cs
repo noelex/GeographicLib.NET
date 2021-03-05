@@ -23,7 +23,7 @@ namespace GeographicLib.Tests
                 MathEx.UseManagedCMath = true;
             }
 
-            context.WriteLine($"Executing tests with {(MathEx.UseManagedCMath ? "managed" : "native")} C mathematical functions.");
+            context.WriteLine($"Executing tests with {(MathEx.UseManagedCMath ? "managed" : "native")} C math functions.");
         }
     }
 }
