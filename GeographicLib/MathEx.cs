@@ -46,6 +46,11 @@ namespace GeographicLib
         /// </summary>
         internal const int DBL_MANT_DIG = 53;
 
+        /// <summary>
+        /// # of decimal digits of precision
+        /// </summary>
+        internal const int DBL_DIG = 10;
+
 #if NETSTANDARD2_0
         /// <summary>
         /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
