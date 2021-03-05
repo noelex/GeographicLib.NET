@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: Creating nightly builds on ${{ matrix.os }}
+    name: Nightly build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
