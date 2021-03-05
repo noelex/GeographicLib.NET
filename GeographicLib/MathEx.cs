@@ -48,12 +48,12 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         /// <summary>
-        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
-        /// other than system implementaions in C runtime library.
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
+        /// when there's no corresponding implementation provided by .NET runtime.
         /// </summary>
         /// <remarks>
         /// The following functions have managed implementation:
-        /// <list type="table">
+        /// <list type="bullet">
         /// <item><see cref="Atanh(double)"/></item>
         /// <item><see cref="Asinh(double)"/></item>
         /// <item><see cref="Cbrt(double)"/></item>
@@ -64,15 +64,19 @@ namespace GeographicLib
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
         /// </list>
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementation when the above functions are called.
+        /// <para>
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use system native implementation when the above functions are called.
+        /// </para>
         /// </remarks>
 #elif NETSTANDARD2_1
         /// <summary>
-        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
-        /// other than system implementaions in C runtime library.
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
+        /// when there's no corresponding implementation provided by .NET runtime.
         /// </summary>
         /// <remarks>
         /// The following functions have managed implementation:
-        /// <list type="table">
+        /// <list type="bullet">
         /// <item><see cref="ScaleB(double, int)"/></item>
         /// <item><see cref="CopySign(double, double)"/></item>
         /// <item><see cref="Expm1(double)"/></item>
@@ -80,20 +84,28 @@ namespace GeographicLib
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
         /// </list>
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementation when the above functions are called.
+        /// <para>
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use system native implementation when the above functions are called.
+        /// </para>
         /// </remarks>
 #else
         /// <summary>
-        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematics functions
-        /// other than system implementaions in C runtime library.
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
+        /// when there's no corresponding implementation provided by .NET runtime.
         /// </summary>
         /// <remarks>
         /// The following functions have managed implementation:
-        /// <list type="table">
+        /// <list type="bullet">
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
         /// </list>
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementation when the above functions are called.
+        /// <para>
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use system native implementation when the above functions are called.
+        /// </para>
         /// </remarks>
 #endif
         public static bool UseManagedCMath { get => CMath.UseManagedImplementation; set => CMath.UseManagedImplementation = value; }
@@ -246,6 +258,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Sq(double x) => x * x;
 
         /// <summary>
