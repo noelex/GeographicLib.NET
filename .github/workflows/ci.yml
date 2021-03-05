@@ -2,6 +2,7 @@ name: ci
 
 on:
   workflow_dispatch:
+    branches: [ feature/* ]
   push:
     branches: [ feature/* ]
     paths:
