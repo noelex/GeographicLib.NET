@@ -51,19 +51,12 @@ jobs:
         dotnet test -c Release --no-build --verbosity normal -- cmath:managed
         dotnet test -c Release --no-build --verbosity normal -- cmath:native
       
-    - name: Get Build Number
-      uses: nanzm/get-time-action@v1.1
-      id: currentTime
-      with:
-        format: YYYYMMDDHHmmss
-    
     - name: Publish NugGet Package (Nightly Build)
       if: runner.os == 'Linux' && steps.test.conclusion == 'success' 
       env:
-        VERSION: "nightly.${{ steps.currentTime.outputs.time }}"
         API_KEY: "${{ secrets.NUGET_API_KEY }}"
       run: |
-        dotnet pack -c Release --version-suffix "$VERSION"
+        dotnet pack -c Release --version-suffix "nightly.$(date +%Y%m%d%H%M%S)"
         cd ./GeographicLib/bin/Release/
         dotnet nuget push -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate *.nupkg
       
