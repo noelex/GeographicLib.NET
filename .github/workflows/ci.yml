@@ -9,6 +9,8 @@ on:
       - 'GeographicLib/**'
       - 'GeographicLibTests/**'
       - 'GeographicLib.NET.sln'
+  pull_request:
+    branches: [ master, develop ]
 
 jobs:
   build:
