@@ -1,22 +1,22 @@
 name: develop
 
 on:
+  workflow_dispatch:
+    branches: [ develop ]
   push:
     branches: [ develop ]
     paths:
       - 'GeographicLib/**'
       - 'GeographicLibTests/**'
       - 'GeographicLib.NET.sln'
-  pull_request:
-    branches: [ develop ]
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: Nightly build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -47,21 +47,14 @@ jobs:
       
     - name: Test
       id: test
-      run: dotnet test -c Release --no-build --verbosity normal
+      run:
+        dotnet test -c Release --no-build --verbosity normal
       
-    - name: Get Build Number
-      uses: 1466587594/get-current-time@v2
-      id: currentTime
-      with:
-        format: YYYYMMDDHHmmss
-    
-    - name: Publish NugGet Package (Nightly Build)
-      if: runner.os == 'ubuntu-latest' && steps.test.conclusion == 'success' 
+    - name: Publish NugGet Package
       env:
-        VERSION: "nightly.${{ steps.currentTime.outputs.time }}"
         API_KEY: "${{ secrets.NUGET_API_KEY }}"
       run: |
-        dotnet pack -c Release --version-suffix "$VERSION"
+        dotnet pack -c Release --no-build --version-suffix "nightly.$(date +%Y%m%d%H%M%S)"
         cd ./GeographicLib/bin/Release/
         dotnet nuget push -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate *.nupkg
       
