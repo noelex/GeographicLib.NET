@@ -1,6 +1,8 @@
 name: master
 
 on:
+  workflow_dispatch:
+    branches: [ master ]
   push:
     branches: [ master ]
     paths:
@@ -10,7 +12,8 @@ on:
 
 jobs:
   build:
-    name: Stable build on ${{ matrix.os }}
+    name: Release on ${{ matrix.os }}
+    environment: Release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

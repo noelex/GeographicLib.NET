@@ -12,7 +12,8 @@ on:
 
 jobs:
   build:
-    name: Nightly build on ${{ matrix.os }}
+    name: Pre-release on ${{ matrix.os }}
+    environment: Pre-release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -56,5 +57,5 @@ jobs:
       run: |
         dotnet pack -c Release --no-build --version-suffix "nightly.$(date +%Y%m%d%H%M%S)"
         cd ./GeographicLib/bin/Release/
-        dotnet nuget push -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate *.nupkg
+        dotnet nuget push *.nupkg -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
       
