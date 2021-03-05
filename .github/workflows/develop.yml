@@ -12,11 +12,11 @@ on:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: Creating nightly builds on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -47,16 +47,14 @@ jobs:
       
     - name: Test
       id: test
-      run: |
-        dotnet test -c Release --no-build --verbosity normal -- cmath:managed
-        dotnet test -c Release --no-build --verbosity normal -- cmath:native
+      run:
+        dotnet test -c Release --no-build --verbosity normal
       
-    - name: Publish NugGet Package (Nightly Build)
-      if: runner.os == 'Linux' && steps.test.conclusion == 'success' 
+    - name: Publish NugGet Package
       env:
         API_KEY: "${{ secrets.NUGET_API_KEY }}"
       run: |
-        dotnet pack -c Release --version-suffix "nightly.$(date +%Y%m%d%H%M%S)"
+        dotnet pack -c Release --no-build --version-suffix "nightly.$(date +%Y%m%d%H%M%S)"
         cd ./GeographicLib/bin/Release/
         dotnet nuget push -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate *.nupkg
       
