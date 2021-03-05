@@ -52,7 +52,7 @@ jobs:
         dotnet test -c Release --no-build --verbosity normal -- cmath:native
       
     - name: Get Build Number
-      uses: 1466587594/get-current-time@v2
+      uses: nanzm/get-time-action@v1.1
       id: currentTime
       with:
         format: YYYYMMDDHHmmss
@@ -60,7 +60,7 @@ jobs:
     - name: Publish NugGet Package (Nightly Build)
       if: runner.os == 'Linux' && steps.test.conclusion == 'success' 
       env:
-        VERSION: "nightly.${{ steps.currentTime.outputs.formattedTime }}"
+        VERSION: "nightly.${{ steps.currentTime.outputs.time }}"
         API_KEY: "${{ secrets.NUGET_API_KEY }}"
       run: |
         dotnet pack -c Release --version-suffix "$VERSION"
