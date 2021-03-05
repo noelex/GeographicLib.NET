@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  workflow_dispatch:
+    branches: [ feature/* ]
+  push:
+    branches: [ feature/* ]
+    paths:
+      - 'GeographicLib/**'
+      - 'GeographicLibTests/**'
+      - 'GeographicLib.NET.sln'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET 5.0
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+
+    - name: Setup .NET Core 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+        
+    - name: Setup .NET Core 2.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.1.x
+        
+    - name: Clean
+      run: dotnet nuget locals all --clear
+
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build -c Release --no-restore
+      
+    - name: Test
+      id: test
+      run: |
+        dotnet test -c Release --no-build --verbosity normal -- cmath=managed
+        dotnet test -c Release --no-build --verbosity normal -- cmath=native
+      
