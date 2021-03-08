@@ -6,10 +6,24 @@ using System.Threading.Tasks;
 
 namespace GeographicLib
 {
+    /// <summary>
+    /// Indicator for trailing units on an angle.
+    /// </summary>
     public enum TrailingUnit
     {
-        Degree=0,
-        Minute=1,
-        Second=2
+        /// <summary>
+        /// Trailing unit is degrees.
+        /// </summary>
+        Degree = 0,
+
+        /// <summary>
+        /// Trailing unit is arc minutes.
+        /// </summary>
+        Minute = 1,
+
+        /// <summary>
+        /// Trailing unit is arc seconds.
+        /// </summary>
+        Second = 2
     }
 }

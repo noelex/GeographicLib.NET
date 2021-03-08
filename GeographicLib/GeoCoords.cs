@@ -89,7 +89,7 @@ namespace GeographicLib
         /// degrees, minutes, seconds, etc. Use d, ', and " to mark off the degrees, minutes and seconds.
         /// Various alternative symbols for degrees, minutes, and seconds are allowed.
         /// Alternatively, use : to separate these components. A single addition or subtraction is allowed.
-        /// (See <see cref="DMS.Decode"/> for details.) Thus
+        /// (See <see cref="DMS.Decode(string)"/> for details.) Thus
         /// <code>
         /// 40d30'30", 40d30'30, 40°30'30, 40d30.5', 40d30.5, 40:30:30, 40:30.5, 40.508333333, 40:30+0:0:30, 40:31-0:0.5
         /// </code>
@@ -265,32 +265,21 @@ namespace GeographicLib
         /// <param name="longfirst">governs the interpretation of geographic coordinates.</param>
         public void Reset(string s, bool centerp = true, bool longfirst = false)
         {
-            var sa = new List<string>();
-            const string spaces = " \t\n\v\f\r,"; // Include comma as a space
+            var sa = s.Split(" \t\n\v\f\r,".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
-            for (int pos0 = 0, pos1; pos0 != -1;)
-            {
-                pos1 = s.FindFirstNotOf(spaces, pos0);
-                if (pos1 == -1)
-                    break;
-                pos0 = s.IndexOf(spaces, pos1);
-                sa.Add(s.Substring(pos1, pos0 == -1 ? pos0 : pos0 - pos1));
-            }
-            if (sa.Count == 1)
+            if (sa.Length == 1)
             {
                 int prec;
                 (_zone, _northp, _easting, _northing, prec) = MGRS.Reverse(sa[0].AsSpan(), centerp);
                 (_lat, _long) = UTMUPS.Reverse(_zone, _northp, _easting, _northing, out _gamma, out _k);
             }
-            else if (sa.Count == 2)
+            else if (sa.Length == 2)
             {
-                throw new NotSupportedException("DMS string input is not supported yet.");
-                //DMS::DecodeLatLon(sa[0], sa[1], _lat, _long, longfirst);
-                //_long = Math::AngNormalize(_long);
-                //UTMUPS::Forward(_lat, _long,
-                //                 _zone, _northp, _easting, _northing, _gamma, _k);
+                (_lat, _long) = DMS.Decode(sa[0], sa[1], longfirst);
+                _long = AngNormalize(_long);
+                (_zone, _northp, _easting, _northing) = UTMUPS.Forward(_lat, _long , out _gamma, out _k);
             }
-            else if (sa.Count == 3)
+            else if (sa.Length == 3)
             {
                 int zoneind, coordind;
                 if (sa[0].Length > 0 && char.IsLetter(sa[0][sa[0].Length - 1]))
@@ -409,7 +398,13 @@ namespace GeographicLib
         /// </list>
         /// </remarks>
         public string ToDMSString(int prec = 0, bool longfirst = false, char dmssep = '\0')
-            => throw new NotImplementedException();
+        {
+            prec = Max(0, Min(10 + 0, prec) + 5);
+            return DMS.Encode(longfirst ? _long : _lat, prec,
+                               longfirst ? HemisphereIndicator.Longitude : HemisphereIndicator.Latitude, dmssep) +
+              " " + DMS.Encode(longfirst ? _lat : _long, prec,
+                               longfirst ? HemisphereIndicator.Latitude : HemisphereIndicator.Longitude, dmssep);
+        }
 
         /// <summary>
         /// Gets <see cref="MGRS"/> string of the coordinate.

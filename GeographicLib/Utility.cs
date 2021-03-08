@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -20,6 +21,10 @@ namespace GeographicLib
                 typeof(T) == typeof(ulong);
         }
 
+#if NETSTANDARD2_0
+        public static int IndexOf(this string str, char c, StringComparison stringComparison)
+            => str.IndexOf(c.ToString(), stringComparison);
+#endif
         /// <summary>
         /// Swap byte order of elements in the specified array.
         /// </summary>
@@ -62,6 +67,8 @@ namespace GeographicLib
 
             return x;
         }
+
+        public static double NumMatch(this string s) => s.AsSpan().NumMatch();
 
         public static double NumMatch(this ReadOnlySpan<char> s)
         {
