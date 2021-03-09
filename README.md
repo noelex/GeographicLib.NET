@@ -9,7 +9,7 @@ GeographicLib.NET is a native .NET implementation of [GeographicLib](https://sou
 
 Unlike the original NETGeographicLib, GeographicLib.NET is implemented in pure C# without binding the original C++ GeograpbicLib library by using C++/CLI or P/Invoke, thus achieves higher level of portability.
 
-You should be able to use GeographicLib.NET with any target framework and platform that supports .NET Standard 2.0.
+You should be able to use GeographicLib.NET with any target framework and platform that supports .NET Standard 2.0 or above.
 
 ## Features
 Currently GeographicLib.NET has ported a few features such as Ellipsoid, Geodesic and various projection classes. More features will be ported and the ultimate goal is to implement all features provided by GeographicLib. 
@@ -20,10 +20,10 @@ Here's a simple list of what features are implemented and planned.
  - [x] Geodesic and GeodesicLine
  - [x] Projections
  - [x] Spherical harmonic series
- - [x] 'Exact' version of Geodesic, GeodesicLine and TransverseMercator projection
+ - [x] 'Exact' version of Geodesic, GeodesicLine and TransverseMercator
  - [x] Coordinate conversions
  - [ ] PolygonArea
- - [ ] Rhumb
+ - [x] Rhumb
  - [ ] Geoid
  - [ ] GravityModel
  - [x] MagneticModel
@@ -67,6 +67,17 @@ These functions provide better performance, but may produce completely different
 
 GeographicLib.NET fallbacks to managed implemtations by default to ensure compatibility between different platforms.
 You can tell GeographicLib.NET to fallback to native implemetations by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
+
+While using managed C mathematical functions improves the consistency of the computations run on different platforms.
+Various factors may still affect the consistency of the result and incur significant error due to floating-point error propagation, these factors include:
+ - Different bitness of the host application may use different instruction set
+ - Different CPU may have different instruction implementation
+ - Different version of JIT may opimize JITed code differently causing different floating-point behavior
+ - Different version of .NET runtime may have different implementation of mathematical functions
+ - Different C runtime library may implement mathematical functions differently
+
+This may cause GeographicLib.NET fail to achieve the desired accuracy guarenteed by GeographicLib.
+Tests are conducted with a higher tolerance to ensure they can pass on different platforms.
 
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
