@@ -22,6 +22,7 @@ namespace GeographicLib.Tests
 
         [DataTestMethod]
         [DataRow(33.3, 44.4, "33d18'00.0\"N 044d24'00.0\"E")]
+        [DataRow(33.3, 44.4, "33°18'00.0\"N 044°24'00.0\"E")]
         [DataRow(0.0, 123.456, "00d00'00.0\"N 123d27'21.6\"E")]
         public void TestDecode(double lat, double lon, string dms)
         {

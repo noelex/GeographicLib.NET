@@ -717,11 +717,14 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// generate symmetric integral of the first kind <i>Rc</i>.
+        /// Degenerate symmetric integral of the first kind <i>Rc</i>.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <returns><i>Rc</i> is defined in <a href="https://dlmf.nist.gov/19.16.E17"/>.</returns>
+        /// <returns><i>Rc</i>(x, y) = <i>Rf</i>(<i>x</i>, <i>y</i>, <i>y</i>).</returns>
+        /// <remarks>
+        /// <i>Rc</i> is defined in <a href="https://dlmf.nist.gov/19.16.E17"/>.
+        /// </remarks>
         public static double RC(double x, double y) =>
             // Defined only for y != 0 and x >= 0.
             (!(x >= y) ?   // x < y  and catch nans

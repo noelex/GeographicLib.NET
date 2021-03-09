@@ -510,7 +510,7 @@ namespace GeographicLib
 
             if (IsFinite(easting))
             {
-                os.Append(" ");
+                os.Append(' ');
                 os.Append((easting / scale).ToFixedString(Max(0, prec)));
                 if (prec < 0 && Abs(easting / scale) > 0.5)
                     os.Append("0".PadLeft(-prec, '0'));
@@ -520,6 +520,7 @@ namespace GeographicLib
 
             if (IsFinite(northing))
             {
+                os.Append(' ');
                 os.Append((northing / scale).ToFixedString(Max(0, prec)));
                 if (prec < 0 && Abs(northing / scale) > 0.5)
                     os.Append("0".PadLeft(-prec, '0'));
