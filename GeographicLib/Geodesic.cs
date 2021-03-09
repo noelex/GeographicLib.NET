@@ -183,6 +183,9 @@ namespace GeographicLib
         /// <inheritdoc/>
         public override double Flattening => _f;
 
+        /// <inheritdoc/>
+        public override double EllipsoidArea => 4 * PI * _c2;
+
         /// <summary>
         /// Constructor for a ellipsoid with equatorial radius and its flattening.
         /// </summary>

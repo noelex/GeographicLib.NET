@@ -37,7 +37,7 @@ namespace GeographicLib.Projections
         private readonly double _a, _f, _k0, _e2, _es, _e2m, _c, _n;
         private readonly double _a1, _b1;
 
-        private readonly Memory<double> _alp = new double[_maxpow + 1], _bet = new double[_maxpow + 1];
+        internal readonly Memory<double> _alp = new double[_maxpow + 1], _bet = new double[_maxpow + 1];
 
         static TransverseMercator()
         {
