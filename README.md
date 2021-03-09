@@ -20,16 +20,15 @@ Here's a simple list of what features are implemented and planned.
  - [x] Geodesic and GeodesicLine
  - [x] Projections
  - [x] Spherical harmonic series
- - [ ] 'Exact' version of Geodesic, GeodesicLine and TransverseMercator projection
- - [ ] Coordinate conversions
+ - [x] 'Exact' version of Geodesic, GeodesicLine and TransverseMercator projection
+ - [x] Coordinate conversions
  - [ ] PolygonArea
  - [ ] Rhumb
  - [ ] Geoid
  - [ ] GravityModel
  - [x] MagneticModel
  - [x] Geocode conversions
- - [ ] DMS parser
- - [ ] Utility programs
+ - [x] DMS encoding/decoding
  - [ ] More tests
 
 Geodesic and GeodesicLine have been tested with the [test set for geodesic](https://zenodo.org/record/32156#.YCFzsFBLQ_0).
@@ -46,6 +45,28 @@ You can install them using the following command:
 ```
 dotnet add package GeographicLib.NET --prerelease
 ```
+
+## Mathematical Functions
+GeographicLib uses several C mathematical functions that are not present in or not available in all versions of .NET. These functions are:
+ - remquo
+ - hypot
+ - log1p
+ - expm1
+ - scalbn (available since .NET 5.0)
+ - copysign (available since .NET 5.0)
+ - atanh (available since .NET Standard 2.1)
+ - asinh (available since .NET Standard 2.1)
+ - cbrt (available since .NET Standard 2.1)
+
+GeographicLib.NET provides managed implemetations of these functions (ported from musl libc).
+
+`GeographicLib.MathEx` class will use implemetations provided by .NET runtime whenenver possible, and will fallback to use managed implemetations when not available in .NET runtime. 
+
+You can also force `GeographicLib.MathEx` to fallback to native implemations provided by system C runtime libraries, rather than managed implementaions.
+These functions provide better performance, but may produce completely different results in some edge cases.
+
+GeographicLib.NET fallbacks to managed implemtations by default to ensure compatibility between different platforms.
+You can tell GeographicLib.NET to fallback to native implemetations by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
 
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
