@@ -97,30 +97,19 @@ namespace GeographicLib
         public Geocentric(IEllipsoid ellipsoid) : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening) { }
 
         /// <summary>
-        /// Convert from geodetic to geocentric coordinates.
-        /// </summary>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="h">height of point above the ellipsoid (meters).</param>
-        /// <param name="X"><i>x</i> component of geocentric coordinate (meters).</param>
-        /// <param name="Y"><i>y</i> component of geocentric coordinate (meters).</param>
-        /// <param name="Z"><i>z</i> component of geocentric coordinate (meters).</param>
-        /// <remarks>
-        /// <paramref name="lat"/> should be in the range [−90°, 90°].
-        /// </remarks>
-        public void Forward(double lat, double lon, double h, out double X, out double Y, out double Z)
-            => IntForward(lat, lon, h, out X, out Y, out Z, null);
-
-        /// <summary>
         /// Convert from geodetic to geocentric coordinates and return rotation matrix.
         /// </summary>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="h">height of point above the ellipsoid (meters).</param>
-        /// <param name="X"><i>x</i> component of geocentric coordinate (meters).</param>
-        /// <param name="Y"><i>y</i> component of geocentric coordinate (meters).</param>
-        /// <param name="Z"><i>z</i> component of geocentric coordinate (meters).</param>
         /// <param name="M">if the length of the vector is 9, fill with the rotation matrix in row-major order.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>X</i>, <i>x</i> component of geocentric coordinate (meters).</item>
+        /// <item><i>Y</i>, <i>y</i> component of geocentric coordinate (meters).</item>
+        /// <item><i>Z</i>, <i>z</i> component of geocentric coordinate (meters).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// Let <i>v</i> be a unit vector located at (<i>lat</i>, <i>lon</i>, <i>h</i>).
         /// We can express <i>v</i> as column vectors in one of two ways
@@ -137,40 +126,23 @@ namespace GeographicLib
         /// Then we have <i>v0</i> = <i>M</i> ⋅ <i>v1</i>.
         /// </para>
         /// </remarks>
-        public void Forward(double lat, double lon, double h, out double X, out double Y, out double Z, Span<double> M)
-            => IntForward(lat, lon, h, out X, out Y, out Z, M.Length == dim2_ ? M : null);
+        public (double X, double Y, double Z) Forward(double lat, double lon, double h, Span<double> M = default)
+            => IntForward(lat, lon, h, M.Length == dim2_ ? M : default);
 
         /// <summary>
         /// Convert from geocentric to geodetic to coordinates.
         /// </summary>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="h">height of point above the ellipsoid (meters).</param>
-        /// <param name="X"><i>x</i> component of geocentric coordinate (meters).</param>
-        /// <param name="Y"><i>y</i> component of geocentric coordinate (meters).</param>
-        /// <param name="Z"><i>z</i> component of geocentric coordinate (meters).</param>
-        /// <remarks>
-        /// In general, there are multiple solutions and the result which minimizes |<i>h</i>|is returned, 
-        /// i.e., (<i>lat</i>, <i>lon</i>) corresponds to the closest point on the ellipsoid.
-        /// If there are still multiple solutions with different latitudes (applies only if <i>Z</i> = 0), 
-        /// then the solution with <i>lat</i> > 0 is returned.
-        /// If there are still multiple solutions with different longitudes (applies only if <i>X</i> = <i>Y</i> = 0)
-        /// then <i>lon</i> = <c>0</c> is returned. The value of h returned satisfies <i>h</i> ≥ − <i>a</i> (1 − <i>e</i>^2) / sqrt(1 − <i>e</i>^2 sin^2<i>lat</i>).
-        /// The value of lon returned is in the range [−180°, 180°].
-        /// </remarks>
-        public void Reverse(double X, double Y, double Z, out double lat, out double lon, out double h)
-            => IntReverse(X, Y, Z, out lat, out lon, out h, null);
-
-        /// <summary>
-        /// Convert from geocentric to geodetic to coordinates.
-        /// </summary>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="h">height of point above the ellipsoid (meters).</param>
         /// <param name="X"><i>x</i> component of geocentric coordinate (meters).</param>
         /// <param name="Y"><i>y</i> component of geocentric coordinate (meters).</param>
         /// <param name="Z"><i>z</i> component of geocentric coordinate (meters).</param>
         /// <param name="M"> the length of the vector is 9, fill with the rotation matrix in row-major order.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>X</i>, <i>x</i> component of geocentric coordinate (meters).</item>
+        /// <item><i>Y</i>, <i>y</i> component of geocentric coordinate (meters).</item>
+        /// <item><i>Z</i>, <i>z</i> component of geocentric coordinate (meters).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// Let <i>v</i> be a unit vector located at (<i>lat</i>, <i>lon</i>, <i>h</i>).
         /// We can express <i>v</i> as column vectors in one of two ways
@@ -186,9 +158,18 @@ namespace GeographicLib
         /// <para>
         /// Then we have <i>v1</i> = <i>M</i>^T ⋅ <i>v0</i>, where <i>M</i>^T is the transpose of <i>M</i>.
         /// </para>
+        /// <para>
+        /// In general, there are multiple solutions and the result which minimizes |<i>h</i>|is returned, 
+        /// i.e., (<i>lat</i>, <i>lon</i>) corresponds to the closest point on the ellipsoid.
+        /// If there are still multiple solutions with different latitudes (applies only if <i>Z</i> = 0), 
+        /// then the solution with <i>lat</i> > 0 is returned.
+        /// If there are still multiple solutions with different longitudes (applies only if <i>X</i> = <i>Y</i> = 0)
+        /// then <i>lon</i> = <c>0</c> is returned. The value of h returned satisfies <i>h</i> ≥ − <i>a</i> (1 − <i>e</i>^2) / sqrt(1 − <i>e</i>^2 sin^2<i>lat</i>).
+        /// The value of lon returned is in the range [−180°, 180°].
+        /// </para>
         /// </remarks>
-        public void Reverse(double X, double Y, double Z, out double lat, out double lon, out double h, Span<double> M)
-            => IntReverse(X, Y, Z, out lat, out lon, out h, M.Length == dim2_ ? M : null);
+        public (double lat, double lon, double h) Reverse(double X, double Y, double Z, Span<double> M=default)
+            => IntReverse(X, Y, Z, M.Length == dim2_ ? M : default);
 
         /// <summary>
         /// Perform [X,Y,Z]^t = M.[x,y,z]^t (typically local cartesian to geocentric)
@@ -251,26 +232,28 @@ namespace GeographicLib
             M[2] = clam * cphi; M[5] = slam * cphi; M[8] = sphi;
         }
 
-        internal void IntForward(double lat, double lon, double h, out double X, out double Y, out double Z, Span<double> M)
+        internal (double X, double Y, double Z) IntForward(double lat, double lon, double h, Span<double> M)
         {
             SinCosd(LatFix(lat), out var sphi, out var cphi);
             SinCosd(lon, out var slam, out var clam);
             var n = _a / Sqrt(1 - _e2 * Sq(sphi));
-            Z = (_e2m * n + h) * sphi;
-            X = (n + h) * cphi;
-            Y = X * slam;
+            var Z = (_e2m * n + h) * sphi;
+            var X = (n + h) * cphi;
+            var Y = X * slam;
             X *= clam;
 
-            if (M!=null) Rotation(sphi, cphi, slam, clam, M);
+            if (M != default) Rotation(sphi, cphi, slam, clam, M);
+
+            return (X, Y, Z);
         }
 
-        internal void IntReverse(double X, double Y, double Z, out double lat, out double lon, out double h, Span<double> M)
+        internal (double lat, double lon, double h) IntReverse(double X, double Y, double Z, Span<double> M)
         {
             double
               R = Hypot(X, Y),
               slam = R != 0 ? Y / R : 0,
               clam = R != 0 ? X / R : 1;
-            h = Hypot(R, Z);      // Distance to center of earth
+            var h = Hypot(R, Z);      // Distance to center of earth
             double sphi, cphi;
             if (h > _maxrad)
             {
@@ -372,10 +355,12 @@ namespace GeographicLib
                     h = -_a * (_f >= 0 ? _e2m : 1) * H / _e2a;
                 }
             }
-            lat = Atan2d(sphi, cphi);
-            lon = Atan2d(slam, clam);
+            var lat = Atan2d(sphi, cphi);
+            var lon = Atan2d(slam, clam);
 
             if (M != null) Rotation(sphi, cphi, slam, clam, M);
+
+            return (lat, lon, h);
         }
 
         /// <summary>
