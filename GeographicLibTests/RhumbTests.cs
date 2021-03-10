@@ -44,11 +44,7 @@ namespace GeographicLib.Tests
             Assert.AreEqual(c2.Latitude, _lat2, 1e-8);
             Assert.AreEqual(c2.Longitude, _lon2, 1e-8);
 
-#if NETCOREAPP2_1
             Assert.AreEqual(S12, _S12, 0.01);
-#else
-            Assert.AreEqual(S12, _S12, 0.001);
-#endif
         }
     }
 }
