@@ -82,6 +82,18 @@ namespace GeographicLib.Tests
         {
             Assert.AreEqual(BitConverter.Int64BitsToDouble(expected), MathEx.ScaleB(BitConverter.Int64BitsToDouble(x),n));
         }
+
+        [DataTestMethod]
+        [DynamicData("FusedMultiplyAdd", typeof(MathExTestData))]
+        public void TestFusedMultiplyAdd(long x, long y,long z, long expected)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.FusedMultiplyAdd(
+                BitConverter.Int64BitsToDouble(x), BitConverter.Int64BitsToDouble(y), BitConverter.Int64BitsToDouble(z)));
+            var delta = Math.Abs(expected - result);
+
+            if (delta > 1) Assert.Fail($"result={result}, expected={expected}, delta={delta}");
+            else Assert.IsTrue(true);
+        }
 #endif
 
 #if NETCOREAPP2_1

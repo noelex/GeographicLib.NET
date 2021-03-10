@@ -11,7 +11,6 @@ namespace GeographicLib
 {
     class CMathManaged : CMath
     {
-
         /// <summary>
         /// Computes the remainder of two integer values, 
         /// and stores an integer value with the sign and approximate magnitude of the quotient in a location that's specified in a parameter.
@@ -477,6 +476,233 @@ namespace GeographicLib
             }
             return u_f[0];
         }
+
+        public override double FusedMultiplyAdd(double x, double y, double z)
+        {
+            const double _0x1p63 = 9.2233720368547758E+18,
+                         _0x0_ffffff8p_63 = 1.084202e-19;
+            const int ZEROINFNAN = 0x7ff - 0x3ff - 52 - 1;
+
+            /* normalize so top 10bits and last bit are 0 */
+            num nx, ny, nz;
+            nx = normalize(x);
+            ny = normalize(y);
+            nz = normalize(z);
+
+            if (nx.e >= ZEROINFNAN || ny.e >= ZEROINFNAN)
+                return x * y + z;
+            if (nz.e >= ZEROINFNAN)
+            {
+                if (nz.e > ZEROINFNAN) /* z==0 */
+                    return x * y + z;
+                return z;
+            }
+
+            /* mul: r = x*y */
+            ulong zhi, zlo;
+            mul(out var rhi, out var rlo, nx.m, ny.m);
+            /* either top 20 or 21 bits of rhi and last 2 bits of rlo are 0 */
+
+            /* align exponents */
+            int e = nx.e + ny.e;
+            int d = nz.e - e;
+            /* shift bits z<<=kz, r>>=kr, so kz+kr == d, set e = e+kr (== ez-kz) */
+            if (d > 0)
+            {
+                if (d < 64)
+                {
+                    zlo = nz.m << d;
+                    zhi = nz.m >> 64 - d;
+                }
+                else
+                {
+                    zlo = 0;
+                    zhi = nz.m;
+                    e = nz.e - 64;
+                    d -= 64;
+                    if (d == 0)
+                    {
+                    }
+                    else if (d < 64)
+                    {
+                        rlo = rhi << 64 - d | rlo >> d | ((rlo << 64 - d) == 0 ? 0UL : 1);
+                        rhi = rhi >> d;
+                    }
+                    else
+                    {
+                        rlo = 1;
+                        rhi = 0;
+                    }
+                }
+            }
+            else
+            {
+                zhi = 0;
+                d = -d;
+                if (d == 0)
+                {
+                    zlo = nz.m;
+                }
+                else if (d < 64)
+                {
+                    zlo = nz.m >> d | ((nz.m << 64 - d) == 0 ? 0UL : 1);
+                }
+                else
+                {
+                    zlo = 1;
+                }
+            }
+
+            /* add */
+            int sign = nx.sign ^ ny.sign;
+            int samesign = (sign ^ nz.sign) == 0 ? 1 : 0;
+            int nonzero = 1;
+            if (samesign != 0)
+            {
+                /* r += z */
+                rlo += zlo;
+                rhi += zhi + (rlo < zlo ? 1UL : 0);
+            }
+            else
+            {
+                /* r -= z */
+                ulong t = rlo;
+                rlo -= zlo;
+                rhi = rhi - zhi - (t < rlo ? 1UL : 0);
+                if ((rhi >> 63) != 0)
+                {
+                    rlo = (ulong)-(long)rlo;
+                    rhi = (ulong)-(long)rhi - (rlo == 0 ? 0UL : 1);
+                    sign = sign == 0 ? 1 : 0;
+                }
+                nonzero = rhi == 0 ? 0 : 1;
+            }
+
+            /* set rhi to top 63bit of the result (last bit is sticky) */
+            if (nonzero != 0)
+            {
+                e += 64;
+                d = a_clz_64(rhi) - 1;
+                /* note: d > 0 */
+                rhi = rhi << d | rlo >> 64 - d | ((rlo << d) == 0 ? 0UL : 1);
+            }
+            else if (rlo != 0)
+            {
+                d = a_clz_64(rlo) - 1;
+                if (d < 0)
+                    rhi = rlo >> 1 | (rlo & 1);
+                else
+                    rhi = rlo << d;
+            }
+            else
+            {
+                /* exact +-0 */
+                return x * y + z;
+            }
+            e -= d;
+
+            /* convert to double */
+            ulong i = rhi; /* i is in [1<<62,(1<<63)-1] */
+            if (sign != 0)
+                i = (ulong)-(long)i;
+            double r = i; /* |r| is in [0x1p62,0x1p63] */
+
+            if (e < -1022 - 62)
+            {
+                /* result is subnormal before rounding */
+                if (e == -1022 - 63)
+                {
+                    double c = _0x1p63;
+                    if (sign != 0)
+                        c = -c;
+                    if (r == c)
+                    {
+                        /* min normal after rounding, underflow depends
+                           on arch behaviour which can be imitated by
+                           a double to float conversion */
+                        float fltmin = (float)(_0x0_ffffff8p_63 * MathEx.FLT_MIN * r);
+                        return MathEx.DBL_MIN / MathEx.FLT_MIN * fltmin;
+                    }
+                    /* one bit is lost when scaled, add another top bit to
+                       only round once at conversion if it is inexact */
+                    if ((rhi << 53) != 0)
+                    {
+                        i = rhi >> 1 | (rhi & 1) | 1ul << 62;
+                        if (sign != 0)
+                            i = (ulong)-(long)i;
+                        r = i;
+                        r = 2 * r - c; /* remove top bit */
+
+                        /* raise underflow portably, such that it
+                           cannot be optimized away */
+                        {
+                            double tiny = MathEx.DBL_MIN / MathEx.FLT_MIN * r;
+                            r += (double)(tiny * tiny) * (r - r);
+                        }
+                    }
+                }
+                else
+                {
+                    /* only round once when scaled */
+                    d = 10;
+                    i = (rhi >> d | ((rlo << 64 - d) == 0 ? 0UL : 1)) << d;
+                    if (sign != 0)
+                        i = (ulong)-(long)i;
+                    r = i;
+                }
+            }
+            return ScaleB(r, e);
+        }
+
+        static num normalize(double x)
+        {
+            const double _0x1p63 = 9.2233720368547758E+18;
+
+            var ix = (ulong)BitConverter.DoubleToInt64Bits(x);
+            int e = (int)(ix >> 52);
+            int sign = e & 0x800;
+            e &= 0x7ff;
+            if (e == 0)
+            {
+                ix = (ulong)BitConverter.DoubleToInt64Bits(x * _0x1p63);
+                e = (int)(ix >> 52 & 0x7ff);
+                e = e != 0 ? e - 63 : 0x800;
+            }
+            ix &= (1ul << 52) - 1;
+            ix |= 1ul << 52;
+            ix <<= 1;
+            e -= 0x3ff + 52 + 1;
+
+            return new num { m = ix, e = e, sign = sign };
+        }
+
+        static void mul(out ulong hi, out ulong lo, ulong x, ulong y)
+        {
+            ulong t1, t2, t3;
+            ulong xlo = (uint)x, xhi = x >> 32;
+            ulong ylo = (uint)y, yhi = y >> 32;
+
+            t1 = xlo * ylo;
+            t2 = xlo * yhi + xhi * ylo;
+            t3 = xhi * yhi;
+            lo = t1 + (t2 << 32);
+            hi = t3 + (t2 >> 32) + (t1 > lo ? 1UL : 0);
+        }
+
+        private static int a_clz_64(ulong x)
+        {
+            ulong y;
+            int n = 64;
+            y = x >> 32; if (y != 0) { n = n - 32; x = y; }
+            y = x >> 16; if (y != 0) { n = n - 16; x = y; }
+            y = x >> 8; if (y != 0) { n = n - 8; x = y; }
+            y = x >> 4; if (y != 0) { n = n - 4; x = y; }
+            y = x >> 2; if (y != 0) { n = n - 2; x = y; }
+            y = x >> 1; if (y != 0) return n - 2;
+            return n - (int)x;
+        }
+
+        private struct num { public ulong m; public int e; public int sign; };
 #endif
 
 #if NETSTANDARD2_0
