@@ -96,6 +96,9 @@ namespace GeographicLib
         /// <inheritdoc/>
         public override double Flattening => _f;
 
+        /// <inheritdoc/>
+        public override double EllipsoidArea => 4 * PI * _c2;
+
         #region Private methods
 
         internal static double CosSeries(double sinx, double cosx, ReadOnlySpan<double> c, int n)

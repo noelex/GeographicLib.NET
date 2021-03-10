@@ -29,6 +29,12 @@ namespace GeographicLib
         public const int GEOGRAPHICLIB_TRANSVERSEMERCATOR_ORDER = GEOGRAPHICLIB_PRECISION == 2 ? 6 : (GEOGRAPHICLIB_PRECISION == 1 ? 4 : 8);
 
         /// <summary>
+        /// The order of the series approximation used in rhumb area calculations.
+        /// <see cref="GEOGRAPHICLIB_RHUMBAREA_ORDER"/> can be set to any integer in [4, 8].
+        /// </summary>
+        public const int GEOGRAPHICLIB_RHUMBAREA_ORDER = GEOGRAPHICLIB_PRECISION == 2 ? 6 : (GEOGRAPHICLIB_PRECISION == 1 ? 4 : 8);
+
+        /// <summary>
         /// The order of the expansions used by Geodesic. GEOGRAPHICLIB_GEODESIC_ORDER can be set to any integer in [3, 8].
         /// </summary>
         public const int GEOGRAPHICLIB_GEODESIC_ORDER = 
