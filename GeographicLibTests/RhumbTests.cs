@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,7 +26,15 @@ namespace GeographicLib.Tests
 
             Assert.AreEqual(azi12, _azi12, 1e-8);
             Assert.AreEqual(s12, _s12, 1e-8);
-            Assert.AreEqual(S12, _S12, 0.001);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && MathEx.UseManagedCMath == true)
+            {
+                Assert.AreEqual(S12, _S12, 0.02);
+            }
+            else
+            {
+                Assert.AreEqual(S12, _S12, 0.001);
+            }
         }
 
         [DataTestMethod]
