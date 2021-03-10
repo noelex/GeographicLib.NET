@@ -29,7 +29,7 @@ namespace GeographicLib.Tests
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && MathEx.UseManagedCMath == true)
             {
-                Assert.AreEqual(S12, _S12, 0.02);
+                Assert.AreEqual(S12, _S12, 0.05);
             }
             else
             {
