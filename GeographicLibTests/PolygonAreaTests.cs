@@ -10,20 +10,49 @@ namespace GeographicLib.Tests
     [TestClass]
     public class PolygonAreaTests
     {
-        [TestMethod]
-        public void TestCompute()
-        {
-            var data = new[] { "18n 500000 4400000", "18n 600000 4400000", "18n 600000 4500000", "18n 500000 4500000" };
+        public static IEnumerable<object[]> PointData =>
+            new[]
+            {
+                new object[]{ new[] { "18n 500000 4400000", "18n 600000 4400000", "18n 600000 4500000", "18n 500000 4500000" }, 4, 400139.5329585969,10007388597.19133  },
+                new object[]{ new[] { "52 0", "41 -74", "-23 -43", "-26 28" },4, 29506941.1551780142, 65690027591345.67188 },
+            };
 
+        public static IEnumerable<object[]> EdgeData =>
+            new[]
+            {
+                new object[]{ (0.0, 0.0), new[] { (90.0,1000.0), (0.0,1000.0), (-90.0, 1000.0) }, 4, 4000, 1e+06  },
+            };
+
+        [DataTestMethod]
+        [DynamicData("PointData", typeof(PolygonAreaTests))]
+        public void TestComputeWithPoints(string[] coords, int n, double perimeter, double area)
+        {
             var p = new PolygonArea(Geodesic.WGS84);
 
-            p.AddPoints(data.Select(x => new GeoCoords(x)));
-            var (c, peri, area) = p.Compute(false, false);
+            p.AddPoints(coords.Select(x => new GeoCoords(x)));
+            var (c, peri, a) = p.Compute(false, false);
 
-            Assert.AreEqual(4, c);
-            Assert.AreEqual(400139.5329585969, peri, 1e-8);
-            Assert.AreEqual(10007388597.19133, area, 1e-8);
+            Assert.AreEqual(n, c);
+            Assert.AreEqual(perimeter, peri, 1e-8);
+            Assert.AreEqual(area, a, 1e-8);
+        }
 
+        [DataTestMethod]
+        [DynamicData("EdgeData", typeof(PolygonAreaTests))]
+        public void TestComputeWithEdges( (double lat, double lon) startp, (double azi, double s)[] edges, int n, double perimeter, double area)
+        {
+            var p = new PolygonArea(Geodesic.WGS84);
+            p.AddPoint(startp.lat, startp.lon);
+
+            foreach(var (azimuth,distance) in edges)
+            {
+                p.AddEdge(azimuth, distance);
+            }
+            var (c, peri, a) = p.Compute(false, false);
+
+            Assert.AreEqual(n, c);
+            Assert.AreEqual(perimeter, peri, 0.00002);
+            Assert.AreEqual(area, a, 0.003);
         }
     }
 }

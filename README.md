@@ -16,7 +16,7 @@ Bellow is a list of planned and implemented features.
  - [x] Projections (`AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner`, `Gnomonic`, `LambertConformalConic`, `PolarStereographic` and `TransverseMercator`)
  - [x] Geocodes (`GARS`, `Geohash`, `Georef`, `MGRS` and `OSGB`)
  - [x] Coordinate conversions (`UTMUPS`, `Geocentric` and `LocalCartesian`)
- - [x] Coordinate parsing/formatting (`DMS` and `GeoCoords`) 
+ - [x] Coordinate parsing/formatting (`DMS` and `GeoCoords`)
  - [x] Geodesic (`Geodesic`, `GeodesicLine`, `GeodesicExact` and `GeodesicLineExact`)
  - [x] Rhumb (`Rhumb`, `RhumbLine`)
  - [x] PolygonArea (`PolygonArea<T>`, `PolygonArea`, `PolygonAreaExact` and `PolygonAreaRhumb`)
