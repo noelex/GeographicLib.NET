@@ -99,6 +99,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             public static extern double copysign(double x, double y);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double fma(double x, double y, double z);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -110,6 +113,8 @@ namespace GeographicLib
             public override double Log1p(double x) => log1p(x);
 
             public override double CopySign(double x, double y) => copysign(x, y);
+
+            public override double FusedMultiplyAdd(double x, double y, double z) => fma(x, y, z);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
@@ -151,6 +156,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             public static extern double copysign(double x, double y);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double fma(double x, double y, double z);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -162,6 +170,8 @@ namespace GeographicLib
             public override double Log1p(double x) => log1p(x);
 
             public override double CopySign(double x, double y) => copysign(x, y);
+
+            public override double FusedMultiplyAdd(double x, double y, double z) => fma(x, y, z);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
@@ -203,6 +213,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             public static extern double copysign(double x, double y);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double fma(double x, double y, double z);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -214,6 +227,8 @@ namespace GeographicLib
             public override double Log1p(double x) => log1p(x);
 
             public override double CopySign(double x, double y) => copysign(x, y);
+
+            public override double FusedMultiplyAdd(double x, double y, double z) => fma(x, y, z);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]

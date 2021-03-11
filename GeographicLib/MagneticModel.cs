@@ -281,11 +281,11 @@ namespace GeographicLib
                         case "ID":
                             _id = val; break;
                         case "Normalization":
-                            switch(val.ToLower())
+                            switch (val.ToLower())
                             {
-                                case "full":_norm = Normalization.Full;break;
-                                case "schmidt": _norm = Normalization.Schmidt;break;
-                                default:  throw new GeographicException("Unknown normalization " + val);
+                                case "full": _norm = Normalization.Full; break;
+                                case "schmidt": _norm = Normalization.Schmidt; break;
+                                default: throw new GeographicException("Unknown normalization " + val);
                             };
                             break;
                         case "ByteOrder":
@@ -335,7 +335,7 @@ namespace GeographicLib
             bool interpolate = n + 1 < _Nmodels;
             t -= n * _dt0;
             Span<double> M = stackalloc double[Geocentric.dim2_];
-            _earth.IntForward(lat, lon, h, out var X, out var Y, out var Z, M);
+            var (X, Y, Z) = _earth.IntForward(lat, lon, h, M);
             // Components in geocentric basis
             // initial values to suppress warning
             double BXc = 0, BYc = 0, BZc = 0;
@@ -420,7 +420,7 @@ namespace GeographicLib
             bool interpolate = n + 1 < _Nmodels;
             t1 -= n * _dt0;
             Span<double> M = stackalloc double[Geocentric.dim2_];
-            _earth.IntForward(lat, 0, h, out var X, out var Y, out var Z, M);
+            var (X, Y, Z) = _earth.IntForward(lat, 0, h, M);
             // Y = 0, cphi = M[7], sphi = M[8];
 
             return (_Nconstants == 0 ?

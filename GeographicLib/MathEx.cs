@@ -25,6 +25,8 @@ namespace GeographicLib
         /// </summary>
         internal const int FLT_RADIX = 2;
 
+        internal const float FLT_MIN = 1.17549435082228750797e-38F;
+
         /// <summary>
         /// Minimum positive, normal value of a <see cref="Double"/> (<c>2.2250738585072014e-308</c>).
         /// </summary>
@@ -173,6 +175,16 @@ namespace GeographicLib
         /// <returns>A value with the magnitude of <paramref name="x"/> and the sign of <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] 
         public static double CopySign(double x, double y) => CMath.Instance.CopySign(x, y);
+
+        /// <summary>
+        /// Returns (x * y) + z, rounded as one ternary operation.
+        /// </summary>
+        /// <param name="x">The number to be multiplied with y.</param>
+        /// <param name="y">The number to be multiplied with x.</param>
+        /// <param name="z">The number to be added to the result of x multiplied by y.</param>
+        /// <returns>(x * y) + z, rounded as one ternary operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double FusedMultiplyAdd(double x, double y, double z) => CMath.Instance.FusedMultiplyAdd(x, y, z);
 #endif
 
         /// <summary>
