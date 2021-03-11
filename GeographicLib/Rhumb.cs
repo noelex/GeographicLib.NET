@@ -677,7 +677,7 @@ namespace GeographicLib
         /// This position, which is extremely close to the actual pole, allows the calculation to be carried out in finite terms.
         /// </remarks>
         public RhumbLine Line(double lat1, double lon1, double azi12)
-            => new RhumbLine(this, lat1, lon1, azi12, _exact);
+            => new RhumbLine(this, lat1, lon1, azi12);
 
     }
 }

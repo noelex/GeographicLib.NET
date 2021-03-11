@@ -26,12 +26,11 @@ namespace GeographicLib
     public class RhumbLine : IEllipsoid
     {
         private readonly Rhumb _rh;
-        private readonly bool _exact;
         private readonly double _lat1, _lon1, _azi12, _salp, _calp, _mu1, _psi1, _r1;
 
-        internal RhumbLine(Rhumb rh, double lat1, double lon1, double azi12, bool exact)
+        internal RhumbLine(Rhumb rh, double lat1, double lon1, double azi12)
         {
-            (_rh, _exact, _lat1, _lon1, _azi12) = (rh, exact, LatFix(lat1), lon1, AngNormalize(azi12));
+            (_rh, _lat1, _lon1, _azi12) = (rh, LatFix(lat1), lon1, AngNormalize(azi12));
 
             var alp12 = _azi12 * Degree;
             _salp = _azi12 == -180 ? 0 : Sin(alp12);
