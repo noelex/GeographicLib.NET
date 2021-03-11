@@ -12,8 +12,6 @@ Unlike the original NETGeographicLib, GeographicLib.NET is implemented in pure C
 You should be able to use GeographicLib.NET with any target framework and platform that supports .NET Standard 2.0 or above.
 
 ## Features
-Currently GeographicLib.NET has ported a few features such as Ellipsoid, Geodesic and various projection classes. More features will be ported and the ultimate goal is to implement all features provided by GeographicLib. 
-
 Bellow is a list of planned and implemented features.
  - [x] Projections (`AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner`, `Gnomonic`, `LambertConformalConic`, `PolarStereographic` and `TransverseMercator`)
  - [x] Geocodes (`GARS`, `Geohash`, `Georef`, `MGRS` and `OSGB`)
@@ -21,7 +19,7 @@ Bellow is a list of planned and implemented features.
  - [x] Coordinate parsing/formatting (`DMS` and `GeoCoords`) 
  - [x] Geodesic (`Geodesic`, `GeodesicLine`, `GeodesicExact` and `GeodesicLineExact`)
  - [x] Rhumb (`Rhumb`, `RhumbLine`)
- - [ ] PolygonArea
+ - [x] PolygonArea
  - [ ] Geoid
  - [ ] GravityModel
  - [x] MagneticModel (`MagneticModel`, `MagneticCircle`)
@@ -36,7 +34,7 @@ Managed implemetation of C mathematical functions in `MathEx` are tested with da
 ### Stable
 The library is still under development, thus no stable package release is available currently.
 
-### Preview ![Nightly Builds](https://buildstats.info/nuget/GeographicLib.NET?includePreReleases=true)
+### Preview ![Preview](https://buildstats.info/nuget/GeographicLib.NET?includePreReleases=true)
 Preview versions of GeographicLib.NET are hosted on NuGet pre-release channel.
 You can install them using the following command:
 
