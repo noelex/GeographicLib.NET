@@ -28,7 +28,7 @@ namespace GeographicLib
     /// </list>
     /// In the documentation of the member functions, <i>sum</i> stands for the value currently held in the accumulator.
     /// </remarks>
-    public class Accumulator
+    public struct Accumulator
     {
         private double _s, _t;
 
@@ -126,11 +126,10 @@ namespace GeographicLib
         /// </summary>
         /// <param name="y">the modulus</param>
         /// <returns></returns>
-        public Accumulator Remainder(double y)
+        public void Remainder(double y)
         {
             _s = IEEERemainder(_s, y);
             Add(0);
-            return this;
         }
 
         private void Add(double y)
@@ -173,7 +172,5 @@ namespace GeographicLib
             else
                 _t += u;                // otherwise just accumulate u to t.
         }
-
-
     }
 }
