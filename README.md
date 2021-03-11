@@ -15,11 +15,11 @@ You should be able to use GeographicLib.NET with any target framework and platfo
 Bellow is a list of planned and implemented features.
  - [x] Projections (`AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner`, `Gnomonic`, `LambertConformalConic`, `PolarStereographic` and `TransverseMercator`)
  - [x] Geocodes (`GARS`, `Geohash`, `Georef`, `MGRS` and `OSGB`)
- - [x] Coordinate conversions (`UTMUPS` and `Geocentric`)
+ - [x] Coordinate conversions (`UTMUPS`, `Geocentric` and `LocalCartesian`)
  - [x] Coordinate parsing/formatting (`DMS` and `GeoCoords`) 
  - [x] Geodesic (`Geodesic`, `GeodesicLine`, `GeodesicExact` and `GeodesicLineExact`)
  - [x] Rhumb (`Rhumb`, `RhumbLine`)
- - [x] PolygonArea
+ - [x] PolygonArea (`PolygonArea<T>`, `PolygonArea`, `PolygonAreaExact` and `PolygonAreaRhumb`)
  - [ ] Geoid
  - [ ] GravityModel
  - [x] MagneticModel (`MagneticModel`, `MagneticCircle`)
