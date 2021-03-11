@@ -20,7 +20,7 @@ namespace GeographicLib.Tests
         public static IEnumerable<object[]> EdgeData =>
             new[]
             {
-                new object[]{ (0.0, 0.0), new[] { (90.0,1000.0), (0.0,1000.0), (-90.0, 1000.0) }, 4, 4000, 1e+06  },
+                new object[]{ (0.0, 0.0), new[] { (90.0,1000.0), (0.0,1000.0), (-90.0, 1000.0) }, 4, 3999.9999876263041, 999999.99793803820 },
             };
 
         [DataTestMethod]
@@ -51,8 +51,8 @@ namespace GeographicLib.Tests
             var (c, peri, a) = p.Compute(false, false);
 
             Assert.AreEqual(n, c);
-            Assert.AreEqual(perimeter, peri, 0.00002);
-            Assert.AreEqual(area, a, 0.003);
+            Assert.AreEqual(perimeter, peri, 1e-8);
+            Assert.AreEqual(area, a, 1e-8);
         }
     }
 }
