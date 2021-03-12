@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -9,6 +10,20 @@ namespace GeographicLib
 {
     internal static class Utility
     {
+        private readonly static FieldInfo charPosField = typeof(StreamReader).GetField("_charPos", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        private readonly static FieldInfo charLenField = typeof(StreamReader).GetField("_charLen", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        private readonly static FieldInfo charBufferField = typeof(StreamReader).GetField("_byteBuffer", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+        public static long Position(this StreamReader reader)
+        {
+            var byteBuffer = (byte[])charBufferField.GetValue(reader);
+            var charLen = (int)charLenField.GetValue(reader);
+            var charPos = (int)charPosField.GetValue(reader);
+
+            return reader.BaseStream.Position - byteBuffer.Length - charPos;
+            // reader.CurrentEncoding.GetByteCount(charBuffer, charPos, charLen - charPos);
+        }
+
         public static bool IsInteger<T>()
         {
             return typeof(T) == typeof(sbyte) ||
@@ -58,7 +73,7 @@ namespace GeographicLib
             {
                 throw new GeographicException($"Extra text {t.Slice(sep + 1).ToString()} at end of {t.ToString()}");
             }
-            
+
 
             if (!double.TryParse(t.ToString(), out x) && (x = t.NumMatch()) != 0)
             {
