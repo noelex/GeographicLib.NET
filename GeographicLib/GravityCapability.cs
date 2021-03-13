@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace GeographicLib
 {
-    enum GravityModelCapability:uint
+    [Flags]
+    enum GravityCapability:uint
     {
         None = 0U,
         G = 1U << 0,       // implies potentials W and V
