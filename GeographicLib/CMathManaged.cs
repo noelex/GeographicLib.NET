@@ -404,6 +404,37 @@ namespace GeographicLib
             return y;
         }
 
+        public override double Frexp(double x, out int e)
+        {
+            const double _0x1p64 = 1.8446744073709552E+19;
+            Span<double>
+                y_d = stackalloc[] { x };
+            var y_i = MemoryMarshal.Cast<double, ulong>(y_d);
+
+            e = 0;
+            int ee = (int)(y_i[0] >> 52 & 0x7ff);
+
+            if (ee==0)
+            {
+                if (x!=0)
+                {
+                    x = Frexp(x * _0x1p64, out e);
+                    e -= 64;
+                }
+                else e = 0;
+                return x;
+            }
+            else if (ee == 0x7ff)
+            {
+                return x;
+            }
+
+            e = ee - 0x3fe;
+            y_i[0] &= 0x800ffffffffffffful;
+            y_i[0] |= 0x3fe0000000000000ul;
+            return y_d[0];
+        }
+
 #if !NET5_0
         /// <summary>
         /// Returns x * 2^n computed efficiently.

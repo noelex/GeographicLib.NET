@@ -226,6 +226,30 @@ namespace GeographicLib
         public static double Remquo(double x, double y, out int quo) => CMath.Instance.Remquo(x,y,out quo);
 
         /// <summary>
+        /// Decomposes given floating point value <paramref name="x"/> into a normalized fraction and an integral power of two.
+        /// </summary>
+        /// <param name="x">Floating point value.</param>
+        /// <param name="e">Pointer to integer value to store the exponent to.</param>
+        /// <returns>
+        /// <para>
+        /// If <paramref name="x"/> is zero, returns zero and stores zero in <paramref name="e"/>.
+        /// </para>
+        /// <para>
+        /// Otherwise (if <paramref name="x"/> is not zero), if no errors occur,
+        /// returns the value x in the range (-1;-0.5], [0.5; 1) and stores an integer value in <paramref name="e"/> such that
+        /// x×2(<paramref name="e"/>)=<paramref name="x"/>
+        /// </para>
+        /// <para>
+        /// If the value to be stored in <paramref name="e"/> is outside the range of int, the behavior is unspecified.
+        /// </para>
+        /// <para>
+        /// If <paramref name="x"/> is not a floating-point number, the behavior is unspecified.
+        /// </para>
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        public static double Frexp(double x, out int e) => CMath.Instance.Frexp(x, out e);
+
+        /// <summary>
         /// Multiplies a floating-point number by an integral power of two.
         /// </summary>
         /// <param name="number">Floating-point value.</param>
