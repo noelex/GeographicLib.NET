@@ -21,4 +21,10 @@
     <ProjectReference Include="..\GeographicLib\GeographicLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="egm84-30.pgm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
