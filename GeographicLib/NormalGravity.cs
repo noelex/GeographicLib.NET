@@ -77,7 +77,7 @@ namespace GeographicLib
         private static readonly double eps2_ = Sqrt(DBL_EPSILON) / 100;
         private static readonly double lg2eps_ = -Log(DBL_EPSILON / 2) / Log(2);
 
-        private readonly double _a, _GM, _omega, _f, _J2, _omega2, _aomega2;
+        internal readonly double _a, _GM, _omega, _f, _J2, _omega2, _aomega2;
         private readonly double _e2, _ep2, _b, _E, _U0, _gammae, _gammap, _Q0, _k, _fstar;
         private readonly Geocentric _earth;
 
@@ -174,7 +174,7 @@ namespace GeographicLib
         /// <param name="h">the height above the ellipsoid (meters).</param>
         /// <param name="gammay">the northerly component of the acceleration (m s^−2).</param>
         /// <param name="gammaz">the upward component of the acceleration (m s−^2); this is usually negative.</param>
-        /// <returns><i>U</i> the corresponding normal potential (m^2 s^−2).</returns>
+        /// <returns><i>U</i>, the corresponding normal potential (m^2 s^−2).</returns>
         /// <remarks>
         /// Due to the axial symmetry of the ellipsoid, the result is independent of the value of the longitude and the easterly
         /// component of the acceleration vanishes, <i>gammax</i> = 0. The function includes the effects of the earth's rotation.
@@ -202,7 +202,7 @@ namespace GeographicLib
         /// <param name="gammaY">the <i>Y</i> component of the acceleration (m s^−2).</param>
         /// <param name="gammaZ">the <i>Z</i> component of the acceleration (m s^−2).</param>
         /// <returns>
-        /// <i>U</i> = <i>V</i>0 + Φ the sum of the gravitational and centrifugal potentials (m^2 s^−2).
+        /// <i>U</i> = <i>V</i>0 + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).
         /// </returns>
         /// <remarks>
         /// The acceleration given by <b>γ</b> = ∇<i>U</i> = ∇<i>V</i>0 + ∇Φ = <b>Γ</b> + <b>f</b>.
@@ -226,7 +226,7 @@ namespace GeographicLib
         /// <param name="GammaY">the <i>Y</i> component of the acceleration due to the gravitational force (m s^−2).</param>
         /// <param name="GammaZ">the <i>Z</i> component of the acceleration due to the gravitational force (m s^−2).</param>
         /// <returns>
-        /// <i>V</i>0 the gravitational potential (m^2 s^−2).
+        /// <i>V</i>0, the gravitational potential (m^2 s^−2).
         /// </returns>
         /// <remarks>
         /// This function excludes the centrifugal acceleration and is appropriate to use for space applications.
@@ -297,7 +297,7 @@ namespace GeographicLib
         /// <param name="Y"><i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="fX">the <i>X</i> component of the centrifugal acceleration (m s^−2).</param>
         /// <param name="fY">the <i>Y</i> component of the centrifugal acceleration (m s^−2).</param>
-        /// <returns>Φ the centrifugal potential (m^2 s^−2).</returns>
+        /// <returns>Φ, the centrifugal potential (m^2 s^−2).</returns>
         /// <remarks>
         /// Φ is independent of <i>Z</i>, thus <i>fZ</i> = 0.
         /// This function <see cref="U(double, double, double, out double, out double, out double)"/> sums the results of
@@ -401,7 +401,7 @@ namespace GeographicLib
         /// (usually including the mass of the earth's atmosphere).</param>
         /// <param name="omega">the angular velocity (rad s^−1).</param>
         /// <param name="J2">the dynamical form factor.</param>
-        /// <returns><i>f</i> the flattening of the ellipsoid.</returns>
+        /// <returns><i>f</i>, the flattening of the ellipsoid.</returns>
         /// <remarks>
         /// This routine requires <i>a</i> > 0, <i>GM</i> > 0, <i>J2</i> &lt; 1/3 − <i>omega</i>^2 <i>a</i>^3/<i>GM</i> 8/(45π).
         /// A <see cref="double.NaN"/> is returned if these conditions do not hold. The restriction to positive <i>GM</i> is made
@@ -454,7 +454,7 @@ namespace GeographicLib
         /// (usually including the mass of the earth's atmosphere).</param>
         /// <param name="omega">the angular velocity (rad s^−1).</param>
         /// <param name="f">the flattening of the ellipsoid.</param>
-        /// <returns><i>J2</i> the dynamical form factor.</returns>
+        /// <returns><i>J2</i>, the dynamical form factor.</returns>
         /// <remarks>
         /// This routine requires <i>a</i> > 0, <i>GM</i> ≠ 0, <i>f</i> &lt; 1. The values of these parameters are not checked.
         /// </remarks>
@@ -543,7 +543,7 @@ namespace GeographicLib
               ((25 + 15 * y) * Atan7Series(y) + 3) / 10;
         }
 
-        private double Jn(int n)
+        internal double Jn(int n)
         {
             // Note Jn(0) = -1; Jn(2) = _J2; Jn(odd) = 0
             if ((n & 1) != 0 || n < 0)

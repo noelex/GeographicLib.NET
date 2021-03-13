@@ -61,6 +61,18 @@ namespace GeographicLib
             return p >= 0 ? x.ToString($"F{p}") : x.ToString();
         }
 
+        public static double ParseFract(this string s) => ParseFract(s.AsSpan());
+
+        public static double ParseFract(this ReadOnlySpan<char> s)
+        {
+            var delim = s.IndexOf('/');
+            return
+              !(delim != -1 && delim >= 1 && delim + 2 <= s.Length) ?
+                s.ParseDouble() :
+                // delim in [1, size() - 2]
+                s.Slice(0, delim).ParseDouble() / s.Slice(delim + 1).ParseDouble();
+        }
+
         public static double ParseDouble(this string s) => ParseDouble(s.AsSpan());
 
         public static double ParseDouble(this ReadOnlySpan<char> s)

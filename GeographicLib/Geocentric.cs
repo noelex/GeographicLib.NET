@@ -232,7 +232,7 @@ namespace GeographicLib
             M[2] = clam * cphi; M[5] = slam * cphi; M[8] = sphi;
         }
 
-        internal (double X, double Y, double Z) IntForward(double lat, double lon, double h, Span<double> M)
+        internal (double X, double Y, double Z) IntForward(double lat, double lon, double h, Span<double> M=default)
         {
             SinCosd(LatFix(lat), out var sphi, out var cphi);
             SinCosd(lon, out var slam, out var clam);

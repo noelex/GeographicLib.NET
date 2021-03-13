@@ -7,6 +7,7 @@ using GeographicLib.SphericalHarmonics;
 
 using static System.Math;
 using static GeographicLib.MathEx;
+using static GeographicLib.Macros;
 
 namespace GeographicLib
 {
@@ -93,7 +94,8 @@ namespace GeographicLib
     {
         private const int idlength_ = 8;
 
-        private readonly string _name, _dir, _description, _date, _filename, _id;
+        private readonly DateTime? _date;
+        private readonly string _name, _dir, _description, _filename, _id;
         private readonly double _t0, _dt0, _tmin, _tmax, _a, _hmin, _hmax;
         private readonly int _Nmodels, _Nconstants, _nmx, _mmx;
         private readonly Normalization _norm;
@@ -109,12 +111,7 @@ namespace GeographicLib
                     return path;
 
                 var datapath = Environment.GetEnvironmentVariable("GEOGRAPHICLIB_DATA");
-                if (!string.IsNullOrEmpty(datapath))
-                    return Path.Combine(datapath, "magnetic");
-
-                return OperatingSystem.IsWindows()
-                    ? @"C:\ProgramData\GeographicLib"
-                    : "/usr/local/share/GeographicLib";
+                return Path.Combine(!string.IsNullOrEmpty(datapath) ? datapath : GEOGRAPHICLIB_DATA, "magnetic");
             }
 
             DefaultMagneticPath = GetDefaultPath();
@@ -153,7 +150,6 @@ namespace GeographicLib
             _name = name;
             _dir = path;
             _description = "NONE";
-            _date = "UNKNOWN";
             _t0 = double.NaN;
             _dt0 = 1;
             _tmin = double.NaN;
@@ -217,16 +213,17 @@ namespace GeographicLib
         }
 
         private void ReadMetadata(string name,
-            out string _filename, out string _id, out string _name, out string _description, out string _date,
+            out string _filename, out string _id, out string _name, out string _description, out DateTime? _date,
             out double _a, out double _t0, out double _dt0, out double _tmin, out double _tmax,
             out double _hmin, out double _hmax, out int _Nmodels, out int _Nconstants, out Normalization _norm)
         {
             const string spaces = " \t\n\v\f\r";
 
             _a = _dt0 = _t0 = _tmin = _tmax = _hmin = _hmax = default;
-            _id = _name = _description = _date = default;
+            _id = _name = _description = default;
             _Nmodels = _Nconstants = default;
             _norm = default;
+            _date = null;
 
             _filename = _dir + "/" + name + ".wmm";
 
@@ -257,7 +254,7 @@ namespace GeographicLib
                         case "Description":
                             _description = val; break;
                         case "ReleaseDate":
-                            _date = val; break;
+                            _date = DateTime.Parse(val); break;
                         case "Radius":
                             _a = double.Parse(val); break;
                         case "Type" when val.ToLower() != "linear":

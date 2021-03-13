@@ -17,6 +17,15 @@ namespace GeographicLib
         /// </summary>
         public const int GEOGRAPHICLIB_PRECISION = 2;
 
+        public static string GEOGRAPHICLIB_DATA =>
+            OperatingSystem.IsWindows()
+                ? @"C:\ProgramData\GeographicLib"
+                : "/usr/local/share/GeographicLib";
+
+        public const string GEOGRAPHICLIB_GEOID_DEFAULT_NAME = "egm96-5";
+
+        public const string GEOGRAPHICLIB_GRAVITY_DEFAULT_NAME = "egm96";
+
         public static bool GEOGRAPHICLIB_PANIC =>
             // Signal a convergence failure with multiprec types by throwing an exception
             // at loop exit.
