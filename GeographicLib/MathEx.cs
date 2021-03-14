@@ -319,9 +319,8 @@ namespace GeographicLib
             // In order to minimize round-off errors, this function exactly reduces
             // the argument to the range [-45, 45] before converting it to radians.
             double r;
-            int q;
 
-            r = Remquo(x, 90, out q);
+            r = Remquo(x, 90, out var q);
             r *= Degree;
 
             double s = Sin(r), c = Cos(r);
@@ -347,8 +346,8 @@ namespace GeographicLib
         public static double Sind(double x)
         {
             // See sincosd
-            double r; int q;
-            r = Remquo(x, 90d, out q); // now abs(r) <= 45
+            double r;
+            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)q;
@@ -369,8 +368,8 @@ namespace GeographicLib
         public static double Cosd(double x)
         {
             // See sincosd
-            double r; int q;
-            r = Remquo(x, 90d, out q); // now abs(r) <= 45
+            double r;
+            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)(q + 1);
@@ -391,8 +390,7 @@ namespace GeographicLib
         {
             const double overflow = 1 / (DBL_EPSILON * DBL_EPSILON);
 
-            double s, c;
-            SinCosd(x, out s, out c);
+            SinCosd(x, out var s, out var c);
             return c != 0 ? s / c : (s < 0 ? -overflow : overflow);
         }
 
