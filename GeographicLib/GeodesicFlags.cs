@@ -23,44 +23,44 @@ namespace GeographicLib
         /// Calculate latitude <i>lat2</i>.  (It's not necessary to include this as a
         /// capability to <see cref="GeodesicLine"/> or <see cref="GeodesicLineExact"/> because this is included by default.)
         /// </summary>
-        Latitude = 1 << 7 | Capability.None,
+        Latitude = 1 << 7 | GeodesicCapability.None,
 
         /// <summary>
         /// Calculate latitude <i>lon2</i>.
         /// </summary>
-        Longitude = 1 << 8 | Capability.C3,
+        Longitude = 1 << 8 | GeodesicCapability.C3,
 
         /// <summary>
         /// Calculate azimuths <i>azi1</i> and <i>azi2</i>.
         /// (It's not necessary to include this as a capability to <see cref="GeodesicLine"/> or <see cref="GeodesicLineExact"/>
         /// because this is included by default.)
         /// </summary>
-        Azimuth = 1 << 9 | Capability.None,
+        Azimuth = 1 << 9 | GeodesicCapability.None,
 
         /// <summary>
         /// Calculate distance <i>s12</i>.
         /// </summary>
-        Distance = 1 << 10 | Capability.C1,
+        Distance = 1 << 10 | GeodesicCapability.C1,
 
         /// <summary>
         /// Allow distance <i>s12</i> to be used as input in the direct geodesic problem.
         /// </summary>
-        DistanceIn = 1 << 11 | Capability.C1 | Capability.C1p,
+        DistanceIn = 1 << 11 | GeodesicCapability.C1 | GeodesicCapability.C1p,
 
         /// <summary>
         /// Calculate reduced length <i>m12</i>.
         /// </summary>
-        ReducedLength = 1 << 12 | Capability.C1 | Capability.C2,
+        ReducedLength = 1 << 12 | GeodesicCapability.C1 | GeodesicCapability.C2,
 
         /// <summary>
         /// Calculate geodesic scales <i>M12</i> and <i>M21</i>.
         /// </summary>
-        GeodesicScale = 1 << 13 | Capability.C1 | Capability.C2,
+        GeodesicScale = 1 << 13 | GeodesicCapability.C1 | GeodesicCapability.C2,
 
         /// <summary>
         /// Calculate area <i>S12</i>.
         /// </summary>
-        Area = 1 << 14 | Capability.C4,
+        Area = 1 << 14 | GeodesicCapability.C4,
 
         /// <summary>
         /// Unroll <i>lon2</i> in the direct calculation.
@@ -70,14 +70,14 @@ namespace GeographicLib
         /// <summary>
         /// All capabilities, calculate everything.  (<see cref="LongUnroll"/> is not included in this mask.)
         /// </summary>
-        All = Capability.OutAll | Capability.All
+        All = GeodesicCapability.OutAll | GeodesicCapability.All
     }
 
     static class GeodesicFlagsExtesions
     {
-        public static GeodesicFlags Flags(this GeodesicFlags src) => src & (GeodesicFlags)Capability.OutMask;
+        public static GeodesicFlags Flags(this GeodesicFlags src) => src & (GeodesicFlags)GeodesicCapability.OutMask;
 
-        public static Capability Capabilities(this GeodesicFlags src) => (Capability)src & Capability.All;
+        public static GeodesicCapability Capabilities(this GeodesicFlags src) => (GeodesicCapability)src & GeodesicCapability.All;
 
         /// <summary>
         /// Verifies whether <paramref name="src"/> and <paramref name="flags"/> has any common flag. 
@@ -93,7 +93,7 @@ namespace GeographicLib
         /// <param name="src"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public static bool HasAny(this GeodesicFlags src, Capability caps) => (uint)(src & (GeodesicFlags)caps) != 0;
+        public static bool HasAny(this GeodesicFlags src, GeodesicCapability caps) => (uint)(src & (GeodesicFlags)caps) != 0;
 
         // public static bool HasCapabilities(this GeodesicFlags src, Capability flags) => (uint)(src & (GeodesicFlags)flags) != 0;
     }

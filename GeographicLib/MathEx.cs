@@ -25,6 +25,8 @@ namespace GeographicLib
         /// </summary>
         internal const int FLT_RADIX = 2;
 
+        internal const float FLT_MIN = 1.17549435082228750797e-38F;
+
         /// <summary>
         /// Minimum positive, normal value of a <see cref="Double"/> (<c>2.2250738585072014e-308</c>).
         /// </summary>
@@ -45,6 +47,11 @@ namespace GeographicLib
         /// Number of digits in the radix specified by FLT_RADIX in the floating-point significand.
         /// </summary>
         internal const int DBL_MANT_DIG = 53;
+
+        /// <summary>
+        /// # of decimal digits of precision
+        /// </summary>
+        internal const int DBL_DIG = 10;
 
 #if NETSTANDARD2_0
         /// <summary>
@@ -112,7 +119,7 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsFinite(double x) => unchecked((ulong)(BitConverter.DoubleToInt64Bits(x) & -1L >> 1)) < 0x7ffUL << 52;
+        internal static bool IsFinite(double x) => ((ulong)BitConverter.DoubleToInt64Bits(x) & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
 
         /// <summary>
         /// Returns the angle whose hyperbolic tangent is the specified number.
@@ -168,6 +175,16 @@ namespace GeographicLib
         /// <returns>A value with the magnitude of <paramref name="x"/> and the sign of <paramref name="y"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] 
         public static double CopySign(double x, double y) => CMath.Instance.CopySign(x, y);
+
+        /// <summary>
+        /// Returns (x * y) + z, rounded as one ternary operation.
+        /// </summary>
+        /// <param name="x">The number to be multiplied with y.</param>
+        /// <param name="y">The number to be multiplied with x.</param>
+        /// <param name="z">The number to be added to the result of x multiplied by y.</param>
+        /// <returns>(x * y) + z, rounded as one ternary operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double FusedMultiplyAdd(double x, double y, double z) => CMath.Instance.FusedMultiplyAdd(x, y, z);
 #endif
 
         /// <summary>
@@ -207,6 +224,30 @@ namespace GeographicLib
         /// If the value of <paramref name="y"/> is 0.0, this method returns a quiet <see cref="double.NaN"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] 
         public static double Remquo(double x, double y, out int quo) => CMath.Instance.Remquo(x,y,out quo);
+
+        /// <summary>
+        /// Decomposes given floating point value <paramref name="x"/> into a normalized fraction and an integral power of two.
+        /// </summary>
+        /// <param name="x">Floating point value.</param>
+        /// <param name="e">Pointer to integer value to store the exponent to.</param>
+        /// <returns>
+        /// <para>
+        /// If <paramref name="x"/> is zero, returns zero and stores zero in <paramref name="e"/>.
+        /// </para>
+        /// <para>
+        /// Otherwise (if <paramref name="x"/> is not zero), if no errors occur,
+        /// returns the value x in the range (-1;-0.5], [0.5; 1) and stores an integer value in <paramref name="e"/> such that
+        /// x×2(<paramref name="e"/>)=<paramref name="x"/>
+        /// </para>
+        /// <para>
+        /// If the value to be stored in <paramref name="e"/> is outside the range of int, the behavior is unspecified.
+        /// </para>
+        /// <para>
+        /// If <paramref name="x"/> is not a floating-point number, the behavior is unspecified.
+        /// </para>
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        public static double Frexp(double x, out int e) => CMath.Instance.Frexp(x, out e);
 
         /// <summary>
         /// Multiplies a floating-point number by an integral power of two.
@@ -278,9 +319,8 @@ namespace GeographicLib
             // In order to minimize round-off errors, this function exactly reduces
             // the argument to the range [-45, 45] before converting it to radians.
             double r;
-            int q;
 
-            r = Remquo(x, 90, out q);
+            r = Remquo(x, 90, out var q);
             r *= Degree;
 
             double s = Sin(r), c = Cos(r);
@@ -306,8 +346,8 @@ namespace GeographicLib
         public static double Sind(double x)
         {
             // See sincosd
-            double r; int q;
-            r = Remquo(x, 90d, out q); // now abs(r) <= 45
+            double r;
+            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)q;
@@ -328,8 +368,8 @@ namespace GeographicLib
         public static double Cosd(double x)
         {
             // See sincosd
-            double r; int q;
-            r = Remquo(x, 90d, out q); // now abs(r) <= 45
+            double r;
+            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)(q + 1);
@@ -350,8 +390,7 @@ namespace GeographicLib
         {
             const double overflow = 1 / (DBL_EPSILON * DBL_EPSILON);
 
-            double s, c;
-            SinCosd(x, out s, out c);
+            SinCosd(x, out var s, out var c);
             return c != 0 ? s / c : (s < 0 ? -overflow : overflow);
         }
 

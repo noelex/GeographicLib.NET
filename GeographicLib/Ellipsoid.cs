@@ -29,11 +29,11 @@ namespace GeographicLib
         private const int _numit = 10;
 
         private readonly double stol_;
-        private readonly double _a, _f, _f1, _f12, _e2, _es, _e12, _n, _b;
+        internal readonly double _a, _f, _f1, _f12, _e2, _es, _e12, _n, _b;
 
         private readonly TransverseMercator _tm;
         private readonly AlbersEqualArea _au;
-        private readonly EllipticFunction _ell;
+        internal readonly EllipticFunction _ell;
 
         /// <summary>
         /// Constructor for a ellipsoid with equatorial radius and flattening.
@@ -60,10 +60,14 @@ namespace GeographicLib
 
         #region Properties
 
-        /// <summary>
-        /// Gets a value representing the equatorial radius of the ellipsoid (meters).  This is the value used in the constructor.
-        /// </summary>
-        public double EquatorialRadius => _a;
+        internal Memory<double> ConformalToRectifyingCoeffs => _tm._alp;
+
+        internal Memory<double> RectifyingToConformalCoeffs => _tm._bet;
+
+/// <summary>
+/// Gets a value representing the equatorial radius of the ellipsoid (meters).  This is the value used in the constructor.
+/// </summary>
+public double EquatorialRadius => _a;
 
         /// <summary>
         /// Gets a value representing the polar semi-axis (meters).

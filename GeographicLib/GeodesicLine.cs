@@ -195,7 +195,7 @@ namespace GeographicLib
             _k2 = Sq(_calp0) * g._ep2;
             var eps = _k2 / (2 * (1 + Sqrt(1 + _k2)) + _k2);
 
-            if (_caps.Capabilities().HasFlag(Capability.C1))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.C1))
             {
                 _A1m1 = Geodesic.A1m1f(eps);
                 Geodesic.C1f(eps, _C1a.Span);
@@ -208,24 +208,24 @@ namespace GeographicLib
                 //    _B11 = -SinCosSeries(true, _stau1, _ctau1, _C1pa, nC1p_);
             }
 
-            if (_caps.Capabilities().HasFlag(Capability.C1p))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.C1p))
                 Geodesic.C1pf(eps, _C1pa.Span);
 
-            if (_caps.Capabilities().HasFlag(Capability.C2))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.C2))
             {
                 _A2m1 = Geodesic.A2m1f(eps);
                 Geodesic.C2f(eps, _C2a.Span);
                 _B21 = Geodesic.SinCosSeries(true, _ssig1, _csig1, _C2a.Span, nC2_);
             }
 
-            if (_caps.Capabilities().HasFlag(Capability.C3))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.C3))
             {
                 g.C3f(eps, _C3a.Span);
                 _A3c = -_f * _salp0 * g.A3f(eps);
                 _B31 = Geodesic.SinCosSeries(true, _ssig1, _csig1, _C3a.Span, nC3_ - 1);
             }
 
-            if (_caps.Capabilities().HasFlag(Capability.C4))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.C4))
             {
                 g.C4f(eps, _C4a.Span);
                 // Multiplier = a^2 * e^2 * cos(alpha0) * sin(alpha0)
@@ -243,7 +243,7 @@ namespace GeographicLib
                            out double S12)
         {
             lat2 = lon2 = azi2 = s12 = m12 = M12 = M21 = S12 = double.NaN;
-            outmask &= _caps & (GeodesicFlags)Capability.OutMask;
+            outmask &= _caps & (GeodesicFlags)GeodesicCapability.OutMask;
             if (!(arcmode || _caps.HasAny(GeodesicFlags.DistanceIn)))
                 // Uninitialized or impossible distance calculation requested
                 return double.NaN;

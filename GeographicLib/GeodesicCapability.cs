@@ -5,7 +5,7 @@ using System.Text;
 namespace GeographicLib
 {
     [Flags]
-    internal enum Capability : uint
+    internal enum GeodesicCapability : uint
     {
         None = 0,
         C1 = 1 << 0,

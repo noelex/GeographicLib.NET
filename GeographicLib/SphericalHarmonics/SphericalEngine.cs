@@ -376,6 +376,10 @@ namespace GeographicLib.SphericalHarmonics
             private readonly int _Nx, _nmx, _mmx;
             private readonly ReadOnlyMemory<double> _Cnm, _Snm;
 
+            internal ReadOnlyMemory<double> Cnm => _Cnm;
+
+            internal ReadOnlyMemory<double> Snm => _Snm;
+
             /// <summary>
             /// The constructor for full coefficient vectors.
             /// </summary>

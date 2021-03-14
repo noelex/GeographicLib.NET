@@ -7,6 +7,7 @@ using GeographicLib.SphericalHarmonics;
 
 using static System.Math;
 using static GeographicLib.MathEx;
+using static GeographicLib.Macros;
 
 namespace GeographicLib
 {
@@ -93,7 +94,8 @@ namespace GeographicLib
     {
         private const int idlength_ = 8;
 
-        private readonly string _name, _dir, _description, _date, _filename, _id;
+        private readonly DateTime? _date;
+        private readonly string _name, _dir, _description, _filename, _id;
         private readonly double _t0, _dt0, _tmin, _tmax, _a, _hmin, _hmax;
         private readonly int _Nmodels, _Nconstants, _nmx, _mmx;
         private readonly Normalization _norm;
@@ -109,12 +111,7 @@ namespace GeographicLib
                     return path;
 
                 var datapath = Environment.GetEnvironmentVariable("GEOGRAPHICLIB_DATA");
-                if (!string.IsNullOrEmpty(datapath))
-                    return Path.Combine(datapath, "magnetic");
-
-                return OperatingSystem.IsWindows()
-                    ? @"C:\ProgramData\GeographicLib"
-                    : "/usr/local/share/GeographicLib";
+                return Path.Combine(!string.IsNullOrEmpty(datapath) ? datapath : GEOGRAPHICLIB_DATA, "magnetic");
             }
 
             DefaultMagneticPath = GetDefaultPath();
@@ -153,7 +150,6 @@ namespace GeographicLib
             _name = name;
             _dir = path;
             _description = "NONE";
-            _date = "UNKNOWN";
             _t0 = double.NaN;
             _dt0 = 1;
             _tmin = double.NaN;
@@ -179,20 +175,18 @@ namespace GeographicLib
             }
 
             ReadMetadata(_name,
-                out _filename, out _id, out _name, out _description, out _date,
-                out _a, out _t0, out _dt0, out _tmin, out _tmax, out _hmin, out _hmax,
-                out _Nmodels, out _Nconstants, out _norm);
+                ref _filename, ref _id, ref _name, ref _description, ref _date,
+                ref _a, ref _t0, ref _dt0, ref _tmin, ref _tmax, ref _hmin, ref _hmax,
+                ref _Nmodels, ref _Nconstants, ref _norm);
 
             string coeff = _filename + ".cof";
             using (var stream = File.OpenRead(coeff))
             {
-                Span<char> id = stackalloc char[idlength_];
-
-                if (stream.Read(MemoryMarshal.Cast<char, byte>(id)) != idlength_)
+                Span<byte> id = stackalloc byte[idlength_];
+                if (stream.Read(id) != idlength_)
                     throw new GeographicException("No header in " + coeff);
-
-                if (!id.SequenceEqual(_id.AsSpan()))
-                    throw new GeographicException($"ID mismatch: {_id} vs {id.ToString()}");
+                if (MemoryMarshal.Cast<char, byte>(_id.AsSpan()).SequenceEqual(id))
+                    throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
 
                 for (int i = 0; i < _Nmodels + 1 + _Nconstants; ++i)
                 {
@@ -217,37 +211,25 @@ namespace GeographicLib
         }
 
         private void ReadMetadata(string name,
-            out string _filename, out string _id, out string _name, out string _description, out string _date,
-            out double _a, out double _t0, out double _dt0, out double _tmin, out double _tmax,
-            out double _hmin, out double _hmax, out int _Nmodels, out int _Nconstants, out Normalization _norm)
+            ref string _filename, ref string _id, ref string _name, ref string _description, ref DateTime? _date,
+            ref double _a, ref double _t0, ref double _dt0, ref double _tmin, ref double _tmax,
+            ref double _hmin, ref double _hmax, ref int _Nmodels, ref int _Nconstants, ref Normalization _norm)
         {
-            const string spaces = " \t\n\v\f\r";
-
-            _a = _dt0 = _t0 = _tmin = _tmax = _hmin = _hmax = default;
-            _id = _name = _description = _date = default;
-            _Nmodels = _Nconstants = default;
-            _norm = default;
-
             _filename = _dir + "/" + name + ".wmm";
 
             using (var metastr = File.OpenText(_filename))
             {
-                ReadOnlySpan<char> line = metastr.ReadLine().AsSpan();
-                if (!(line.Length >= 6 && line.StartsWith("WMMF-".AsSpan())))
+                var line = metastr.ReadLine();
+                if (!(line.Length >= 6 && line.StartsWith("WMMF-")))
                     throw new GeographicException(_filename + " does not contain WMMF-n signature");
 
-                var n = line.IndexOfAny(spaces.AsSpan());
-                if (n != -1)
-                    n -= 5;
+                var parts = line.TrimEnd().Split(new[] { "WMMF-" }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 0 || parts[0] != "1")
+                    throw new GeographicException("Unknown version in " + _filename + ": " + parts[0]);
 
-                var version = line.Slice(5, n);
-                if (!(version.SequenceEqual("1".AsSpan()) || version.SequenceEqual("2".AsSpan())))
-                    throw new GeographicException("Unknown version in " + _filename + ": " + version.ToString());
-
-                string key, val;
-                while ((line = metastr.ReadLine().AsSpan()) != null)
+                while ((line = metastr.ReadLine()) != null)
                 {
-                    if (!Utility.ParseLine(line, out key, out val))
+                    if (!Utility.ParseLine(line.AsSpan(), out var key, out var val))
                         continue;
                     // Process key words
                     switch (key)
@@ -257,7 +239,7 @@ namespace GeographicLib
                         case "Description":
                             _description = val; break;
                         case "ReleaseDate":
-                            _date = val; break;
+                            _date = System.DateTime.Parse(val); break;
                         case "Radius":
                             _a = double.Parse(val); break;
                         case "Type" when val.ToLower() != "linear":
@@ -281,11 +263,11 @@ namespace GeographicLib
                         case "ID":
                             _id = val; break;
                         case "Normalization":
-                            switch(val.ToLower())
+                            switch (val.ToLower())
                             {
-                                case "full":_norm = Normalization.Full;break;
-                                case "schmidt": _norm = Normalization.Schmidt;break;
-                                default:  throw new GeographicException("Unknown normalization " + val);
+                                case "full": _norm = Normalization.Full; break;
+                                case "schmidt": _norm = Normalization.Schmidt; break;
+                                default: throw new GeographicException("Unknown normalization " + val);
                             };
                             break;
                         case "ByteOrder":
@@ -335,7 +317,7 @@ namespace GeographicLib
             bool interpolate = n + 1 < _Nmodels;
             t -= n * _dt0;
             Span<double> M = stackalloc double[Geocentric.dim2_];
-            _earth.IntForward(lat, lon, h, out var X, out var Y, out var Z, M);
+            var (X, Y, Z) = _earth.IntForward(lat, lon, h, M);
             // Components in geocentric basis
             // initial values to suppress warning
             double BXc = 0, BYc = 0, BZc = 0;
@@ -420,7 +402,7 @@ namespace GeographicLib
             bool interpolate = n + 1 < _Nmodels;
             t1 -= n * _dt0;
             Span<double> M = stackalloc double[Geocentric.dim2_];
-            _earth.IntForward(lat, 0, h, out var X, out var Y, out var Z, M);
+            var (X, Y, Z) = _earth.IntForward(lat, 0, h, M);
             // Y = 0, cphi = M[7], sphi = M[8];
 
             return (_Nconstants == 0 ?
@@ -559,5 +541,33 @@ namespace GeographicLib
         /// <see cref="Circle(double, double, double)"/>.
         /// </remarks>
         public double MaxTime => _tmax;
+
+        /// <summary>
+        /// Gets a value representing the description of the magnetic model, if available, from the Description file in the data file;
+        /// if absent, return "NONE".
+        /// </summary>
+        public string Description => _description;
+
+        /// <summary>
+        /// Gets a value representing release date of the model, if available, from the ReleaseDate field in the data file;
+        /// if absent, return <see langword="null"/>.
+        /// </summary>
+        public DateTime? DateTime => _date;
+
+        /// <summary>
+        /// Gets a value representing the full file name used to load the magnetic model.
+        /// </summary>
+        public string MagneticFile => _filename;
+
+        /// <summary>
+        /// Gets a value representing the "name" used to load the magnetic model
+        /// (from the first argument of the constructor, but this may be overridden by the model file).
+        /// </summary>
+        public string MagneticModelName => _name;
+
+        /// <summary>
+        /// Gets a value representing the directory used to load the magnetic model.
+        /// </summary>
+        public string MagneticModelDirectory => _dir;
     }
 }

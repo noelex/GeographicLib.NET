@@ -67,6 +67,15 @@ namespace GeographicLib.Tests
             // Assert.AreEqual(expected, BitConverter.DoubleToInt64Bits(MathEx.Log1p(BitConverter.Int64BitsToDouble(x))));
         }
 
+        [DataTestMethod]
+        [DynamicData("Frexp", typeof(MathExTestData))]
+        public void TestFrexp(long x, long expected, int e)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Frexp(BitConverter.Int64BitsToDouble(x),out var ae ));
+            Assert.AreEqual(e, ae);
+            Assert.AreEqual(expected, result);
+        }
+
 #if !NET5_0
         [DataTestMethod]
         [DynamicData("CopySign", typeof(MathExTestData))]
@@ -81,6 +90,18 @@ namespace GeographicLib.Tests
         public void TestScaleB(long x, int n, long expected)
         {
             Assert.AreEqual(BitConverter.Int64BitsToDouble(expected), MathEx.ScaleB(BitConverter.Int64BitsToDouble(x),n));
+        }
+
+        [DataTestMethod]
+        [DynamicData("FusedMultiplyAdd", typeof(MathExTestData))]
+        public void TestFusedMultiplyAdd(long x, long y,long z, long expected)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.FusedMultiplyAdd(
+                BitConverter.Int64BitsToDouble(x), BitConverter.Int64BitsToDouble(y), BitConverter.Int64BitsToDouble(z)));
+            var delta = Math.Abs(expected - result);
+
+            if (delta > 1) Assert.Fail($"result={result}, expected={expected}, delta={delta}");
+            else Assert.IsTrue(true);
         }
 #endif
 

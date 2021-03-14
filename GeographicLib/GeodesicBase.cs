@@ -16,6 +16,9 @@ namespace GeographicLib
         public abstract double Flattening { get; }
 
         /// <inheritdoc/>
+        public abstract double EllipsoidArea { get; }
+
+        /// <inheritdoc/>
         public abstract double GenDirect(double lat1, double lon1, double azi1, bool arcmode, double s12_a12,
             GeodesicFlags outmask, out double lat2, out double lon2, out double azi2, out double s12, out double m12,
             out double M12, out double M21, out double S12);

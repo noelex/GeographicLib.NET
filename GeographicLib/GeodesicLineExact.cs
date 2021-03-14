@@ -343,15 +343,15 @@ namespace GeographicLib
 
             if (caps.HasFlag(GeodesicFlags.DistanceIn))
             {
-                _caps |= GeodesicFlags.DistanceIn.Flags() | (GeodesicFlags)Capability.E;
+                _caps |= GeodesicFlags.DistanceIn.Flags() | (GeodesicFlags)GeodesicCapability.E;
             }
             if (caps.HasFlag(GeodesicFlags.ReducedLength))
             {
-                _caps |= GeodesicFlags.ReducedLength.Flags() | (GeodesicFlags)Capability.D;
+                _caps |= GeodesicFlags.ReducedLength.Flags() | (GeodesicFlags)GeodesicCapability.D;
             }
             if (caps.HasFlag(GeodesicFlags.GeodesicScale))
             {
-                _caps |= GeodesicFlags.GeodesicScale.Flags() | (GeodesicFlags)Capability.D;
+                _caps |= GeodesicFlags.GeodesicScale.Flags() | (GeodesicFlags)GeodesicCapability.D;
             }
 
             SinCosd(AngRound(_lat1), out var sbet1, out var cbet1); sbet1 *= _f1;
@@ -386,7 +386,7 @@ namespace GeographicLib
 
             _E.Reset(-_k2, -g._ep2, 1 + _k2, 1 + g._ep2);
 
-            if (_caps.Capabilities().HasFlag(Capability.E))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.E))
             {
                 _E0 = _E.E() / (PI / 2);
                 _E1 = _E.DeltaE(_ssig1, _csig1, _dn1);
@@ -398,19 +398,19 @@ namespace GeographicLib
                 //    _E1 = -_E.deltaEinv(_stau1, _ctau1);
             }
 
-            if (_caps.Capabilities().HasFlag(Capability.D))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.D))
             {
                 _D0 = _E.D() / (PI / 2);
                 _D1 = _E.DeltaD(_ssig1, _csig1, _dn1);
             }
 
-            if (_caps.Capabilities().HasFlag(Capability.H))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.H))
             {
                 _H0 = _E.H() / (PI / 2);
                 _H1 = _E.DeltaH(_ssig1, _csig1, _dn1);
             }
 
-            if (_caps.Capabilities().HasFlag(Capability.C4))
+            if (_caps.Capabilities().HasFlag(GeodesicCapability.C4))
             {
                 var eps = _k2 / (2 * (1 + Sqrt(1 + _k2)) + _k2);
                 g.C4f(eps, _C4a.Span);

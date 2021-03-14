@@ -3,12 +3,6 @@ name: ci
 on:
   workflow_dispatch:
     branches: [ feature/* ]
-  push:
-    branches: [ feature/* ]
-    paths:
-      - 'GeographicLib/**'
-      - 'GeographicLibTests/**'
-      - 'GeographicLib.NET.sln'
   pull_request:
     branches: [ master, develop ]
 
@@ -47,9 +41,9 @@ jobs:
     - name: Build
       run: dotnet build -c Release --no-restore
       
-    - name: Test
-      id: test
-      run: |
-        dotnet test -c Release --no-build --verbosity normal -- cmath=managed
-        dotnet test -c Release --no-build --verbosity normal -- cmath=native
+    - name: Test with managed C math
+      run: dotnet test -c Release --no-build --verbosity normal -- cmath=managed
+        
+    - name: Test with native C math
+      run: dotnet test -c Release --no-build --verbosity normal -- cmath=native
       
