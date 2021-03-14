@@ -22,7 +22,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="egm84-30.pgm">
+    <None Update="geoids\egm84-30.pgm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="gravity\egm96.egm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="gravity\egm96.egm.cof">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="magnetic\wmm2020.wmm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="magnetic\wmm2020.wmm.cof">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

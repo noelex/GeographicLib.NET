@@ -119,7 +119,7 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsFinite(double x) => unchecked((ulong)(BitConverter.DoubleToInt64Bits(x) & -1L >> 1)) < 0x7ffUL << 52;
+        internal static bool IsFinite(double x) => ((ulong)BitConverter.DoubleToInt64Bits(x) & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
 
         /// <summary>
         /// Returns the angle whose hyperbolic tangent is the specified number.
@@ -226,6 +226,30 @@ namespace GeographicLib
         public static double Remquo(double x, double y, out int quo) => CMath.Instance.Remquo(x,y,out quo);
 
         /// <summary>
+        /// Decomposes given floating point value <paramref name="x"/> into a normalized fraction and an integral power of two.
+        /// </summary>
+        /// <param name="x">Floating point value.</param>
+        /// <param name="e">Pointer to integer value to store the exponent to.</param>
+        /// <returns>
+        /// <para>
+        /// If <paramref name="x"/> is zero, returns zero and stores zero in <paramref name="e"/>.
+        /// </para>
+        /// <para>
+        /// Otherwise (if <paramref name="x"/> is not zero), if no errors occur,
+        /// returns the value x in the range (-1;-0.5], [0.5; 1) and stores an integer value in <paramref name="e"/> such that
+        /// x×2(<paramref name="e"/>)=<paramref name="x"/>
+        /// </para>
+        /// <para>
+        /// If the value to be stored in <paramref name="e"/> is outside the range of int, the behavior is unspecified.
+        /// </para>
+        /// <para>
+        /// If <paramref name="x"/> is not a floating-point number, the behavior is unspecified.
+        /// </para>
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        public static double Frexp(double x, out int e) => CMath.Instance.Frexp(x, out e);
+
+        /// <summary>
         /// Multiplies a floating-point number by an integral power of two.
         /// </summary>
         /// <param name="number">Floating-point value.</param>
@@ -295,9 +319,8 @@ namespace GeographicLib
             // In order to minimize round-off errors, this function exactly reduces
             // the argument to the range [-45, 45] before converting it to radians.
             double r;
-            int q;
 
-            r = Remquo(x, 90, out q);
+            r = Remquo(x, 90, out var q);
             r *= Degree;
 
             double s = Sin(r), c = Cos(r);
@@ -323,8 +346,8 @@ namespace GeographicLib
         public static double Sind(double x)
         {
             // See sincosd
-            double r; int q;
-            r = Remquo(x, 90d, out q); // now abs(r) <= 45
+            double r;
+            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)q;
@@ -345,8 +368,8 @@ namespace GeographicLib
         public static double Cosd(double x)
         {
             // See sincosd
-            double r; int q;
-            r = Remquo(x, 90d, out q); // now abs(r) <= 45
+            double r;
+            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)(q + 1);
@@ -367,8 +390,7 @@ namespace GeographicLib
         {
             const double overflow = 1 / (DBL_EPSILON * DBL_EPSILON);
 
-            double s, c;
-            SinCosd(x, out s, out c);
+            SinCosd(x, out var s, out var c);
             return c != 0 ? s / c : (s < 0 ? -overflow : overflow);
         }
 

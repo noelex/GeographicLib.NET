@@ -67,6 +67,15 @@ namespace GeographicLib.Tests
             // Assert.AreEqual(expected, BitConverter.DoubleToInt64Bits(MathEx.Log1p(BitConverter.Int64BitsToDouble(x))));
         }
 
+        [DataTestMethod]
+        [DynamicData("Frexp", typeof(MathExTestData))]
+        public void TestFrexp(long x, long expected, int e)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Frexp(BitConverter.Int64BitsToDouble(x),out var ae ));
+            Assert.AreEqual(e, ae);
+            Assert.AreEqual(expected, result);
+        }
+
 #if !NET5_0
         [DataTestMethod]
         [DynamicData("CopySign", typeof(MathExTestData))]

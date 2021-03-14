@@ -48,5 +48,13 @@ jobs:
       
     - name: Test
       id: test
-      run: dotnet test -c Release --no-build --verbosity normal
+      run:
+        dotnet test -c Release --no-build --verbosity normal
       
+    - name: Publish NugGet Package
+      env:
+        API_KEY: "${{ secrets.NUGET_API_KEY }}"
+      run: |
+        dotnet pack -c Release --no-build
+        cd ./GeographicLib/bin/Release/
+        dotnet nuget push *.nupkg -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate

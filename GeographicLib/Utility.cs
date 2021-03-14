@@ -61,6 +61,18 @@ namespace GeographicLib
             return p >= 0 ? x.ToString($"F{p}") : x.ToString();
         }
 
+        public static double ParseFract(this string s) => ParseFract(s.AsSpan());
+
+        public static double ParseFract(this ReadOnlySpan<char> s)
+        {
+            var delim = s.IndexOf('/');
+            return
+              !(delim != -1 && delim >= 1 && delim + 2 <= s.Length) ?
+                s.ParseDouble() :
+                // delim in [1, size() - 2]
+                s.Slice(0, delim).ParseDouble() / s.Slice(delim + 1).ParseDouble();
+        }
+
         public static double ParseDouble(this string s) => ParseDouble(s.AsSpan());
 
         public static double ParseDouble(this ReadOnlySpan<char> s)
@@ -143,14 +155,14 @@ namespace GeographicLib
             key = value = null;
 
             var n = line.IndexOf('#');
-            var linea = line.Slice(0, n).Trim();
+            var linea = n==-1?line: line.Slice(0, n).Trim();
             if (linea.IsEmpty) return false;
 
             n = delim != 0 ? linea.IndexOf(delim) : linea.IndexOfAny(" \t\n\v\f\r".AsSpan());
             key = linea.Slice(0, n).Trim().ToString();
             if (string.IsNullOrEmpty(key)) return false;
 
-            if (n != -1) value = linea.Slice(n + 1).ToString();
+            if (n != -1) value = linea.Slice(n + 1).Trim().ToString();
 
             return true;
         }

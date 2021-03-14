@@ -18,6 +18,8 @@ namespace GeographicLib
 
         public abstract double Log1p(double x);
 
+        public abstract double Frexp(double x, out int e);
+
 #if !NET5_0
         public abstract double CopySign(double x, double y);
 
