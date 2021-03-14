@@ -119,7 +119,7 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsFinite(double x) => unchecked((ulong)(BitConverter.DoubleToInt64Bits(x) & -1L >> 1)) < 0x7ffUL << 52;
+        internal static bool IsFinite(double x) => ((ulong)BitConverter.DoubleToInt64Bits(x) & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
 
         /// <summary>
         /// Returns the angle whose hyperbolic tangent is the specified number.

@@ -133,11 +133,11 @@ namespace GeographicLib
             string coeff = _filename + ".cof";
             using (var coeffstr = File.OpenRead(coeff))
             {
-                Span<char> id = stackalloc char[idlength_];
-                if (coeffstr.Read(MemoryMarshal.Cast<char, byte>(id)) != idlength_)
+                Span<byte> id = stackalloc byte[idlength_];
+                if (coeffstr.Read(id) != idlength_)
                     throw new GeographicException("No header in " + coeff);
-                if (!_id.AsSpan().SequenceEqual(id))
-                    throw new GeographicException($"ID mismatch: {_id} vs {id.ToString()}");
+                if (MemoryMarshal.Cast<char,byte>(_id.AsSpan()).SequenceEqual(id))
+                    throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
                 int N = 0, M = 0;
                 if (truncate) { N = Nmax; M = Mmax; }
 
@@ -592,20 +592,16 @@ namespace GeographicLib
             ref DateTime? _date, ref double _amodel, ref double _GMmodel, ref double _zeta0, ref double _corrmult,
             ref Normalization _norm, ref string _id, ref NormalGravity _earth)
         {
-            const string spaces = " \t\n\v\f\r";
             _filename = _dir + "/" + name + ".egm";
             using (var metastr = File.OpenText(_filename))
             {
                 var line = metastr.ReadLine();
                 if (!(line.Length >= 6 && line.StartsWith("EGMF-")))
                     throw new GeographicException(_filename + " does not contain EGMF-n signature");
-                var n = line.IndexOf(spaces, 5);
-                if (n != -1)
-                    n -= 5;
 
-                var version = line.Substring(5, n);
-                if (version != "1")
-                    throw new GeographicException("Unknown version in " + _filename + ": " + version);
+                var parts = line.TrimEnd().Split(new[] { "EGMF-" }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 0 || parts[0] != "1")
+                    throw new GeographicException("Unknown version in " + _filename + ": " + parts[0]);
                 double a = double.NaN, GM = a, omega = a, f = a, J2 = a;
                 while ((line = metastr.ReadLine()) != null)
                 {

@@ -29,7 +29,8 @@ namespace GeographicLib.Tests
         [TestMethod]
         public void Test_Load()
         {
-            using (var geoid = new Geoid("egm84-30", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)))
+            using (var geoid = new Geoid("egm84-30", 
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "geoids")))
             {
                 Assert.AreEqual("WGS84 EGM84, 30-minute grid", geoid.Description);
                 Assert.AreEqual(DateTime.Parse("2009-08-29 18:45:02"), geoid.DateTime);
@@ -45,7 +46,8 @@ namespace GeographicLib.Tests
         [DataRow("16:46:33N 3:00:34W", 31.3031)]
         public void Test_EvaluateFromCache(string c, double height)
         {
-            using (var geoid = new Geoid("egm84-30", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)))
+            using (var geoid = new Geoid("egm84-30", 
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "geoids")))
             {
                 geoid.CacheAll();
 
@@ -61,7 +63,8 @@ namespace GeographicLib.Tests
         [DataRow("16:46:33N 3:00:34W", 31.3031)]
         public void Test_EvaluateWithoutCache(string c, double height)
         {
-            using (var geoid = new Geoid("egm84-30", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)))
+            using (var geoid = new Geoid("egm84-30", 
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "geoids")))
             {
                 var coord = new GeoCoords(c);
                 var h = geoid.Evaluate(coord);

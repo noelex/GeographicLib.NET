@@ -155,14 +155,14 @@ namespace GeographicLib
             key = value = null;
 
             var n = line.IndexOf('#');
-            var linea = line.Slice(0, n).Trim();
+            var linea = n==-1?line: line.Slice(0, n).Trim();
             if (linea.IsEmpty) return false;
 
             n = delim != 0 ? linea.IndexOf(delim) : linea.IndexOfAny(" \t\n\v\f\r".AsSpan());
             key = linea.Slice(0, n).Trim().ToString();
             if (string.IsNullOrEmpty(key)) return false;
 
-            if (n != -1) value = linea.Slice(n + 1).ToString();
+            if (n != -1) value = linea.Slice(n + 1).Trim().ToString();
 
             return true;
         }
