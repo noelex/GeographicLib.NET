@@ -28,7 +28,14 @@ namespace GeographicLib.Projections
     /// </remarks>
     public class AlbersEqualArea : IEllipsoid
     {
-        private readonly double _eps, _epsx, _epsx2, _tol, _tol0;
+        private const double eps_ = DBL_EPSILON;
+        private static readonly double
+            lg2eps_ = -Log2(DBL_EPSILON / 2),
+            epsx_ = Sq(eps_),
+            epsx2_ = Sq(epsx_),
+            tol_ = Sqrt(eps_),
+            tol0_ = tol_ * Sqrt(Sqrt(eps_));
+
         private readonly double _a, _f, _fm, _e2, _e, _e2m, _qZ, _qx;
         private readonly double _sign, _lat0;
         private readonly double _n0, _m02, _nrho0, _txi0, _scxi0, _sxi0;
@@ -52,11 +59,6 @@ namespace GeographicLib.Projections
 
         private AlbersEqualArea(double a, double f)
         {
-            _eps = DBL_EPSILON;
-            _epsx = Sq(_eps);
-            _epsx2 = Sq(_epsx);
-            _tol = Sqrt(_eps);
-            _tol0 = _tol * Sqrt(Sqrt(_eps));
             _a = a;
             _f = f;
             _fm = 1 - f;
@@ -266,7 +268,7 @@ namespace GeographicLib.Projections
             lat *= _sign;
             double sphi, cphi;
             SinCosd(LatFix(lat) * _sign, out sphi, out cphi);
-            cphi = Max(_epsx, cphi);
+            cphi = Max(epsx_, cphi);
             double
               lam = lon * Degree,
               tphi = sphi / cphi, txi = Txif(tphi), sxi = txi / Hypot(txi),
@@ -324,7 +326,7 @@ namespace GeographicLib.Projections
               // dsxia = scxi0 * dsxi
               dsxia = -_scxi0 * (2 * _nrho0 + _n0 * drho) * drho /
                       (Sq(_a) * _qZ),
-              txi = (_txi0 + dsxia) / Sqrt(Max(1 - dsxia * (2 * _txi0 + dsxia), _epsx2)),
+              txi = (_txi0 + dsxia) / Sqrt(Max(1 - dsxia * (2 * _txi0 + dsxia), epsx2_)),
               tphi = Tphif(txi),
               theta = Atan2(nx, y1),
               lam = _n0 != 0 ? theta / (_k2 * _n0) : x / (y1 * _k0);
@@ -354,12 +356,7 @@ namespace GeographicLib.Projections
         /// </summary>
         /// <param name="x"></param>
         private double AtanhEE(double x) =>
-            _f > 0 ? Atanh(_e * x) / _e :
-            // We only invoke atanhee in txif for positive latitude.  Then x is
-            // only negative for very prolate ellipsoids (_b/_a >= sqrt(2)) and we
-            // still need to return a positive result in this case; hence the need
-            // for the call to atan2.
-            (_f < 0 ? (Atan2(_e * Abs(x), x < 0 ? -1.0 : 1.0) / _e) : x);
+            _f > 0 ? Atanh(_e * x) / _e : (_f < 0 ? (Atan(_e * x) / _e) : x);
 
         /// <summary>
         ///   return atanh(sqrt(x))/sqrt(x) - 1 = y/3 + y^2/5 + y^3/7 + ...
@@ -372,14 +369,16 @@ namespace GeographicLib.Projections
             var s = 0d;
             if (Abs(x) < 0.5)
             {
-                double os = -1, y = 1, k = 1;
-                while (os != s)
-                {
-                    os = s;
-                    y *= x;                 // y = x^n
-                    k += 2;                 // k = 2*n + 1
-                    s += y / k;               // sum( x^n/(2*n + 1) )
-                }
+                Frexp(x, out var e);
+                e = -e;
+                // x = [0.5,1) * 2^(-e)
+                // estimate n s.t. x^n/(2*n+1) < x/3 * epsilon/2
+                // a stronger condition is x^(n-1) < epsilon/2
+                // taking log2 of both sides, a stronger condition is
+                // (n-1)*(-e) < -lg2eps or (n-1)*e > lg2eps or n > ceiling(lg2eps/e)+1
+                int n = x == 0 ? 1 : (int)Ceiling(lg2eps_ / e) + 1;
+                while (n--!=0)               // iterating from n-1 down to 0
+                    s = x * s + (n!=0 ? 1 : 0) / (double)(2 * n + 1);
             }
             else
             {
@@ -397,9 +396,9 @@ namespace GeographicLib.Projections
         /// <returns></returns>
         private double DAtanhEE(double x, double y)
         {
-            var t = x - y;
-            var d = 1 - _e2 * x * y;
-            return t != 0 ? AtanhEE(t / d) / t : 1 / d;
+            double t = x - y, d = 1 - _e2 * x * y;
+            return t == 0 ? 1 / d :
+              (x * y < 0 ? AtanhEE(x) - AtanhEE(y) : AtanhEE(t / d)) / t;
         }
 
         /// <summary>
@@ -410,25 +409,121 @@ namespace GeographicLib.Projections
         /// <returns></returns>
         private double DDAtanhEE(double x, double y)
         {
+            // This function is called with x = sphi1, y = sphi2, phi1 <= phi2, sphi2
+            // >= 0, abs(sphi1) <= phi2.  However for safety's sake we enforce x <= y.
+            if (y < x) Swap(ref x, ref y);      // ensure that x <= y
+            double q1 = Abs(_e2),
+              q2 = Abs(2 * _e / _e2m * (1 - x));
+            return
+              x <= 0 || !(Min(q1, q2) < 0.75) ? DDAtanhEE0(x, y) :
+              (q1 < q2 ? DDAtanhEE1(x, y) : DDAtanhEE2(x, y));
+        }
+
+        // Rearrange difference so that 1 - x is in the denominator, then do a
+        // straight divided difference.
+        private double DDAtanhEE0(double x, double y) 
+            => (DAtanhEE(1, y) - DAtanhEE(x, y))/(1 - x);
+
+        // The expansion for e2 small
+        private double DDAtanhEE1(double x, double y)
+        {
+            // The series in e2 is
+            //   sum( c[l] * e2^l, l, 1, N)
+            // where
+            //   c[l] = sum( x^i * y^j; i >= 0, j >= 0, i+j < 2*l) / (2*l + 1)
+            //        = ( (x-y) - (1-y) * x^(2*l+1) + (1-x) * y^(2*l+1) ) /
+            //          ( (2*l+1) * (x-y) * (1-y) * (1-x) )
+            // For x = y = 1, c[l] = l
+            //
+            // In the limit x,y -> 1,
+            //
+            //   DDatanhee -> e2/(1-e2)^2 = sum(l * e2^l, l, 1, inf)
+            //
+            // Use if e2 is sufficiently small.
             var s = 0d;
-            if (_e2 * (Abs(x) + Abs(y)) < 0.5)
-            {
-                double os = -1, z = 1, k = 1, t = 0, c = 0, en = 1;
-                while (os != s)
-                {
-                    os = s;
-                    t = y * t + z; c += t; z *= x;
-                    t = y * t + z; c += t; z *= x;
-                    k += 2; en *= _e2;
-                    // Here en[l] = e2^l, k[l] = 2*l + 1,
-                    // c[l] = sum( x^i * y^j; i >= 0, j >= 0, i+j < 2*l)
-                    s += en * c / k;
-                }
+            double z = 1, k = 1, t = 0, c = 0, en = 1;
+            while (true) {
+                t = y * t + z; c += t; z *= x;
+                t = y * t + z; c += t; z *= x;
+                k += 2; en *= _e2;
+                // Here en[l] = e2^l, k[l] = 2*l + 1,
+                // c[l] = sum( x^i * y^j; i >= 0, j >= 0, i+j < 2*l) / (2*l + 1)
                 // Taylor expansion is
-                // s = sum( c[l] * e2^l / (2*l + 1), l, 1, N)
+                // s = sum( c[l] * e2^l, l, 1, N)
+                var ds = en * c / k;
+                s += ds;
+                if (!(Abs(ds) > Abs(s) * eps_ / 2))
+                    break;            // Iterate until the added term is sufficiently small
             }
-            else
-                s = (DAtanhEE(1, y) - DAtanhEE(x, y)) / (1 - x);
+            return s;
+        }
+
+        // The expansion for x (and y) close to 1
+        private double DDAtanhEE2(double x, double y)
+        {
+            // If x and y are both close to 1, expand in Taylor series in dx = 1-x and
+            // dy = 1-y:
+            //
+            // DDatanhee = sum(C_m * (dx^(m+1) - dy^(m+1)) / (dx - dy), m, 0, inf)
+            //
+            // where
+            //
+            // C_m = sum( (m+2)!! / (m+2-2*k)!! *
+            //            ((m+1)/2)! / ((m+1)/2-k)! /
+            //            (k! * (2*k-1)!!) *
+            //            e2^((m+1)/2+k),
+            //           k, 0, (m+1)/2) * (-1)^m / ((m+2) * (1-e2)^(m+2))
+            // for m odd, and
+            //
+            // C_m = sum( 2 * (m+1)!! / (m+1-2*k)!! *
+            //            (m/2+1)! / (m/2-k)! /
+            //            (k! * (2*k+1)!!) *
+            //            e2^(m/2+1+k),
+            //           k, 0, m/2)) * (-1)^m / ((m+2) * (1-e2)^(m+2))
+            // for m even.
+            //
+            // Here i!! is the double factorial extended to negative i with
+            // i!! = (i+2)!!/(i+2).
+            //
+            // Note that
+            //   (dx^(m+1) - dy^(m+1)) / (dx - dy) =
+            //     dx^m + dx^(m-1)*dy ... + dx*dy^(m-1) + dy^m
+            //
+            // Leading (m = 0) term is e2 / (1 - e2)^2
+            //
+            // Magnitude of mth term relative to the leading term scales as
+            //
+            //   2*(2*e/(1-e2)*dx)^m
+            //
+            // So use series if (2*e/(1-e2)*dx) is sufficiently small
+            double s, dx = 1 - x, dy = 1 - y, xy = 1, yy = 1, ee = _e2 / Sq(_e2m);
+            s = ee;
+            for (int m = 1; ; ++m)
+            {
+                double c = m + 2, t = c;
+                yy *= dy;               // yy = dy^m
+                xy = dx * xy + yy;
+                // Now xy = dx^m + dx^(m-1)*dy ... + dx*dy^(m-1) + dy^m
+                //        = (dx^(m+1) - dy^(m+1)) / (dx - dy)
+                // max value = (m+1) * max(dx,dy)^m
+                ee /= -_e2m;
+                if (m % 2 == 0) ee *= _e2;
+                // Now ee = (-1)^m * e2^(floor(m/2)+1) / (1-e2)^(m+2)
+                int kmax = (m + 1) / 2;
+                for (int k = kmax - 1; k >= 0; --k)
+                {
+                    // max coeff is less than 2^(m+1)
+                    c *= (k + 1) * (2 * (k + m - 2 * kmax) + 3);
+                    c /= (kmax - k) * (2 * (kmax - k) + 1);
+                    // Horner sum for inner _e2 series
+                    t = _e2 * t + c;
+                }
+                // Straight sum for outer m series
+                var ds = t * ee * xy / (m + 2);
+                s = s + ds;
+                if (!(Abs(ds) > Abs(s) * eps_ / 2))
+                    break;            // Iterate until the added term is sufficiently small
+            }
             return s;
         }
 
@@ -475,29 +570,28 @@ namespace GeographicLib.Projections
             //               atanhee((1-sphi)/(1-e2*sphi)) ) *
             //             ( (1-e2*sphi)*(1+sphi)/( (1-e2*sphi^2) * (1-e2) ) +
             //               atanhee((1+sphi)/(1+e2*sphi)) ) )
+            //     = ( tphi/(1-e2*sphi^2) + atanhee(sphi, e2)/cphi ) /
+            //       sqrt(
+            //       ( (1+e2*sphi)/( (1-e2*sphi^2) * (1-e2) ) + Datanhee(1,  sphi)  ) *
+            //       ( (1-e2*sphi)/( (1-e2*sphi^2) * (1-e2) ) + Datanhee(1, -sphi)  ) )
             //
-            // subst 1-sphi = cphi^2/(1+sphi)
-            int s = tphi < 0 ? -1 : 1;  // Enforce odd parity
-            tphi *= s;
+            // This function maintains odd parity
             double
-              cphi2 = 1 / (1 + Sq(tphi)),
-              sphi = tphi * Sqrt(cphi2),
+              cphi = 1 / Sqrt(1 + Sq(tphi)),
+              sphi = tphi * cphi,
               es1 = _e2 * sphi,
-              es2m1 = 1 - es1 * sphi,
-              sp1 = 1 + sphi,
-              es1m1 = (1 - es1) * sp1,
-              es2m1a = _e2m * es2m1,
-              es1p1 = sp1 / (1 + es1);
-            return s * (sphi / es2m1 + AtanhEE(sphi)) /
-              Sqrt((cphi2 / (es1p1 * es2m1a) + AtanhEE(cphi2 / es1m1)) *
-                    (es1m1 / es2m1a + AtanhEE(es1p1)));
+              es2m1 = 1 - es1 * sphi,   // 1 - e2 * sphi^2
+              es2m1a = _e2m * es2m1;    // (1 - e2 * sphi^2) * (1 - e2)
+            return (tphi / es2m1 + AtanhEE(sphi) / cphi) /
+              Sqrt(((1 + es1) / es2m1a + DAtanhEE(1, sphi)) *
+                    ((1 - es1) / es2m1a + DAtanhEE(1, -sphi)));
         }
 
         internal double Tphif(double txi)
         {
             double
               tphi = txi,
-              stol = _tol * Max(1d, Abs(txi));
+              stol = tol_ * Max(1d, Abs(txi));
 
             // CHECK: min iterations = 1, max iterations = 2; mean = 1.99
             for (int i = 0; i < _numit || GEOGRAPHICLIB_PANIC; ++i)
@@ -532,8 +626,8 @@ namespace GeographicLib.Projections
             }
 
             bool polar = (cphi1 == 0);
-            cphi1 = Max(_epsx, cphi1);   // Avoid singularities at poles
-            cphi2 = Max(_epsx, cphi2);
+            cphi1 = Max(epsx_, cphi1);   // Avoid singularities at poles
+            cphi2 = Max(epsx_, cphi2);
             // Determine hemisphere of tangent latitude
             _sign = sphi1 + sphi2 >= 0 ? 1 : -1;
             // Internally work with tangent latitude positive
@@ -613,7 +707,7 @@ namespace GeographicLib.Projections
                 // C = (scbet22*sxi2 - scbet12*sxi1) / (scbet22 * scbet12 * (sx2 - sx1))
                 C = den / (2 * scbet12 * scbet22 * dsxi);
                 tphi0 = (tphi2 + tphi1) / 2;
-                double stol = _tol0 * Max(1d, Abs(tphi0));
+                double stol = tol0_ * Max(1d, Abs(tphi0));
                 for (int i = 0; i < 2 * _numit0 || GEOGRAPHICLIB_PANIC; ++i)
                 {
                     // Solve (scbet0^2 * sphi0) / (1/qZ + scbet0^2 * sphi0 * sxi0) = s

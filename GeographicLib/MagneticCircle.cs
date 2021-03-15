@@ -60,44 +60,44 @@ namespace GeographicLib
                            out double Bx, out double By, out double Bz,
                            out double Bxt, out double Byt, out double Bzt)
         {
+            Bxt = Byt = Bzt = default;
+
             SinCosd(lon, out var slam, out var clam);
             Span<double> M = stackalloc double[Geocentric.dim2_];
             Geocentric.Rotation(_sphi, _cphi, slam, clam, M);
 
-            double BXc = 0, BYc = 0, BZc = 0;
-            _circ0.Evaluate(slam, clam, out var BX0, out var BY0, out var BZ0);
-            _circ1.Evaluate(slam, clam, out var BX1, out var BY1, out var BZ1);
+            FieldGeocentric(slam, clam, out var BX, out var BY, out var BZ, out var BXt, out var BYt, out var BZt);
+            if (diffp)
+                Geocentric.Unrotate(M, BXt, BYt, BZt,out Bxt, out Byt, out Bzt);
+            Geocentric.Unrotate(M, BX, BY, BZ, out Bx, out By, out Bz);
+        }
 
+        private void FieldGeocentric(double slam, double clam,
+                         out double BX, out double BY, out double BZ,
+                         out double BXt, out double BYt, out double BZt)
+        {
+            double BXc = 0, BYc = 0, BZc = 0;
+            _circ0.Evaluate(slam, clam, out BX, out BY, out BZ);
+            _circ1.Evaluate(slam, clam, out BXt, out BYt, out BZt);
             if (_constterm)
                 _circ2.Evaluate(slam, clam, out BXc, out BYc, out BZc);
-
             if (_interpolate)
             {
-                BX1 = (BX1 - BX0) / _dt0;
-                BY1 = (BY1 - BY0) / _dt0;
-                BZ1 = (BZ1 - BZ0) / _dt0;
+                BXt = (BXt - BX) / _dt0;
+                BYt = (BYt - BY) / _dt0;
+                BZt = (BZt - BZ) / _dt0;
             }
+            BX += _t1 * BXt + BXc;
+            BY += _t1 * BYt + BYc;
+            BZ += _t1 * BZt + BZc;
 
-            BX0 += _t1 * BX1 + BXc;
-            BY0 += _t1 * BY1 + BYc;
-            BZ0 += _t1 * BZ1 + BZc;
+            BXt *= -_a;
+            BYt *= -_a;
+            BZt *= -_a;
 
-            if (diffp)
-            {
-                Geocentric.Unrotate(M, BX1, BY1, BZ1, out Bxt, out Byt, out Bzt);
-                Bxt *= -_a;
-                Byt *= -_a;
-                Bzt *= -_a;
-            }
-            else
-            {
-                Bxt = Byt = Bzt = double.NaN;
-            }
-
-            Geocentric.Unrotate(M, BX0, BY0, BZ0, out Bx, out By, out Bz);
-            Bx *= -_a;
-            By *= -_a;
-            Bz *= -_a;
+            BX *= -_a;
+            BY *= -_a;
+            BZ *= -_a;
         }
 
         /// <summary>
@@ -124,6 +124,23 @@ namespace GeographicLib
                              out double Bx, out double By, out double Bz,
                              out double Bxt, out double Byt, out double Bzt)
             => Field(lon, false, out Bx, out By, out Bz, out Bxt, out Byt, out Bzt);
+
+        /// <summary>
+        /// Evaluate the components of the geomagnetic field and their time derivatives at a particular longitude.
+        /// </summary>
+        /// <param name="lon">longitude of the point (degrees).</param>
+        /// <param name="BX">the <i>X</i> component of the magnetic field (nanotesla).</param>
+        /// <param name="BY">the <i>Y</i> component of the magnetic field (nanotesla).</param>
+        /// <param name="BZ">the <i>Z</i> component of the magnetic field (nanotesla).</param>
+        /// <param name="BXt">the rate of change of <i>BX</i> (nT/yr).</param>
+        /// <param name="BYt">the rate of change of <i>BY</i> (nT/yr).</param>
+        /// <param name="BZt">the rate of change of <i>BZ</i> (nT/yr).</param>
+        public void FieldGeocentric(double lon, out double BX, out double BY, out double BZ,
+                         out double BXt, out double BYt, out double BZt)
+        {
+            SinCosd(lon, out var slam, out var clam);
+            FieldGeocentric(slam, clam,out BX, out BY, out BZ, out BXt, out BYt, out BZt);
+        }
 
         /// <summary>
         /// Gets a value representing the equatorial radius (<i>a</i>) of the ellipsoid.
