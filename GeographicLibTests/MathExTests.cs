@@ -103,6 +103,14 @@ namespace GeographicLib.Tests
             if (delta > 1) Assert.Fail($"result={result}, expected={expected}, delta={delta}");
             else Assert.IsTrue(true);
         }
+
+        [DataTestMethod]
+        [DynamicData("Log2", typeof(MathExTestData))]
+        public void TestLog2(long x, long expected)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Log2(BitConverter.Int64BitsToDouble(x)));
+            Assert.AreEqual(expected, result);
+        }
 #endif
 
 #if NETCOREAPP2_1

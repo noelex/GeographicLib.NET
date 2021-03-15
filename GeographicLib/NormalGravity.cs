@@ -75,7 +75,7 @@ namespace GeographicLib
         private const int maxit_ = 20;
         private const double maxe_ = 1 - DBL_EPSILON;
         private static readonly double eps2_ = Sqrt(DBL_EPSILON) / 100;
-        private static readonly double lg2eps_ = -Log(DBL_EPSILON / 2) / Log(2);
+        private static readonly double lg2eps_ = -Log(DBL_EPSILON / 2) / Log(2);//-Log2(DBL_EPSILON / 2)
 
         internal readonly double _a, _GM, _omega, _f, _J2, _omega2, _aomega2;
         private readonly double _e2, _ep2, _b, _E, _U0, _gammae, _gammap, _Q0, _k, _fstar;

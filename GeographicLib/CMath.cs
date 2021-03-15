@@ -26,6 +26,8 @@ namespace GeographicLib
         public abstract double ScaleB(double number, int exp);
 
         public abstract double FusedMultiplyAdd(double x, double y, double z);
+
+        public abstract double Log2(double x);
 #endif
 
 #if NETSTANDARD2_0

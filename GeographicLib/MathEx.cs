@@ -185,6 +185,24 @@ namespace GeographicLib
         /// <returns>(x * y) + z, rounded as one ternary operation.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double FusedMultiplyAdd(double x, double y, double z) => CMath.Instance.FusedMultiplyAdd(x, y, z);
+
+        /// <summary>
+        /// Returns the base 2 logarithm of a specified number.
+        /// </summary>
+        /// <param name="x">A number whose logarithm is to be found.</param>
+        /// <returns>
+        /// One of the values in the following table.
+        /// <list type="table">
+        /// <item><paramref name="x"/> parameter – Return value</item>
+        /// <item>Positive – The base 2 log of <paramref name="x"/>; that is, log 2<paramref name="x"/>.</item>
+        /// <item>Zero - <see cref="double.NegativeInfinity"/></item>
+        /// <item>Negative - <see cref="double.NaN"/></item>
+        /// <item>Equal to <see cref="double.NaN"/> - <see cref="double.NaN"/></item>
+        /// <item>Equal to <see cref="double.PositiveInfinity"/> - <see cref="double.PositiveInfinity"/></item>
+        /// </list>
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Log2(double x) => CMath.Instance.Log2(x);
 #endif
 
         /// <summary>
@@ -192,7 +210,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Expm1(double x) => CMath.Instance.Expm1(x);
 
         /// <summary>
@@ -201,15 +219,15 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns>Hypotenuse of a right-angled triangle computed as √(x^2+y^2).</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
-        public static double Hypot(double x, double y) => CMath.Instance.Hypot(x,y);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Hypot(double x, double y) => CMath.Instance.Hypot(x, y);
 
         /// <summary>
         /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Log1p(double x) => CMath.Instance.Log1p(x);
 
         /// <summary>
@@ -222,8 +240,8 @@ namespace GeographicLib
         /// <returns>
         /// Returns the floating-point remainder of <paramref name="x"/> / <paramref name="y"/>.
         /// If the value of <paramref name="y"/> is 0.0, this method returns a quiet <see cref="double.NaN"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
-        public static double Remquo(double x, double y, out int quo) => CMath.Instance.Remquo(x,y,out quo);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Remquo(double x, double y, out int quo) => CMath.Instance.Remquo(x, y, out quo);
 
         /// <summary>
         /// Decomposes given floating point value <paramref name="x"/> into a normalized fraction and an integral power of two.
@@ -246,7 +264,7 @@ namespace GeographicLib
         /// If <paramref name="x"/> is not a floating-point number, the behavior is unspecified.
         /// </para>
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Frexp(double x, out int e) => CMath.Instance.Frexp(x, out e);
 
         /// <summary>
