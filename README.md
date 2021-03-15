@@ -54,6 +54,7 @@ GeographicLib uses several C mathematical functions that are not present in or n
  - log1p
  - expm1
  - frexp
+ - log2 (available since .NET 5.0)
  - fma (available since .NET 5.0)
  - scalbn (available since .NET 5.0)
  - copysign (available since .NET 5.0)
