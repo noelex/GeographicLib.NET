@@ -69,6 +69,24 @@ namespace GeographicLib.Projections
             _qx = _qZ / (2 * _e2m);
         }
 
+        /// <summary>
+        /// Constructor with a single standard parallel.
+        /// </summary>
+        /// <param name="ellipsoid"><see cref="IEllipsoid"/> instance to be used in projection.</param>
+        /// <param name="stdlat">standard parallel (degrees), the circle of tangency.</param>
+        /// <param name="k0">azimuthal scale on the standard parallel.</param>
+        public AlbersEqualArea(IEllipsoid ellipsoid, double stdlat, double k0)
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening) { }
+
+        /// <summary>
+        /// Constructor with two standard parallels.
+        /// </summary>
+        /// <param name="ellipsoid"><see cref="IEllipsoid"/> instance to be used in projection.</param>
+        /// <param name="stdlat1">first standard parallel (degrees).</param>
+        /// <param name="stdlat2">second standard parallel (degrees).</param>
+        /// <param name="k1">azimuthal scale on the standard parallels.</param>
+        public AlbersEqualArea(IEllipsoid ellipsoid, double stdlat1, double stdlat2, double k1)
+            :this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat1, stdlat2, k1) { }
 
         /// <summary>
         /// Constructor with a single standard parallel.
@@ -238,7 +256,7 @@ namespace GeographicLib.Projections
             if (!(Abs(lat) < 90))
                 throw new GeographicException("Latitude for SetScale not in (-90d, 90d)");
 
-            Forward(0, lat, 0, out _, out _, out _, out var kold);
+            Forward(0, lat, 0, out _, out var kold);
             k /= kold;
             _k0 *= k;
             _k2 = Sq(_k0);
@@ -250,19 +268,19 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
         /// <param name="gamma">meridian convergence at point (degrees).</param>
         /// <param name="k">azimuthal scale of projection at point; the radial scale is the 1/<paramref name="k"/>.</param>
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
         /// <remarks>
         /// The latitude origin is given by <see cref="OriginLatitude"/>.  No
         /// false easting or northing is added and <paramref name="lat"/> should be in the range
-        /// [-90°, 90°].  The values of <paramref name="x"/> and <paramref name="y"/> returned for
+        /// [-90°, 90°].  The values of <i>x</i> and <i>y</i> returned for
         /// points which project to infinity (i.e., one or both of the poles) will
         /// be large but finite.
         /// </remarks>
-        public void Forward(double lon0, double lat, double lon,
-                            out double x, out double y, out double gamma, out double k)
+        public (double x, double y) Forward(double lon0, double lat, double lon, out double gamma, out double k)
         {
             lon = AngDiff(lon0, lon);
             lat *= _sign;
@@ -276,8 +294,8 @@ namespace GeographicLib.Projections
               drho = -_a * dq / (Sqrt(_m02 - _n0 * dq) + _nrho0 / _a),
               theta = _k2 * _n0 * lam, stheta = Sin(theta), ctheta = Cos(theta),
               t = _nrho0 + _n0 * drho;
-            x = t * (_n0 != 0 ? stheta / _n0 : _k2 * lam) / _k0;
-            y = (_nrho0 *
+            var x = t * (_n0 != 0 ? stheta / _n0 : _k2 * lam) / _k0;
+            var y = (_nrho0 *
                  (_n0 != 0 ?
                   (ctheta < 0 ? 1 - ctheta : Sq(stheta) / (1 + ctheta)) / _n0 :
                   0)
@@ -285,6 +303,8 @@ namespace GeographicLib.Projections
             k = _k0 * (t != 0 ? t * Hypot(_fm * tphi) / _a : 1);
             y *= _sign;
             gamma = _sign * theta / Degree;
+
+            return (x, y);
         }
 
         /// <summary>
@@ -293,10 +313,11 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
-        public void Forward(double lon0, double lat, double lon, out double x, out double y)
-            => Forward(lon0, lat, lon, out x, out y, out _, out _);
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
+        public (double x, double y) Forward(double lon0, double lat, double lon)
+            => Forward(lon0, lat, lon, out _, out _);
 
         /// <summary>
         /// Reverse projection, from Lambert conformal conic to geographic.
@@ -304,19 +325,19 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="gamma">meridian convergence at point (degrees).</param>
         /// <param name="k">azimuthal scale of projection at point; the radial scale is the 1/<paramref name="k"/>.</param>
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
         /// <remarks>
         /// The latitude origin is given by <see cref="OriginLatitude"/>.  No
-        /// false easting or northing is added. The value of <paramref name="lon"/> returned is in
-        /// the range[-180°, 180°].  The value of <paramref name="lat"/> returned is
+        /// false easting or northing is added. The value of <i>lon</i> returned is in
+        /// the range[-180°, 180°].  The value of <i>lat</i> returned is
         /// in the range[-90°, 90°].  If the input point is outside
         /// the legal projected space the nearest pole is returned.
         /// </remarks>
-        public void Reverse(double lon0, double x, double y,
-                            out double lat, out double lon, out double gamma, out double k)
+        public (double lat, double lon) Reverse(double lon0, double x, double y, out double gamma, out double k)
         {
             y *= _sign;
             double
@@ -332,10 +353,12 @@ namespace GeographicLib.Projections
               lam = _n0 != 0 ? theta / (_k2 * _n0) : x / (y1 * _k0);
 
             gamma = _sign * theta / Degree;
-            lat = Atand(_sign * tphi);
-            lon = lam / Degree;
+            var lat = Atand(_sign * tphi);
+            var lon = lam / Degree;
             lon = AngNormalize(lon + AngNormalize(lon0));
             k = _k0 * (den != 0 ? (_nrho0 + _n0 * drho) * Hypot(_fm * tphi) / _a : 1);
+
+            return (lat, lon);
         }
 
         /// <summary>
@@ -344,10 +367,11 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
-        public void Reverse(double lon0, double x, double y, out double lat, out double lon)
-            => Reverse(lon0, x, y, out lat, out lon, out _, out _);
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
+        public (double lat, double lon) Reverse(double lon0, double x, double y)
+            => Reverse(lon0, x, y, out _, out _);
 
         /// <summary>
         /// <para>Returns atanh(      e   * x)/      e   when f > 0,</para>
