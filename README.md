@@ -48,7 +48,7 @@ dotnet add package GeographicLib.NET --prerelease
 ```
 
 ## Mathematical Functions
-GeographicLib uses several C mathematical functions that are not present in or not available in all versions of .NET. These functions are:
+GeographicLib uses several C mathematical functions that are not available in all versions of .NET. These functions are:
  - remquo
  - hypot
  - log1p
