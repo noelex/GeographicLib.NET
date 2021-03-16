@@ -13,9 +13,12 @@
     <Authors>noelex</Authors>
     <Product>GeographicLib.NET</Product>
     <Company />
-    <Description>A native .NET implementation of GeographicLib written in pure C#.</Description>
+    <Description>GeographicLib is a small set of C++ classes for performing conversions between geographic, UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations, and for solving geodesic problems.
+
+ GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.</Description>
     <Copyright>Copyright (c) 2021 GeographicLib.NET contributors</Copyright>
     <VersionPrefix>1.52.0</VersionPrefix>
+    <PackageTags>gis, geodesic, geographic, geoid, geomagnetic, gravity, projection</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
