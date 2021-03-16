@@ -62,12 +62,12 @@ GeographicLib uses several C mathematical functions that are not present in or n
  - asinh (available since .NET Standard 2.1)
  - cbrt (available since .NET Standard 2.1)
 
-GeographicLib.NET provides managed implemetations of these functions (ported from [musl libc](https://musl.libc.org/)).
+GeographicLib.NET provides managed implementations of these functions (ported from [musl libc](https://musl.libc.org/)).
 
-`GeographicLib.MathEx` class will use implemetations provided by .NET runtime whenenver possible, and will fallback to managed implemetations when not available in .NET runtime. 
+`GeographicLib.MathEx` class will use implementations provided by .NET runtime whenenver possible, and will fallback to managed implementations when not available in .NET runtime. 
 
-You can also force `GeographicLib.MathEx` to fallback to platform dependent implemations provided by system C runtime libraries,
-rather than managed implementaions, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
+You can also force `GeographicLib.MathEx` to fallback to platform dependent implementations provided by system C runtime libraries,
+rather than managed implementations, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
 These functions provide better performance, but may produce different results on different platform in some edge cases.
 
 ## Documentation
