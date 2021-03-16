@@ -35,6 +35,26 @@ namespace GeographicLib.Tests
             else Assert.IsTrue(true);
         }
 
+        [TestMethod]
+        public void TestHypot_MonotonicityBug()
+        {
+            // hypot for Visual Studio (A=win32) fails monotonicity, e.g., with
+            //   x  = 0.6102683302836215
+            //   y1 = 0.7906090004346522
+            //   y2 = y1 + 1e-16
+            // the test
+            //   hypot(x, y2) >= hypot(x, y1)
+            // fails.  See also
+            //   https://bugs.python.org/issue43088
+
+            var x = 0.6102683302836215;
+            var y1 = 0.7906090004346522;
+            var y2 = y1 + 1e-16;
+
+            // This may fail in 32-bit applications on Windows with UseManagedCMath set to false.
+            Assert.IsTrue(MathEx.Hypot(x, y2) >= MathEx.Hypot(x, y1));
+        }
+
         [DataTestMethod]
         [DynamicData("Remquo", typeof(MathExTestData))]
         public void TestRemquo(long x, long y, long d, int q)

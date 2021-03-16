@@ -66,14 +66,17 @@ namespace GeographicLib
         /// <item><see cref="Cbrt(double)"/></item>
         /// <item><see cref="ScaleB(double, int)"/></item>
         /// <item><see cref="CopySign(double, double)"/></item>
+        /// <item><see cref="Log2(double)"/></item>
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
+        /// <item><see cref="Frexp(double, out int)"/></item>
         /// </list>
-        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementation when the above functions are called.
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementations when the above functions are called.
         /// <para>
-        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use system native implementation when the above functions are called.
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use platform dependent implementations provided by system C runtime
+        /// library when the above functions are called.
         /// </para>
         /// </remarks>
 #elif NETSTANDARD2_1
@@ -86,14 +89,17 @@ namespace GeographicLib
         /// <list type="bullet">
         /// <item><see cref="ScaleB(double, int)"/></item>
         /// <item><see cref="CopySign(double, double)"/></item>
+        /// <item><see cref="Log2(double)"/></item>
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
+        /// <item><see cref="Frexp(double, out int)"/></item>
         /// </list>
-        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementation when the above functions are called.
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementations when the above functions are called.
         /// <para>
-        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use system native implementation when the above functions are called.
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use platform dependent implementations provided by system C runtime
+        /// library when the above functions are called.
         /// </para>
         /// </remarks>
 #else
@@ -108,10 +114,12 @@ namespace GeographicLib
         /// <item><see cref="Log1p(double)"/></item>
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
+        /// <item><see cref="Frexp(double, out int)"/></item>
         /// </list>
-        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementation when the above functions are called.
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementations when the above functions are called.
         /// <para>
-        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use system native implementation when the above functions are called.
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use platform dependent implementations provided by system C runtime
+        /// library when the above functions are called.
         /// </para>
         /// </remarks>
 #endif
