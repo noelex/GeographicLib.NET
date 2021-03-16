@@ -697,32 +697,32 @@ namespace GeographicLib.Geocodes
         public static void Check()
         {
             double t = tile_;
-            var (lat, lon) = UTMUPS.Reverse(31, true, 1 * t, 0 * t);
+            var (_, lon) = UTMUPS.Reverse(31, true, 1 * t, 0 * t);
             if (!(lon < 0))
                 throw new GeographicException("MGRS::Check: equator coverage failure");
-            (lat, lon) = UTMUPS.Reverse(31, true, 1 * t, 95 * t);
+            var (lat, _) = UTMUPS.Reverse(31, true, 1 * t, 95 * t);
             if (!(lat > 84))
                 throw new GeographicException("MGRS::Check: UTM doesn't reach latitude = 84");
-            (lat, lon) = UTMUPS.Reverse(31, false, 1 * t, 10 * t);
+            (lat, _) = UTMUPS.Reverse(31, false, 1 * t, 10 * t);
             if (!(lat < -80))
                 throw new GeographicException("MGRS::Check: UTM doesn't reach latitude = -80");
-            var (zone, northp, x, y) = UTMUPS.Forward(56, 3, 32);
+            var (_, _, x, _) = UTMUPS.Forward(56, 3, 32);
             if (!(x > 1 * t))
                 throw new GeographicException("MGRS::Check: Norway exception creates a gap");
-            (zone, northp, x, y) = UTMUPS.Forward(72, 21, 35);
+            (_, _, x, _) = UTMUPS.Forward(72, 21, 35);
             if (!(x > 1 * t))
                 throw new GeographicException("MGRS::Check: Svalbard exception creates a gap");
-            (lat, lon) = UTMUPS.Reverse(0, true, 20 * t, 13 * t);
+            (lat, _) = UTMUPS.Reverse(0, true, 20 * t, 13 * t);
             if (!(lat < 84))
                 throw new GeographicException("MGRS::Check: North UPS doesn't reach latitude = 84");
-            (lat, lon) = UTMUPS.Reverse(0, false, 20 * t, 8 * t);
+            (lat, _) = UTMUPS.Reverse(0, false, 20 * t, 8 * t);
             if (!(lat > -80))
                 throw new GeographicException("MGRS::Check: South UPS doesn't reach latitude = -80");
 
             var bandchecks = tab.Length / 3;
             for (int i = 0; i < bandchecks; ++i)
             {
-                (lat, lon) = UTMUPS.Reverse(38, true, tab[3 * i + 1] * t, tab[3 * i + 2] * t);
+                (lat, _) = UTMUPS.Reverse(38, true, tab[3 * i + 1] * t, tab[3 * i + 2] * t);
                 if (!(LatitudeBand(lat) == tab[3 * i + 0]))
                     throw new GeographicException(
                         $"MGRS::Check: Band error, b = {tab[3 * i + 0]}, x = {tab[3 * i + 1]}00km, y = {tab[3 * i + 2]}00km");

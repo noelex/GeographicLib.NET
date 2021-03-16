@@ -17,7 +17,7 @@ namespace GeographicLib
         /// </summary>
         public const int GEOGRAPHICLIB_PRECISION = 2;
 
-        public static string GEOGRAPHICLIB_DATA =>
+        public static string GEOGRAPHICLIB_DATA { get; } =
             OperatingSystem.IsWindows()
                 ? @"C:\ProgramData\GeographicLib"
                 : "/usr/local/share/GeographicLib";

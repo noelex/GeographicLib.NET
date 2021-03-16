@@ -307,45 +307,67 @@ namespace GeographicLib
         }
 
         private void Field(double t, double lat, double lon, double h, bool diffp,
-               out double Bx, out double By, out double Bz,
-               out double Bxt, out double Byt, out double Bzt)
+                       out double Bx, out double By, out double Bz,
+                       out double Bxt, out double Byt, out double Bzt)
         {
             Bxt = Byt = Bzt = default;
 
-            t -= _t0;
-            int n = Max(Min((int)Floor(t / _dt0), _Nmodels - 1), 0);
-            bool interpolate = n + 1 < _Nmodels;
-            t -= n * _dt0;
             Span<double> M = stackalloc double[Geocentric.dim2_];
             var (X, Y, Z) = _earth.IntForward(lat, lon, h, M);
             // Components in geocentric basis
             // initial values to suppress warning
+            FieldGeocentric(t, X, Y, Z, out var BX, out var BY, out var BZ, out var BXt, out var BYt, out var BZt);
+            if (diffp)
+                Geocentric.Unrotate(M, BXt, BYt, BZt, out Bxt, out Byt, out Bzt);
+            Geocentric.Unrotate(M, BX, BY, BZ, out Bx, out By, out Bz);
+        }
+
+        /// <summary>
+        /// Compute the magnetic field in geocentric coordinate.
+        /// </summary>
+        /// <param name="t">the time (years).</param>
+        /// <param name="X"><i>X</i> component of geocentric coordinate (meters).</param>
+        /// <param name="Y"><i>Y</i> component of geocentric coordinate (meters).</param>
+        /// <param name="Z"><i>Z</i> component of geocentric coordinate (meters).</param>
+        /// <param name="BX">the <i>X</i> component of the magnetic field (nanotesla).</param>
+        /// <param name="BY">the <i>Y</i> component of the magnetic field (nanotesla).</param>
+        /// <param name="BZ">the <i>Z</i> component of the magnetic field (nanotesla).</param>
+        /// <param name="BXt">the rate of change of <i>BX</i> (nT/yr).</param>
+        /// <param name="BYt">the rate of change of <i>BY</i> (nT/yr).</param>
+        /// <param name="BZt">the rate of change of <i>BZ</i> (nT/yr).</param>
+        public void FieldGeocentric(double t, double X, double Y, double Z,
+                              out double BX, out double BY, out double BZ,
+                              out double BXt, out double BYt, out double BZt)
+        {
+            t -= _t0;
+            int n = Max(Min((int)Floor(t / _dt0), _Nmodels - 1), 0);
+            bool interpolate = n + 1 < _Nmodels;
+            t -= n * _dt0;
+            // Components in geocentric basis
+            // initial values to suppress warning
             double BXc = 0, BYc = 0, BZc = 0;
-            _harm[n].Evaluate(X, Y, Z, out var BX0, out var BY0, out var BZ0);
-            _harm[n + 1].Evaluate(X, Y, Z, out var BX1, out var BY1, out var BZ1);
-            if (_Nconstants > 0)
+            _harm[n].Evaluate(X, Y, Z, out BX, out BY, out BZ);
+            _harm[n + 1].Evaluate(X, Y, Z, out BXt, out BYt, out BZt);
+            if (_Nconstants != 0)
                 _harm[_Nmodels + 1].Evaluate(X, Y, Z, out BXc, out BYc, out BZc);
             if (interpolate)
             {
                 // Convert to a time derivative
-                BX1 = (BX1 - BX0) / _dt0;
-                BY1 = (BY1 - BY0) / _dt0;
-                BZ1 = (BZ1 - BZ0) / _dt0;
+                BXt = (BXt - BX) / _dt0;
+                BYt = (BYt - BY) / _dt0;
+                BZt = (BZt - BZ) / _dt0;
             }
-            BX0 += t * BX1 + BXc;
-            BY0 += t * BY1 + BYc;
-            BZ0 += t * BZ1 + BZc;
-            if (diffp)
-            {
-                Geocentric.Unrotate(M, BX1, BY1, BZ1, out Bxt, out Byt, out Bzt);
-                Bxt *= -_a;
-                Byt *= -_a;
-                Bzt *= -_a;
-            }
-            Geocentric.Unrotate(M, BX0, BY0, BZ0, out Bx, out By, out Bz);
-            Bx *= -_a;
-            By *= -_a;
-            Bz *= -_a;
+            BX += t * BXt + BXc;
+            BY += t * BYt + BYc;
+            BZ += t * BZt + BZc;
+
+            BXt = BXt * -_a;
+            BYt = BYt * -_a;
+            BZt = BZt * -_a;
+
+            BX *= -_a;
+            BY *= -_a;
+            BZ *= -_a;
         }
 
         /// <summary>
@@ -422,7 +444,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="Bx">the <i>x</i> (easterly) component of the magnetic field (nanotesla).</param>
         /// <param name="By">the <i>y</i> (northerly) component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the <i></i> (vertical, up positive) component of the magnetic field (nanotesla).</param>
+        /// <param name="Bz">the <i>z</i> (vertical, up positive) component of the magnetic field (nanotesla).</param>
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>
@@ -454,7 +476,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="Bx">the <i>x</i> (easterly) component of the magnetic field (nanotesla).</param>
         /// <param name="By">the <i>y</i> (northerly) component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the <i></i> (vertical, up positive) component of the magnetic field (nanotesla).</param>
+        /// <param name="Bz">the <i>z</i> (vertical, up positive) component of the magnetic field (nanotesla).</param>
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>

@@ -243,11 +243,11 @@ namespace GeographicLib.Projections
         }
 
         /// <summary>
-        /// 
+        /// Initialize a new <see cref="TransverseMercator"/> instance with specified equatorial radius and flattening.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="f"></param>
-        /// <param name="k0"></param>
+        /// <param name="a">equatorial radius (meters).</param>
+        /// <param name="f">flattening of ellipsoid. Setting <i>f</i> = 0 gives a sphere. Negative <i>f</i> gives a prolate ellipsoid.</param>
+        /// <param name="k0">central scale factor.</param>
         public TransverseMercator(double a, double f, double k0)
         {
             _a = a;
@@ -290,6 +290,14 @@ namespace GeographicLib.Projections
             // Post condition: o == sizeof(alpcoeff) / sizeof(real) &&
             // o == sizeof(betcoeff) / sizeof(real)
         }
+
+        /// <summary>
+        /// Initialize a new <see cref="TransverseMercator"/> instance with specified ellipsoid.
+        /// </summary>
+        /// <param name="ellipsoid"><see cref="IEllipsoid"/> instance to be used in projection.</param>
+        /// <param name="k0">central scale factor.</param>
+        public TransverseMercator(IEllipsoid ellipsoid, double k0)
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, k0) { }
 
         /// <summary>
         /// 

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using static System.Math;
 using static GeographicLib.MathEx;
+using static GeographicLib.Macros;
 
 namespace GeographicLib
 {
@@ -131,10 +132,6 @@ namespace GeographicLib
         static Geoid()
         {
             const string GEOGRAPHICLIB_GEOID_DEFAULT_NAME = "egm96-5";
-            var GEOGRAPHICLIB_DATA =
-                OperatingSystem.IsWindows()
-                ? @"C:\ProgramData\GeographicLib"
-                : "/usr/local/share/GeographicLib";
 
             string GetGeoidPath()
             {

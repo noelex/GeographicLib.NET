@@ -62,10 +62,7 @@ namespace GeographicLib.Projections
         /// Initialize a new <see cref="CassiniSoldner"/> instance with specified <see cref="IGeodesic"/> instance.
         /// </summary>
         /// <param name="earth">the <see cref="IGeodesic"/> object to use for geodesic calculations.</param>
-        public CassiniSoldner(IGeodesic earth)
-        {
-            _earth = earth;
-        }
+        public CassiniSoldner(IGeodesic earth) : this(0, 0, earth) { }
 
         /// <summary>
         /// Initialize a new <see cref="CassiniSoldner"/> instance with specified center point and <see cref="Geodesic"/> instance.
@@ -74,8 +71,8 @@ namespace GeographicLib.Projections
         /// <param name="lat0">latitude of center point of projection (degrees).</param>
         /// <param name="lon0">longitude of center point of projection (degrees).</param>
         public CassiniSoldner(double lat0, double lon0, IGeodesic earth)
-            :this(earth)
         {
+            _earth = earth;
             Reset(lat0, lon0);
         }
 
@@ -124,21 +121,20 @@ namespace GeographicLib.Projections
         /// </summary>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
         /// <param name="azi">azimuth of easting direction at point (degrees).</param>
         /// <param name="rk">reciprocal of azimuthal northing scale at point.</param>
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
         /// <remarks>
         /// <paramref name="lat"/> should be in the range [−90°, 90°].
-        /// A call to <see cref="Forward(double, double, out double, out double, out double, out double)"/> 
-        /// followed by a call to <see cref="Reverse(double, double, out double, out double, out double, out double)"/> 
+        /// A call to <see cref="Forward(double, double, out double, out double)"/> 
+        /// followed by a call to <see cref="Reverse(double, double, out double, out double)"/> 
         /// will return the original (<paramref name="lat"/>, <paramref name="lon"/>) (to within roundoff).
         /// The routine does nothing if the origin has not been set.
         /// </remarks>
-        public void Forward(double lat, double lon, out double x, out double y, out double azi, out double rk)
+        public (double x, double y) Forward(double lat, double lon, out double azi, out double rk)
         {
-            x = y = azi = rk = double.NaN;
-
             var dlon = AngDiff(LongitudeOrigin, lon);
             var sig12 = 
                 _earth.Inverse(lat, -Abs(dlon), lat, Abs(dlon), out var s12, out var azi1, out var azi2);
@@ -164,7 +160,7 @@ namespace GeographicLib.Projections
                 s12 = -s12;
                 sig12 = -sig12;
             }
-            x = s12;
+            var x = s12;
             azi = AngNormalize(azi2);
             var perp = _earth.Line(lat, dlon, azi, GeodesicFlags.GeodesicScale);
 
@@ -182,31 +178,34 @@ namespace GeographicLib.Projections
 
             _meridian.GenPosition(true, sig01,
                                   GeodesicFlags.Distance,
-                                  out _, out _, out _, out _, out _, out _, out _, out _);
+                                  out _, out _, out _, out var y, out _, out _, out _, out _);
+
+            return (x, y);
         }
 
         /// <summary>
         /// Reverse projection, from Cassini-Soldner to geographic.
         /// </summary>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
         /// <param name="azi">azimuth of easting direction at point (degrees).</param>
         /// <param name="rk">reciprocal of azimuthal northing scale at point.</param>
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
         /// <remarks>
-        /// A call to <see cref="Reverse(double, double, out double, out double, out double, out double)"/> followed
-        /// by a call to <see cref="Forward(double, double, out double, out double, out double, out double)"/> will 
+        /// A call to <see cref="Reverse(double, double, out double, out double)"/> followed
+        /// by a call to <see cref="Forward(double, double, out double, out double)"/> will 
         /// return the original (<paramref name="x"/>, <paramref name="y"/>) (to within roundoff), 
         /// provided that <paramref name="x"/> and <paramref name="y"/> are sufficiently small not to "wrap around" the earth. 
         /// The routine does nothing if the origin has not been set.
         /// </remarks>
-        public void Reverse(double x, double y, out double lat, out double lon, out double azi, out double rk)
+        public (double lat, double lon) Reverse(double x, double y, out double azi, out double rk)
         {
-            lat = lon = azi = rk = double.NaN;
-
             _meridian.Position(y, out var lat1, out var lon1, out var azi0);
-            _earth.Direct(lat1, lon1, azi0 + 90, x, out lat, out lon, out azi, out rk, out _);
+            _earth.Direct(lat1, lon1, azi0 + 90, x, out var lat, out var lon, out azi, out rk, out _);
+
+            return (lat, lon);
         }
 
         /// <summary>
@@ -214,31 +213,33 @@ namespace GeographicLib.Projections
         /// </summary>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
         /// <remarks>
         /// <paramref name="lat"/> should be in the range [−90°, 90°].
-        /// A call to <see cref="Forward(double, double, out double, out double, out double, out double)"/> 
-        /// followed by a call to <see cref="Reverse(double, double, out double, out double, out double, out double)"/> 
+        /// A call to <see cref="Forward(double, double)"/> 
+        /// followed by a call to <see cref="Reverse(double, double)"/> 
         /// will return the original (<paramref name="lat"/>, <paramref name="lon"/>) (to within roundoff).
         /// The routine does nothing if the origin has not been set.
         /// </remarks>
-        public void Forward(double lat, double lon, out double x, out double y) => Reverse(lat, lon, out x, out y, out _, out _);
+        public (double x, double y) Forward(double lat, double lon) => Forward(lat, lon, out _, out _);
 
         /// <summary>
         /// Reverse without returning the azimuth and scale.
         /// </summary>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
         /// <remarks>
-        /// A call to <see cref="Reverse(double, double, out double, out double, out double, out double)"/> followed
-        /// by a call to <see cref="Forward(double, double, out double, out double, out double, out double)"/> will 
+        /// A call to <see cref="Reverse(double, double)"/> followed
+        /// by a call to <see cref="Forward(double, double)"/> will 
         /// return the original (<paramref name="x"/>, <paramref name="y"/>) (to within roundoff), 
         /// provided that <paramref name="x"/> and <paramref name="y"/> are sufficiently small not to "wrap around" the earth. 
         /// The routine does nothing if the origin has not been set.
         /// </remarks>
-        public void Reverse(double x, double y, out double lat, out double lon) => Reverse(x, y, out lat, out lon, out _, out _);
+        public (double lat, double lon) Reverse(double x, double y) => Reverse(x, y, out _, out _);
     }
 }
