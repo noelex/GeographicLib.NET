@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,14 +20,14 @@ namespace GeographicLib
 
         public static bool GreaterThanOrEqualTo<T>(this T t, T other) where T : IComparable<T> => t.CompareTo(other) >= 0;
 
-        public static void Swap<T>(this List<T> list, int indexA,int indexB)
+        public static void Swap<T>(this IList<T> list, int indexA, int indexB)
         {
             var t = list[indexA];
             list[indexA] = list[indexB];
             list[indexB] = t;
         }
 
-        public static void NthElement<T>(this List<T> array, int startIndex, int nthSmallest, int endIndex, IComparer<T> comparer)
+        public static void NthElement<T>(this IList<T> array, int startIndex, int nthSmallest, int endIndex, IComparer<T> comparer)
         {
             int from = startIndex;
             int to = endIndex;
@@ -74,30 +75,199 @@ namespace GeographicLib
         }
     }
 
-    public class NearestNeighbor<TDistance, TPoint>
-        where TDistance : struct, IComparable<TDistance>
+    internal class NearestNeighbor<TPoint>
     {
         // For tracking changes to the I/O format.
         private const int version = 1;
 
-        private static readonly TDistance Zero = default(TDistance);
+        // This is what we get "free"; but if sizeof(dist_t) = 1 (unlikely), allow
+        // 4 slots (and this accommodates the default value bucket = 4).
+        private const int maxbucket = (2 + ((4 * sizeof(double)) / sizeof(int) >= 2 ?
+            (4 * sizeof(double)) / sizeof(int) : 2));
 
         private static readonly ItemComparer Comparer = new ItemComparer();
 
-        // This is what we get "free"; but if sizeof(dist_t) = 1 (unlikely), allow
-        // 4 slots (and this accommodates the default value bucket = 4).
-        private static readonly int maxbucket = (2 + ((4 * Marshal.SizeOf<TDistance>()) / sizeof(int) >= 2 ?
-            (4 * Marshal.SizeOf<TDistance>()) / sizeof(int) : 2));
-
-        private readonly int _numpoints, _bucket, _cost;
-        private readonly List<Node> _tree = new List<Node>();
+        private int _numpoints, _bucket, _cost;
+        private List<Node> _tree;
 
         // Counters to track stastistics on the cost of searches
         private double _mc, _sc;
         private int _c1, _k, _cmin, _cmax;
 
-        private int Init(List<TPoint> pts, Func<TPoint,TPoint,TDistance> dist, int bucket,
-            List<Node> tree, List<item> ids, ref int cost, int l, int u, int vp)
+        public NearestNeighbor()
+        {
+            (_numpoints, _bucket, _cost) = (0, 0, 0);
+        }
+
+        public NearestNeighbor(IList<TPoint> pts, Func<TPoint, TPoint, double> distfunct, int bucket = 4)
+        {
+            Initialize(pts, distfunct, bucket);
+        }
+
+        public int NumPoints => _numpoints;
+
+        public void Initialize(IList<TPoint> pts, Func<TPoint, TPoint, double> dist,
+                    int bucket = 4)
+        {
+            if (!(0 <= bucket && bucket <= maxbucket))
+                throw new GeographicException("bucket must lie in [0, 2 + 4*sizeof(dist_t)/sizeof(int)]");
+
+            // the pair contains distance+id
+            var ids = Enumerable.Range(0, pts.Count())
+                .Select(k => new item(0,k)).ToList();
+
+            int cost = 0;
+            _tree = new List<Node>();
+            Init(pts, dist, bucket, _tree, ids, ref cost,
+                 0, ids.Count, ids.Count / 2);
+
+            _numpoints = pts.Count;
+            _bucket = bucket;
+            _mc = _sc = 0;
+            _cost = cost; _c1 = _k = _cmax = 0;
+            _cmin = int.MaxValue;
+        }
+
+        public double Search(IList<TPoint> pts, Func<TPoint, TPoint, double> dist, TPoint query,
+            List<int> ind, int k = 1, double maxdist = double.MaxValue, double mindist = -1, bool exhaustive = true, double tol = 0)
+        {
+            if (_numpoints != pts.Count)
+                throw new GeographicException("pts array has wrong size");
+
+            double d;
+            var results = new PriorityQueue<item>(Comparer, false);
+            if (_numpoints > 0 && k > 0 && maxdist > mindist)
+            {
+                // distance to the kth closest point so far
+                var tau = maxdist;
+                // first is negative of how far query is outside boundary of node
+                // +1 if on boundary or inside
+                // second is node index
+                var todo = new PriorityQueue<item>(Comparer, false);
+                todo.Enqueue(new item(1, _tree.Count - 1));
+                int c = 0;
+
+                while (todo.Any())
+                {
+                    int n = todo.First().second;
+                    d = -todo.First().first;
+                    todo.Dequeue();
+                    var tau1 = tau - tol;
+                    // compare tau and d again since tau may have become smaller.
+                    if (!(n >= 0 && tau1 >= d)) continue;
+                    var current = _tree[n];
+                    var dst = 0.0;   // to suppress warning about uninitialized variable
+                    bool exitflag = false, leaf = current.Index < 0;
+                    for (int i = 0; i < (leaf ? _bucket : 1); ++i)
+                    {
+                        int index = leaf ? current.Leaves.Span[i] : current.Index;
+                        if (index < 0) break;
+                        dst = dist(pts[index], query);
+                        ++c;
+
+                        if (dst > mindist && dst <= tau)
+                        {
+                            if (results.Count == k) results.Dequeue();
+                            results.Enqueue(new item(dst, index));
+                            if (results.Count == k)
+                            {
+                                if (exhaustive)
+                                    tau = results.First().first;
+                                else
+                                {
+                                    exitflag = true;
+                                    break;
+                                }
+                                if (tau <= tol)
+                                {
+                                    exitflag = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (exitflag) break;
+
+                    if (current.Index < 0) continue;
+                    tau1 = tau - tol;
+                    if (current.Data.child0 >= 0 && dst + current.Data.upper0 >= mindist)
+                    {
+                        if (dst < current.Data.lower0)
+                        {
+                            d = current.Data.lower0 - dst;
+                            if (tau1 >= d)
+                                todo.Enqueue(new item(-d, current.Data.child0));
+                        }
+                        else if (dst > current.Data.upper0)
+                        {
+                            d = dst - current.Data.upper0;
+                            if (tau1 >= d)
+                                todo.Enqueue(new item(-d, current.Data.child0));
+                        }
+                        else
+                            todo.Enqueue(new item(1, current.Data.child0));
+                    }
+
+                    if (current.Data.child1 >= 0 && dst + current.Data.upper1 >= mindist)
+                    {
+                        if (dst < current.Data.lower1)
+                        {
+                            d = current.Data.lower1 - dst;
+                            if (tau1 >= d)
+                                todo.Enqueue(new item(-d, current.Data.child1));
+                        }
+                        else if (dst > current.Data.upper1)
+                        {
+                            d = dst - current.Data.upper1;
+                            if (tau1 >= d)
+                                todo.Enqueue(new item(-d, current.Data.child1));
+                        }
+                        else
+                            todo.Enqueue(new item(1, current.Data.child1));
+                    }
+                }
+                ++_k;
+                _c1 += c;
+                double omc = _mc;
+                _mc += (c - omc) / _k;
+                _sc += (c - omc) * (c - _mc);
+                if (c > _cmax) _cmax = c;
+                if (c < _cmin) _cmin = c;
+            }
+
+            d = -1.0;
+
+            for (var i = 0; i < results.Count; i++)
+            {
+                ind.Add(results.First().second);
+                if (i == 0) d = results.First().first;
+                results.Dequeue();
+            }
+
+            return d;
+        }
+
+        public SearchStatistics Statistics =>
+            new SearchStatistics
+            { 
+                SetupCost = _cost,
+                NumSearches = _k,
+                SearchCost = _c1,
+                MinCost = _cmin,
+                MaxCost = _cmax,
+                Mean = _mc,
+                Sd = Math.Sqrt(_sc / (_k - 1))
+            };
+
+        public void ResetStatistics()
+        {
+            _mc = _sc = 0;
+            _c1 = _k = _cmax = 0;
+            _cmin = int.MaxValue;
+        }
+
+        private int Init(IList<TPoint> pts, Func<TPoint, TPoint, double> dist, int bucket,
+                IList<Node> tree, List<item> ids, ref int cost, int l, int u, int vp)
         {
             if (u == l)
                 return -1;
@@ -108,7 +278,7 @@ namespace GeographicLib
 
                 // choose a vantage point and move it to the start
                 int i = vp;
-                ids.Swap(l,i);
+                ids.Swap(l, i);
 
                 int m = (u + l + 1) / 2;
 
@@ -143,7 +313,7 @@ namespace GeographicLib
                 node.Data.lower1 = ids[m].first;
                 node.Data.upper1 = t.first;
                 // Use point with max distance as vantage point here too
-                node.Data.child1 = Init(pts, dist, bucket, tree, ids,ref cost,
+                node.Data.child1 = Init(pts, dist, bucket, tree, ids, ref cost,
                                           m, u, ti);
             }
             else
@@ -195,9 +365,9 @@ namespace GeographicLib
                     if (!(-1 <= _data.child0 && _data.child0 < treesize &&
                            -1 <= _data.child1 && _data.child1 < treesize))
                         throw new GeographicException("Bad child pointers");
-                    if (!(Zero.LessThanOrEqualTo(_data.lower0) && _data.lower0.LessThanOrEqualTo(_data.upper0) &&
-                           _data.upper0.LessThanOrEqualTo(_data.lower1) &&
-                           _data.lower1.LessThanOrEqualTo(_data.upper1)))
+                    if (!(0 <= _data.lower0 && _data.lower0 <= _data.upper0 &&
+                           _data.upper0 <= _data.lower1 &&
+                           _data.lower1 <= _data.upper1))
                         throw new GeographicException("Bad bounds");
                 }
                 else
@@ -223,15 +393,21 @@ namespace GeographicLib
 
             public struct Bounds
             {
-                public TDistance lower0, lower1, upper0, upper1; // bounds on inner/outer distances
+                public double lower0, lower1, upper0, upper1; // bounds on inner/outer distances
                 public int child0, child1;
             };
         }
 
         private class item
         {
-            public TDistance first;
+            public double first;
             public int second;
+
+            public item(double f, int s)
+            {
+                first = f;
+                second = s;
+            }
         }
 
         private class ItemComparer : IComparer<item>
@@ -240,6 +416,23 @@ namespace GeographicLib
             {
                 return x.first.CompareTo(y.first);
             }
+        }
+
+        public class SearchStatistics
+        {
+            public int SetupCost { get; internal set; }
+
+            public int NumSearches { get; internal set; }
+
+            public int SearchCost { get; internal set; }
+
+            public int MinCost { get; internal set; }
+
+            public int MaxCost { get; internal set; }
+
+            public double Mean { get; internal set; }
+
+            public double Sd { get; internal set; }
         }
     }
 }

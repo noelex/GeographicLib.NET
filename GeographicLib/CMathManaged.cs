@@ -545,6 +545,7 @@ namespace GeographicLib
                 new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4604763342788034444L),logc=BitConverter.Int64BitsToDouble(4601799915281006592L)},
 
             },
+#if !__FP_FAST_FMA
             tab2 = new[]
             {
                 new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604402853719116430L),clo=BitConverter.Int64BitsToDouble(4362022846676121093L)},
@@ -612,6 +613,7 @@ namespace GeographicLib
                 new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608765715311097786L),clo=BitConverter.Int64BitsToDouble(4361727028155808514L)},
                 new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608836083952399489L),clo=BitConverter.Int64BitsToDouble(-4858961166217451202L)},
             }
+#endif
         };
 
         private struct log2_data
@@ -620,18 +622,22 @@ namespace GeographicLib
             public double invln2lo;
             public double[] poly;
             public double[] poly1;
-            public tabitem[] tab;
-            public tab2item[] tab2;
 
+            public tabitem[] tab;
+            
             public struct tabitem
             {
                 public double invc, logc;
             }
 
+#if !__FP_FAST_FMA
+            public tab2item[] tab2;
+
             public struct tab2item
             {
                 public double chi, clo;
             }
+#endif
         }
 
         private struct num { public ulong m; public int e; public int sign; };
@@ -937,13 +943,6 @@ namespace GeographicLib
             uint top;
             int k, i;
 
-            var T = __log2_data.tab;
-            var T2 = __log2_data.tab2;
-            var B = __log2_data.poly1;
-            var A = __log2_data.poly;
-            var InvLn2hi = __log2_data.invln2hi;
-            var InvLn2lo = __log2_data.invln2lo;
-
             ulong asuint64(double x_) => (ulong)BitConverter.DoubleToInt64Bits(x_);
 
             double asdouble(ulong x_) => BitConverter.Int64BitsToDouble((long)x_);
@@ -953,7 +952,16 @@ namespace GeographicLib
             ix = asuint64(x);
             top = top16(x);
 
+#if !__FP_FAST_FMA
             double rhi, rlo;
+            var T2 = __log2_data.tab2;
+#endif
+            var T = __log2_data.tab;
+            var B = __log2_data.poly1;
+            var A = __log2_data.poly;
+            var InvLn2hi = __log2_data.invln2hi;
+            var InvLn2lo = __log2_data.invln2lo;
+
             if (ix - LO < HI - LO)
             {
                 /* Handle close to 1.0 inputs separately.  */
@@ -962,11 +970,16 @@ namespace GeographicLib
                     return 0;
                 r = x - 1.0;
 
+#if __FP_FAST_FMA
+                hi = r * InvLn2hi;
+                lo = r * InvLn2lo + FusedMultiplyAdd(r, InvLn2hi, -hi);
 
+#else
                 rhi = asdouble(asuint64(r) & unchecked((ulong)-1L) << 32);
                 rlo = r - rhi;
                 hi = rhi * InvLn2hi;
                 lo = rlo * InvLn2hi + r * InvLn2lo;
+#endif
 
                 r2 = r * r; /* rounding error: 0x1p-62.  */
                 r4 = r2 * r2;
@@ -1008,12 +1021,20 @@ namespace GeographicLib
             /* log2(x) = log2(z/c) + log2(c) + k.  */
             /* r ~= z/c - 1, |r| < 1/(2*N).  */
 
+#if __FP_FAST_FMA
+            /* rounding error: 0x1p-55/N.  */
+            r = FusedMultiplyAdd(z, invc, -1.0);
+            t1 = r * InvLn2hi;
+            t2 = r * InvLn2lo + FusedMultiplyAdd(r, InvLn2hi, -t1);
+
+#else
             /* rounding error: 0x1p-55/N + 0x1p-65.  */
             r = (z - T2[i].chi - T2[i].clo) * invc;
             rhi = asdouble(asuint64(r) & unchecked((ulong)-1L) << 32);
             rlo = r - rhi;
             t1 = rhi * InvLn2hi;
             t2 = rlo * InvLn2hi + r * InvLn2lo;
+#endif
 
             /* hi + lo = r/ln2 + log2(c) + k.  */
             t3 = kd + logc;
@@ -1216,5 +1237,5 @@ namespace GeographicLib
             return t;
         }
 #endif
-    }
+        }
 }
