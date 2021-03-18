@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GeographicLib
 {
     /// <summary>
-    /// Encapsulates the results of the solution of geodesic problems.
+    /// Encapsulates the results of the geodesic problem solutions.
     /// </summary>
     public abstract class GeodesicResult
     {
@@ -48,7 +48,7 @@ namespace GeographicLib
     }
 
     /// <summary>
-    /// Encapsulates the results of the solution of direct geodesic problems.
+    /// Encapsulates the results of the direct geodesic problem solutions.
     /// </summary>
     public class DirectGeodesicResult : GeodesicResult
     {
@@ -64,7 +64,7 @@ namespace GeographicLib
     }
 
     /// <summary>
-    /// Encapsulates the results of the solution of inverse geodesic problems.
+    /// Encapsulates the results of the inverse geodesic problem solutions.
     /// </summary>
     public class InverseGeodesicResult : GeodesicResult
     {

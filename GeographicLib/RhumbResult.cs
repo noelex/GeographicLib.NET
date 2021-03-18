@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GeographicLib
 {
     /// <summary>
-    /// Encapsulates the results of the solution of rhumb problems.
+    /// Encapsulates the results of the rhumb problem solutions.
     /// </summary>
     public abstract class RhumbResult
     {
@@ -18,7 +18,7 @@ namespace GeographicLib
     }
 
     /// <summary>
-    /// Encapsulates the results of the solution of direct geodesic problems.
+    /// Encapsulates the results of the direct rhumb problem solutions.
     /// </summary>
     public class DirectRhumbResult : RhumbResult
     {
@@ -34,7 +34,7 @@ namespace GeographicLib
     }
 
     /// <summary>
-    /// Encapsulates the results of the solution of inverse geodesic problems.
+    /// Encapsulates the results of the inverse rhumb problem solutions.
     /// </summary>
     public class InverseRhumbResult : RhumbResult
     {
