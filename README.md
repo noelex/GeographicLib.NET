@@ -92,6 +92,8 @@ For changes adopted from original GeographicLib, please refer the its change log
 - **NEW**
   - Add constructor overloads that accept `IEllipsoid` as parameter for `AlbersEqualArea` and `LambertConformalConic`.
   - Add managed implementation of `log2`.
+  - Add overloads of `Direct` and `Inverse` in `Geodesic`/`GeodesicLine`, `GeodesicExact`/`GeodesicLineExact` and `Rhumb`/`RhumbLineExact`,
+    that return the computation results as a single object.
 
 ### Version 1.51.0 (released 2021/03/14)
 Initial stable release.

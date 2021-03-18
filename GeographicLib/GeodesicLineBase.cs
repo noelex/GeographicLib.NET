@@ -7,7 +7,7 @@ namespace GeographicLib
     /// <summary>
     /// Base class of various geodesic line implementations.
     /// </summary>
-    public abstract class GeodesicLineBase:IGeodesicLine
+    public abstract class GeodesicLineBase : IGeodesicLine
     {
         #region Properties
 
@@ -56,7 +56,7 @@ namespace GeographicLib
         #endregion
 
         /// <inheritdoc/>
-        public abstract double GenPosition(bool arcmode, double s12_a12, GeodesicFlags outmask, 
+        public abstract double GenPosition(bool arcmode, double s12_a12, GeodesicFlags outmask,
             out double lat2, out double lon2, out double azi2, out double s12, out double m12, out double M12, out double M21, out double S12);
 
         /// <inheritdoc/>
@@ -176,5 +176,45 @@ namespace GeographicLib
                         out lat2, out lon2, out azi2, out _, out m12, out M12, out M21, out _);
 
         #endregion
+
+        /// <inheritdoc/>
+        public DirectGeodesicResult Position(double s12, GeodesicFlags outmask = GeodesicFlags.All)
+        {
+            var a12 = GenPosition(false, s12, outmask,
+                out var lat2, out var lon2, out var azi2, out var s12_, out var m12, out var M12, out var M21, out var S12);
+
+            return new DirectGeodesicResult
+            {
+                ArcLength = a12,
+                Area = S12,
+                Azimuth2 = azi2,
+                Distance = s12_,
+                GeodesicScale12 = M12,
+                GeodesicScale21 = M21,
+                Latitude = lat2,
+                Longitude = lon2,
+                ReducedLength = m12
+            };
+        }
+
+        /// <inheritdoc/>
+        public DirectGeodesicResult ArcPosition(double a12, GeodesicFlags outmask = GeodesicFlags.All)
+        {
+            var a12_ = GenPosition(true, a12, outmask,
+                out var lat2, out var lon2, out var azi2, out var s12, out var m12, out var M12, out var M21, out var S12);
+
+            return new DirectGeodesicResult
+            {
+                ArcLength = a12_,
+                Area = S12,
+                Azimuth2 = azi2,
+                Distance = s12,
+                GeodesicScale12 = M12,
+                GeodesicScale21 = M21,
+                Latitude = lat2,
+                Longitude = lon2,
+                ReducedLength = m12
+            };
+        }
     }
 }

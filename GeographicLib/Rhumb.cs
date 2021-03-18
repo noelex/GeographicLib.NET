@@ -543,6 +543,35 @@ namespace GeographicLib
             => Line(lat1, lon1, azi12).GenPosition(s12, outmask, out lat2, out lon2, out S12);
 
         /// <summary>
+        /// Solve the direct rhumb problem.
+        /// </summary>
+        /// <param name="lat1">latitude of point 1 (degrees).</param>
+        /// <param name="lon1">longitude of point 1 (degrees).</param>
+        /// <param name="azi12">azimuth of the rhumb line (degrees).</param>
+        /// <param name="s12">distance between point 1 and point 2 (meters); it can be negative.</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="DirectRhumbResult"/> instance should be set.
+        /// </param>
+        /// <returns>
+        /// A <see cref="DirectRhumbResult"/> instance containing the result of the calcutation.
+        /// </returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for <paramref name="outmask"/> are
+        /// <list type="bullet">
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Latitude"/> for the latitude returned in <see cref="DirectRhumbResult.Latitude"/>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Longitude"/> for the longitude returned in <see cref="DirectRhumbResult.Longitude"/>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Area"/> for the area returned in <see cref="RhumbResult.Area"/>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.LongUnroll"/> to unroll <see cref="DirectRhumbResult.Longitude"/> instead of wrapping it into the range [−180°, 180°].</item>
+        /// </list>
+        /// With the <see cref="GeodesicFlags.LongUnroll"/> bit set, the quantity <see cref="DirectRhumbResult.Longitude"/> − <paramref name="lon1"/> indicates
+        /// how many times and in what sense the rhumb line encircles the ellipsoid.
+        /// </remarks>
+        public DirectRhumbResult Direct(double lat1, double lon1, double azi12, double s12, GeodesicFlags outmask = GeodesicFlags.All)
+            => Line(lat1, lon1, azi12).Position(s12, outmask);
+
+        /// <summary>
         /// Solve the direct rhumb problem returning also the area.
         /// </summary>
         /// <param name="lat1">latitude of point 1 (degrees).</param>
@@ -596,7 +625,7 @@ namespace GeographicLib
         /// <remarks>
         /// The <see cref="GeodesicFlags"/> values possible for <paramref name="outmask"/> are
         /// <list type="bullet">
-        /// <item>outmask |= <see cref="GeodesicFlags.Distance"/> for the latitude <paramref name="s12"/>;</item>
+        /// <item>outmask |= <see cref="GeodesicFlags.Distance"/> for the distance <paramref name="s12"/>;</item>
         /// <item>outmask |= <see cref="GeodesicFlags.Azimuth"/> for the rhumb line azimuth <paramref name="azi12"/>;</item>
         /// <item>outmask |= <see cref="GeodesicFlags.Area"/> for the area <paramref name="S12"/>;</item>
         /// <item>outmask |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
@@ -625,6 +654,38 @@ namespace GeographicLib
             if (outmask.HasFlag(GeodesicFlags.Area))
                 S12 = _c2 * lon12 *
                   MeanSinXi(psi2 * Degree, psi1 * Degree);
+        }
+
+        /// <summary>
+        /// Solve the inverse rhumb problem.
+        /// </summary>
+        /// <param name="lat1">latitude of point 1 (degrees).</param>
+        /// <param name="lon1">longitude of point 1 (degrees).</param>
+        /// <param name="lat2">latitude of point 2 (degrees).</param>
+        /// <param name="lon2">longitude of point 2 (degrees).</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="InverseRhumbResult"/> instance should be set.
+        /// </param>
+        /// <returns>A <see cref="InverseRhumbResult"/> instance containing the result of the calcutation.</returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for <paramref name="outmask"/> are
+        /// <list type="bullet">
+        /// <item>outmask |= <see cref="GeodesicFlags.Distance"/> for the distance, <see cref="InverseRhumbResult.Distance"/>;</item>
+        /// <item>outmask |= <see cref="GeodesicFlags.Azimuth"/> for the rhumb line azimuth, <see cref="InverseRhumbResult.Azimuth"/>;</item>
+        /// <item>outmask |= <see cref="GeodesicFlags.Area"/> for the area, <see cref="RhumbResult.Area"/>;</item>
+        /// <item>outmask |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// </list>
+        /// </remarks>
+        public InverseRhumbResult Inverse(double lat1, double lon1, double lat2, double lon2, GeodesicFlags outmask = GeodesicFlags.All)
+        {
+            GenInverse(lat1, lon1, lat2, lon2, outmask, out var s12, out var azi12, out var S12);
+            return new InverseRhumbResult
+            {
+                Area = S12,
+                Azimuth = azi12,
+                Distance = s12
+            };
         }
 
         /// <summary>
