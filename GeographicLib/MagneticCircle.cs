@@ -56,8 +56,7 @@ namespace GeographicLib
                         CircularEngine circ0, CircularEngine circ1, CircularEngine circ2 = null)
             : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, lat, h, t, cphi, sphi, t1, dt0, interpolate, circ0, circ1, circ2) { }
 
-        private void Field(double lon, bool diffp,
-                           out double Bx, out double By, out double Bz,
+        private (double Bx, double By, double Bz) Field(double lon, bool diffp,
                            out double Bxt, out double Byt, out double Bzt)
         {
             Bxt = Byt = Bzt = default;
@@ -66,18 +65,19 @@ namespace GeographicLib
             Span<double> M = stackalloc double[Geocentric.dim2_];
             Geocentric.Rotation(_sphi, _cphi, slam, clam, M);
 
-            FieldGeocentric(slam, clam, out var BX, out var BY, out var BZ, out var BXt, out var BYt, out var BZt);
+            var (BX, BY, BZ) = FieldGeocentric(slam, clam, out var BXt, out var BYt, out var BZt);
             if (diffp)
-                Geocentric.Unrotate(M, BXt, BYt, BZt,out Bxt, out Byt, out Bzt);
-            Geocentric.Unrotate(M, BX, BY, BZ, out Bx, out By, out Bz);
+                Geocentric.Unrotate(M, BXt, BYt, BZt, out Bxt, out Byt, out Bzt);
+            Geocentric.Unrotate(M, BX, BY, BZ, out var Bx, out var By, out var Bz);
+
+            return (Bx, By, Bz);
         }
 
-        private void FieldGeocentric(double slam, double clam,
-                         out double BX, out double BY, out double BZ,
+        private (double BX, double BY, double BZ) FieldGeocentric(double slam, double clam,
                          out double BXt, out double BYt, out double BZt)
         {
             double BXc = 0, BYc = 0, BZc = 0;
-            _circ0.Evaluate(slam, clam, out BX, out BY, out BZ);
+            _circ0.Evaluate(slam, clam, out var BX, out var BY, out var BZ);
             _circ1.Evaluate(slam, clam, out BXt, out BYt, out BZt);
             if (_constterm)
                 _circ2.Evaluate(slam, clam, out BXc, out BYc, out BZc);
@@ -98,48 +98,60 @@ namespace GeographicLib
             BX *= -_a;
             BY *= -_a;
             BZ *= -_a;
+
+            return (BX, BY, BZ);
         }
 
         /// <summary>
         /// Evaluate the components of the geomagnetic field at a particular longitude.
         /// </summary>
         /// <param name="lon">longitude of the point (degrees).</param>
-        /// <param name="Bx">the easterly component of the magnetic field (nanotesla).</param>
-        /// <param name="By">the northerly component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the vertical (up) component of the magnetic field (nanotesla).</param>
-        public void Evaluate(double lon, out double Bx, out double By, out double Bz)
-            => Field(lon, false, out Bx, out By, out Bz, out _, out _, out _);
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Bx</i>, the easterly component of the magnetic field (nanotesla).</item>
+        /// <item><i>By</i>, the northerly component of the magnetic field (nanotesla).</item>
+        /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double Bx, double By, double Bz) Evaluate(double lon)
+            => Field(lon, false, out _, out _, out _);
 
         /// <summary>
         /// Evaluate the components of the geomagnetic field and their time derivatives at a particular longitude.
         /// </summary>
         /// <param name="lon">longitude of the point (degrees).</param>
-        /// <param name="Bx">the easterly component of the magnetic field (nanotesla).</param>
-        /// <param name="By">the northerly component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the vertical (up) component of the magnetic field (nanotesla).</param>
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>
-        public void Evaluate(double lon,
-                             out double Bx, out double By, out double Bz,
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Bx</i>, the easterly component of the magnetic field (nanotesla).</item>
+        /// <item><i>By</i>, the northerly component of the magnetic field (nanotesla).</item>
+        /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double Bx, double By, double Bz) Evaluate(double lon,
                              out double Bxt, out double Byt, out double Bzt)
-            => Field(lon, false, out Bx, out By, out Bz, out Bxt, out Byt, out Bzt);
+            => Field(lon, false, out Bxt, out Byt, out Bzt);
 
         /// <summary>
         /// Evaluate the components of the geomagnetic field and their time derivatives at a particular longitude.
         /// </summary>
         /// <param name="lon">longitude of the point (degrees).</param>
-        /// <param name="BX">the <i>X</i> component of the magnetic field (nanotesla).</param>
-        /// <param name="BY">the <i>Y</i> component of the magnetic field (nanotesla).</param>
-        /// <param name="BZ">the <i>Z</i> component of the magnetic field (nanotesla).</param>
         /// <param name="BXt">the rate of change of <i>BX</i> (nT/yr).</param>
         /// <param name="BYt">the rate of change of <i>BY</i> (nT/yr).</param>
         /// <param name="BZt">the rate of change of <i>BZ</i> (nT/yr).</param>
-        public void FieldGeocentric(double lon, out double BX, out double BY, out double BZ,
-                         out double BXt, out double BYt, out double BZt)
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>BX</i>, the <i>X</i> component of the magnetic field (nanotesla).</item>
+        /// <item><i>BY</i>, the <i>Y</i> component of the magnetic field (nanotesla).</item>
+        /// <item><i>BZ</i>, the <i>Z</i> component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double BX, double BY, double BZ) FieldGeocentric(double lon, out double BXt, out double BYt, out double BZt)
         {
             SinCosd(lon, out var slam, out var clam);
-            FieldGeocentric(slam, clam,out BX, out BY, out BZ, out BXt, out BYt, out BZt);
+            return FieldGeocentric(slam, clam, out BXt, out BYt, out BZt);
         }
 
         /// <summary>

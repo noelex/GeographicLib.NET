@@ -41,16 +41,16 @@ namespace GeographicLib.Tests
 
         [DataTestMethod]
         [DataRow("27:59:17N 86:55:32E", 8820, -0.00021, 0.00084, -9.76653)]
-        [DataRow("0 0", 0, -0.00002, 0.00001, - 9.78037)]
+        [DataRow("0 0", 0, -0.00002, 0.00001, -9.78037)]
         [DataRow("90 0", 0, -0.00007, -0.00006, -9.83208)]
-        [DataRow("-90 0", 0, 0.00001, 0.00009, - 9.83204)]
+        [DataRow("-90 0", 0, 0.00001, 0.00009, -9.83204)]
         public void Test_Evaluate(string coord, double height, double GX, double GY, double GZ)
         {
             var c = new GeoCoords(coord);
             var model = new GravityModel("egm96",
                 Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "gravity"));
             {
-                model.Gravity(c.Latitude, c.Longitude, height, out var gx, out var gy, out var gz);
+                var (_, gx, gy, gz) = model.Gravity(c.Latitude, c.Longitude, height);
                 Assert.AreEqual(GX, gx, 1e-5);
                 Assert.AreEqual(GY, gy, 1e-5);
                 Assert.AreEqual(GZ, gz, 1e-5);

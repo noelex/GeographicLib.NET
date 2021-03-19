@@ -88,6 +88,7 @@ For changes adopted from original GeographicLib, please refer the its change log
 ### Version 1.52.0 (unreleased)
 - **BREAKING**
   - Modify overloads of `Forward` and `Reverse` in `AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner` and `LambertConformalConic` to return coordinates as tuples.
+  - Modify methods using `out` parameters defined in `NormalGravity`, `GravityModel`, `GravityCircle`, `MagneticModel` and `MagnegticCircle` to return results as tuples.
 
 - **NEW**
   - Add constructor overloads that accept `IEllipsoid` as parameter for `AlbersEqualArea` and `LambertConformalConic`.
