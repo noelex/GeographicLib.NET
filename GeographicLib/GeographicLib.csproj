@@ -19,6 +19,9 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
     <Copyright>Copyright (c) 2021 GeographicLib.NET contributors</Copyright>
     <VersionPrefix>1.52.0</VersionPrefix>
     <PackageTags>gis, geodesic, geographic, geoid, geomagnetic, gravity, projection, rhumb</PackageTags>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
+    <PublicSign>True</PublicSign>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
