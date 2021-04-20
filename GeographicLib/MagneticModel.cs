@@ -306,8 +306,7 @@ namespace GeographicLib
             }
         }
 
-        private void Field(double t, double lat, double lon, double h, bool diffp,
-                       out double Bx, out double By, out double Bz,
+        private (double Bx, double By, double Bz) Field(double t, double lat, double lon, double h, bool diffp,
                        out double Bxt, out double Byt, out double Bzt)
         {
             Bxt = Byt = Bzt = default;
@@ -316,10 +315,12 @@ namespace GeographicLib
             var (X, Y, Z) = _earth.IntForward(lat, lon, h, M);
             // Components in geocentric basis
             // initial values to suppress warning
-            FieldGeocentric(t, X, Y, Z, out var BX, out var BY, out var BZ, out var BXt, out var BYt, out var BZt);
+            var (BX, BY, BZ) = FieldGeocentric(t, X, Y, Z, out var BXt, out var BYt, out var BZt);
             if (diffp)
                 Geocentric.Unrotate(M, BXt, BYt, BZt, out Bxt, out Byt, out Bzt);
-            Geocentric.Unrotate(M, BX, BY, BZ, out Bx, out By, out Bz);
+            Geocentric.Unrotate(M, BX, BY, BZ, out var Bx, out var By, out var Bz);
+
+            return (Bx, By, Bz);
         }
 
         /// <summary>
@@ -329,14 +330,17 @@ namespace GeographicLib
         /// <param name="X"><i>X</i> component of geocentric coordinate (meters).</param>
         /// <param name="Y"><i>Y</i> component of geocentric coordinate (meters).</param>
         /// <param name="Z"><i>Z</i> component of geocentric coordinate (meters).</param>
-        /// <param name="BX">the <i>X</i> component of the magnetic field (nanotesla).</param>
-        /// <param name="BY">the <i>Y</i> component of the magnetic field (nanotesla).</param>
-        /// <param name="BZ">the <i>Z</i> component of the magnetic field (nanotesla).</param>
         /// <param name="BXt">the rate of change of <i>BX</i> (nT/yr).</param>
         /// <param name="BYt">the rate of change of <i>BY</i> (nT/yr).</param>
         /// <param name="BZt">the rate of change of <i>BZ</i> (nT/yr).</param>
-        public void FieldGeocentric(double t, double X, double Y, double Z,
-                              out double BX, out double BY, out double BZ,
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>BX</i>, the <i>X</i> component of the magnetic field (nanotesla).</item>
+        /// <item><i>BY</i>, the <i>Y</i> component of the magnetic field (nanotesla).</item>
+        /// <item><i>BZ</i>, the <i>Z</i> component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double BX, double BY, double BZ) FieldGeocentric(double t, double X, double Y, double Z,
                               out double BXt, out double BYt, out double BZt)
         {
             t -= _t0;
@@ -346,7 +350,7 @@ namespace GeographicLib
             // Components in geocentric basis
             // initial values to suppress warning
             double BXc = 0, BYc = 0, BZc = 0;
-            _harm[n].Evaluate(X, Y, Z, out BX, out BY, out BZ);
+            _harm[n].Evaluate(X, Y, Z, out var BX, out var BY, out var BZ);
             _harm[n + 1].Evaluate(X, Y, Z, out BXt, out BYt, out BZt);
             if (_Nconstants != 0)
                 _harm[_Nmodels + 1].Evaluate(X, Y, Z, out BXc, out BYc, out BZc);
@@ -368,6 +372,8 @@ namespace GeographicLib
             BX *= -_a;
             BY *= -_a;
             BZ *= -_a;
+
+            return (BX, BY, BZ);
         }
 
         /// <summary>
@@ -377,12 +383,15 @@ namespace GeographicLib
         /// <param name="lat">latitude of the point (degrees).</param>
         /// <param name="lon">longitude of the point (degrees).</param>
         /// <param name="h">the height of the point above the ellipsoid (meters).</param>
-        /// <param name="Bx">the easterly component of the magnetic field (nanotesla).</param>
-        /// <param name="By">the northerly component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the vertical (up) component of the magnetic field (nanotesla).</param>
-        public void Evaluate(double t, double lat, double lon, double h,
-                             out double Bx, out double By, out double Bz)
-            => Field(t, lat, lon, h, false, out Bx, out By, out Bz, out _, out _, out _);
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Bx</i>, the easterly component of the magnetic field (nanotesla).</item>
+        /// <item><i>By</i>, the northerly component of the magnetic field (nanotesla).</item>
+        /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double Bx, double By, double Bz) Evaluate(double t, double lat, double lon, double h)
+            => Field(t, lat, lon, h, false, out _, out _, out _);
 
         /// <summary>
         /// Evaluate the components of the geomagnetic field and their time derivatives.
@@ -391,16 +400,19 @@ namespace GeographicLib
         /// <param name="lat">latitude of the point (degrees).</param>
         /// <param name="lon">longitude of the point (degrees).</param>
         /// <param name="h">the height of the point above the ellipsoid (meters).</param>
-        /// <param name="Bx">the easterly component of the magnetic field (nanotesla).</param>
-        /// <param name="By">the northerly component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the vertical (up) component of the magnetic field (nanotesla).</param>
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>
-        public void Evaluate(double t, double lat, double lon, double h,
-                             out double Bx, out double By, out double Bz,
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Bx</i>, the easterly component of the magnetic field (nanotesla).</item>
+        /// <item><i>By</i>, the northerly component of the magnetic field (nanotesla).</item>
+        /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double Bx, double By, double Bz) Evaluate(double t, double lat, double lon, double h,
                              out double Bxt, out double Byt, out double Bzt)
-            => Field(t, lat, lon, h, true, out Bx, out By, out Bz, out Bxt, out Byt, out Bzt);
+            => Field(t, lat, lon, h, true, out Bxt, out Byt, out Bzt);
 
         /// <summary>
         /// Create a <see cref="MagneticCircle"/> object to allow the geomagnetic field at many points with constant
@@ -448,27 +460,32 @@ namespace GeographicLib
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>
-        /// <param name="H">the horizontal magnetic field (nT).</param>
-        /// <param name="F">the total magnetic field (nT).</param>
-        /// <param name="D">the declination of the field (degrees east of north).</param>
-        /// <param name="I">the inclination of the field (degrees down from horizontal).</param>
         /// <param name="Ht">the rate of change of <i>H</i> (nT/yr).</param>
         /// <param name="Ft">the rate of change of <i>F</i> (nT/yr).</param>
         /// <param name="Dt">the rate of change of <i>D</i> (degrees/yr).</param>
         /// <param name="It">the rate of change of <i>I</i> (degrees/yr).</param>
-        public static void FieldComponents(double Bx, double By, double Bz,
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>H</i>, the horizontal magnetic field (nT).</item>
+        /// <item><i>F</i>, the total magnetic field (nT).</item>
+        /// <item><i>D</i>, the declination of the field (degrees east of north).</item>
+        /// <item><i>I</i>, the inclination of the field (degrees down from horizontal).</item>
+        /// </list>
+        /// </returns>
+        public static (double H, double F, double D, double I) FieldComponents(double Bx, double By, double Bz,
                                 double Bxt, double Byt, double Bzt,
-                                out double H, out double F, out double D, out double I,
                                 out double Ht, out double Ft, out double Dt, out double It)
         {
-            H = Hypot(Bx, By);
+            var H = Hypot(Bx, By);
             Ht = H != 0 ? (Bx * Bxt + By * Byt) / H : Hypot(Bxt, Byt);
-            D = H != 0 ? Atan2d(Bx, By) : Atan2d(Bxt, Byt);
+            var D = H != 0 ? Atan2d(Bx, By) : Atan2d(Bxt, Byt);
             Dt = (H != 0 ? (By * Bxt - Bx * Byt) / Sq(H) : 0) / MathEx.Degree;
-            F = Hypot(H, Bz);
+            var F = Hypot(H, Bz);
             Ft = F != 0 ? (H * Ht + Bz * Bzt) / F : Hypot(Ht, Bzt);
-            I = F != 0 ? Atan2d(-Bz, H) : Atan2d(-Bzt, Ht);
+            var I = F != 0 ? Atan2d(-Bz, H) : Atan2d(-Bzt, Ht);
             It = (F != 0 ? (Bz * Ht - H * Bzt) / Sq(F) : 0) / MathEx.Degree;
+
+            return (H, F, D, I);
         }
 
         /// <summary>
@@ -480,14 +497,17 @@ namespace GeographicLib
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>
-        /// <param name="H">the horizontal magnetic field (nT).</param>
-        /// <param name="F">the total magnetic field (nT).</param>
-        /// <param name="D">the declination of the field (degrees east of north).</param>
-        /// <param name="I">the inclination of the field (degrees down from horizontal).</param>
-        public static void FieldComponents(double Bx, double By, double Bz,
-                                double Bxt, double Byt, double Bzt,
-                                out double H, out double F, out double D, out double I)
-            => FieldComponents(Bx, By, Bz, Bxt, Byt, Bzt, out H, out F, out D, out I, out _, out _, out _, out _);
+        ///  <returns>
+        /// <list type="bullet">
+        /// <item><i>H</i>, the horizontal magnetic field (nT).</item>
+        /// <item><i>F</i>, the total magnetic field (nT).</item>
+        /// <item><i>D</i>, the declination of the field (degrees east of north).</item>
+        /// <item><i>I</i>, the inclination of the field (degrees down from horizontal).</item>
+        /// </list>
+        /// </returns>
+        public static (double H, double F, double D, double I) FieldComponents(double Bx, double By, double Bz,
+                                double Bxt, double Byt, double Bzt)
+            => FieldComponents(Bx, By, Bz, Bxt, Byt, Bzt, out _, out _, out _, out _);
 
         /// <summary>
         /// This is the value of the environment variable GEOGRAPHICLIB_MAGNETIC_PATH, if set;

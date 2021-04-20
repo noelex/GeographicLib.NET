@@ -18,15 +18,15 @@ namespace GeographicLib
         None = 0U,
 
         /// <summary>
-        /// Allow calls to <see cref="GravityCircle.Gravity(double, out double, out double, out double)"/>,
-        /// <see cref="GravityCircle.W(double, out double, out double, out double)"/>, and
-        /// <see cref="GravityCircle.V(double, out double, out double, out double)"/>.
+        /// Allow calls to <see cref="GravityCircle.Gravity(double)"/>,
+        /// <see cref="GravityCircle.W(double)"/>, and
+        /// <see cref="GravityCircle.V(double)"/>.
         /// </summary>
         Gravity = GravityCapability.G,
 
         /// <summary>
-        /// Allow calls to <see cref="GravityCircle.Disturbance(double, out double, out double, out double)"/> and
-        /// <see cref="GravityCircle.T(double, out double, out double, out double)"/>.
+        /// Allow calls to <see cref="GravityCircle.Disturbance(double)"/> and
+        /// <see cref="GravityCircle.Td(double)"/>.
         /// </summary>
         Disturbance = GravityCapability.Delta,
 
@@ -37,7 +37,7 @@ namespace GeographicLib
         DisturbingPotential = GravityCapability.T,
 
         /// <summary>
-        /// Allow calls to <see cref="GravityCircle.SphericalAnomaly(double, out double, out double, out double)"/>.
+        /// Allow calls to <see cref="GravityCircle.SphericalAnomaly(double)"/>.
         /// </summary>
         SphericalAnomaly = GravityCapability.Delta | GravityCapability.Gamma,
 

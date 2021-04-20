@@ -101,18 +101,16 @@ namespace GeographicLib.Tests
             double lat1, double lon1, double azi1, double lat2, double lon2, double azi2,
             double s12, double a12, double m12, double M12, double M21, double S12)
         {
-            var ra12 = Geodesic.WGS84.GenInverse(
-                lat1, lon1, lat2, lon2, GeodesicFlags.All | GeodesicFlags.LongUnroll,
-                out var rs12, out var razi1, out var razi2, out var rm12, out var rM12, out var rM21, out var rS12);
+            var result = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2, GeodesicFlags.All | GeodesicFlags.LongUnroll);
 
-            Assert.AreEqual(azi1, razi1, 1e-13);
-            Assert.AreEqual(azi2, razi2, 1e-13);
-            Assert.AreEqual(s12, rs12, 1e-8);
-            Assert.AreEqual(a12, ra12, 1e-13);
-            Assert.AreEqual(m12, rm12, 1e-8);
-            Assert.AreEqual(M12, rM12, 1e-15);
-            Assert.AreEqual(M21, rM21, 1e-15);
-            Assert.AreEqual(S12, rS12, 0.1);
+            Assert.AreEqual(azi1, result.Azimuth1, 1e-13);
+            Assert.AreEqual(azi2, result.Azimuth2, 1e-13);
+            Assert.AreEqual(s12, result.Distance, 1e-8);
+            Assert.AreEqual(a12, result.ArcLength, 1e-13);
+            Assert.AreEqual(m12, result.ReducedLength, 1e-8);
+            Assert.AreEqual(M12, result.GeodesicScale12, 1e-15);
+            Assert.AreEqual(M21, result.GeodesicScale21, 1e-15);
+            Assert.AreEqual(S12, result.Area, 0.1);
         }
 
         [DataTestMethod]
@@ -121,18 +119,16 @@ namespace GeographicLib.Tests
             double lat1, double lon1, double azi1, double lat2, double lon2, double azi2,
             double s12, double a12, double m12, double M12, double M21, double S12)
         {
-            var ra12 = Geodesic.WGS84.GenDirect(
-                lat1, lon1, azi1, false,s12, GeodesicFlags.All | GeodesicFlags.LongUnroll,
-                out var rlat2, out var rlon2, out var razi2,out var rs12, out var rm12, out var rM12, out var rM21, out var rS12);
+            var result = Geodesic.WGS84.Direct(lat1, lon1, azi1, s12, GeodesicFlags.All | GeodesicFlags.LongUnroll);
 
-            Assert.AreEqual(lat2, rlat2, 1e-13);
-            Assert.AreEqual(lon2, rlon2, 1e-13);
-            Assert.AreEqual(azi2, razi2, 1e-13);
-            Assert.AreEqual(a12, ra12, 1e-13);
-            Assert.AreEqual(m12, rm12, 1e-8);
-            Assert.AreEqual(M12, rM12, 1e-15);
-            Assert.AreEqual(M21, rM21, 1e-15);
-            Assert.AreEqual(S12, rS12, 0.1);
+            Assert.AreEqual(lat2, result.Latitude, 1e-13);
+            Assert.AreEqual(lon2, result.Longitude, 1e-13);
+            Assert.AreEqual(azi2, result.Azimuth2, 1e-13);
+            Assert.AreEqual(a12, result.ArcLength, 1e-13);
+            Assert.AreEqual(m12, result.ReducedLength, 1e-8);
+            Assert.AreEqual(M12, result.GeodesicScale12, 1e-15);
+            Assert.AreEqual(M21, result.GeodesicScale21, 1e-15);
+            Assert.AreEqual(S12, result.Area, 0.1);
         }
 
         [DataTestMethod]
@@ -141,18 +137,16 @@ namespace GeographicLib.Tests
             double lat1, double lon1, double azi1, double lat2, double lon2, double azi2,
             double s12, double a12, double m12, double M12, double M21, double S12)
         {
-            var ra12 = Geodesic.WGS84.GenDirect(
-                lat1, lon1, azi1, true, a12, GeodesicFlags.All | GeodesicFlags.LongUnroll,
-                out var rlat2, out var rlon2, out var razi2, out var rs12, out var rm12, out var rM12, out var rM21, out var rS12);
+            var result = Geodesic.WGS84.ArcDirect(lat1, lon1, azi1, a12, GeodesicFlags.All | GeodesicFlags.LongUnroll);
 
-            Assert.AreEqual(lat2, rlat2, 1e-13);
-            Assert.AreEqual(lon2, rlon2, 1e-13);
-            Assert.AreEqual(azi2, razi2, 1e-13);
-            Assert.AreEqual(s12, rs12, 1e-8);
-            Assert.AreEqual(m12, rm12, 1e-8);
-            Assert.AreEqual(M12, rM12, 1e-15);
-            Assert.AreEqual(M21, rM21, 1e-15);
-            Assert.AreEqual(S12, rS12, 0.1);
+            Assert.AreEqual(lat2, result.Latitude, 1e-13);
+            Assert.AreEqual(lon2, result.Longitude, 1e-13);
+            Assert.AreEqual(azi2, result.Azimuth2, 1e-13);
+            Assert.AreEqual(a12, result.ArcLength, 1e-13);
+            Assert.AreEqual(m12, result.ReducedLength, 1e-8);
+            Assert.AreEqual(M12, result.GeodesicScale12, 1e-15);
+            Assert.AreEqual(M21, result.GeodesicScale21, 1e-15);
+            Assert.AreEqual(S12, result.Area, 0.1);
         }
 
         [DataTestMethod]

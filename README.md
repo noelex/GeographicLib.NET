@@ -3,6 +3,10 @@
 [![master](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml)
 [![develop](https://github.com/noelex/GeographicLib.NET/actions/workflows/develop.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/develop.yml)
 
+[GeographicLib](https://sourceforge.net/p/geographiclib) is a small set of C++ classes for performing conversions between geographic,
+UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations,
+and for solving geodesic problems.
+
 GeographicLib.NET is a native .NET implementation of [GeographicLib](https://sourceforge.net/p/geographiclib) written in pure C#.
 
 ## What's different from NETGeographicLib
@@ -84,10 +88,13 @@ For changes adopted from original GeographicLib, please refer the its change log
 ### Version 1.52.0 (unreleased)
 - **BREAKING**
   - Modify overloads of `Forward` and `Reverse` in `AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner` and `LambertConformalConic` to return coordinates as tuples.
+  - Modify methods using `out` parameters defined in `NormalGravity`, `GravityModel`, `GravityCircle`, `MagneticModel` and `MagnegticCircle` to return results as tuples.
 
 - **NEW**
   - Add constructor overloads that accept `IEllipsoid` as parameter for `AlbersEqualArea` and `LambertConformalConic`.
   - Add managed implementation of `log2`.
+  - Add overloads of `Direct` and `Inverse` in `Geodesic`/`GeodesicLine`, `GeodesicExact`/`GeodesicLineExact` and `Rhumb`/`RhumbLineExact`,
+    that return the computation results as a single object.
 
 ### Version 1.51.0 (released 2021/03/14)
 Initial stable release.

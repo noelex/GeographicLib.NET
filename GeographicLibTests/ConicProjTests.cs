@@ -103,5 +103,15 @@ namespace GeographicLib.Tests
             Assert.AreEqual(-90.0, lat, 0.01);
             Assert.AreEqual(0.00, Math.Abs(lon), 0.001);
         }
+
+        [TestMethod]
+        public void ConicProj9_CheckFixToInfiniteLoopInAlbersEqualAreaWith_e2_LessThan_MinusOne()
+        {
+            var lcc = new AlbersEqualArea(6.4e6,-0.5, -10, 40, 1);
+            var (x, y) = lcc.Forward(0, 85, 10);
+
+            Assert.AreEqual(609861, x, 1);
+            Assert.AreEqual(7566522, y, 1);
+        }
     }
 }

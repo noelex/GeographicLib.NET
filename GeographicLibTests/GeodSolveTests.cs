@@ -16,7 +16,7 @@ namespace GeographicLib.Tests
     public class GeodSolveTests
     {
         [TestMethod]
-        public void TestGeodSolve0()
+        public void GeodSolve0()
         {
             Geodesic.WGS84.Inverse(40.6, -73.8, 49.01666667, 2.55,
                 out var s12, out var azi1, out var azi2);
@@ -27,7 +27,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve1()
+        public void GeodSolve1()
         {
             Geodesic.WGS84.Direct(40.63972222, -73.77888889, 53.5, 5850e3,
                 out var lat2, out var lon2, out var azi2);
@@ -38,7 +38,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve2_CheckFixForAntipodalProlateBug()
+        public void GeodSolve2_CheckFixForAntipodalProlateBug()
         {
             var geod = new Geodesic(6.4e6, -1 / 150.0);
 
@@ -51,7 +51,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve4_CheckFixForShortLineBug()
+        public void GeodSolve4_CheckFixForShortLineBug()
         {
             Geodesic.WGS84.Inverse(36.493349428792, 0, 36.49334942879201, 0.0000008, out var s12);
 
@@ -59,7 +59,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve5_CheckFixForPoint2IsPoleBug()
+        public void GeodSolve5_CheckFixForPoint2IsPoleBug()
         {
             Geodesic.WGS84.Direct(0.01777745589997, 30, 0, 10e6, out var lat2, out var lon2, out var azi2);
 
@@ -77,7 +77,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve6_CheckFixForVolatile_sbt12a_Bug()
+        public void GeodSolve6_CheckFixForVolatile_sbt12a_Bug()
         {
             Geodesic.WGS84.Inverse(88.202499451857, 0, -88.202499451857, 179.981022032992859592, out var s12);
             Assert.AreEqual(20003898.214, s12, 0.5e-3);
@@ -90,28 +90,28 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve9_CheckFixForVolatile_x_Bug()
+        public void GeodSolve9_CheckFixForVolatile_x_Bug()
         {
             Geodesic.WGS84.Inverse(56.320923501171, 0, -56.320923501171, 179.664747671772880215, out var s12);
             Assert.AreEqual(19993558.287, s12, 0.5e-3);
         }
 
         [TestMethod]
-        public void TestGeodSolve10_CheckFixForAdjust_tol1_Bug()
+        public void GeodSolve10_CheckFixForAdjust_tol1_Bug()
         {
             Geodesic.WGS84.Inverse(52.784459512564, 0, -52.784459512563990912, 179.634407464943777557, out var s12);
             Assert.AreEqual(19991596.095, s12, 0.5e-3);
         }
 
         [TestMethod]
-        public void TestGeodSolve11_CheckFixFor_bet2_Equals_Negative_bet1_BugBug()
+        public void GeodSolve11_CheckFixFor_bet2_Equals_Negative_bet1_BugBug()
         {
             Geodesic.WGS84.Inverse(48.522876735459, 0, -48.52287673545898293, 179.599720456223079643, out var s12);
             Assert.AreEqual(19989144.774, s12, 0.5e-3);
         }
 
         [TestMethod]
-        public void TestGeodSolve12_CheckFixForInverseGeodesicsOnExtremeProlateOblateEllipsoids()
+        public void GeodSolve12_CheckFixForInverseGeodesicsOnExtremeProlateOblateEllipsoids()
         {
             var geod = new Geodesic(89.8, -1.83);
 
@@ -124,7 +124,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve14_CheckFixForInverseIgnoring_lon12_Equals_NaN()
+        public void GeodSolve14_CheckFixForInverseIgnoring_lon12_Equals_NaN()
         {
             Geodesic.WGS84.Inverse(0, 0, 1, double.NaN,
                 out var s12, out var azi1, out var azi2);
@@ -135,7 +135,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve15_CheckImplementationOfEAtahhEFor_e2_LessThan_Zero()
+        public void GeodSolve15_CheckImplementationOfEAtahhEFor_e2_LessThan_Zero()
         {
             var geod = new Geodesic(6.4e6, -1 / 150.0);
             geod.GenDirect(1, 2, 3, false, 4, GeodesicFlags.Area,
@@ -145,7 +145,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve17_CheckFixForLongUnrollBug()
+        public void GeodSolve17_CheckFixForLongUnrollBug()
         {
             Geodesic.WGS84.GenDirect(40, -75, -10, false, 2e7,
                 GeodesicFlags.Latitude | GeodesicFlags.Longitude | GeodesicFlags.Azimuth | GeodesicFlags.LongUnroll,
@@ -175,7 +175,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve26_Check0Div0ProblemWithAreaCalculationOnSphere()
+        public void GeodSolve26_Check0Div0ProblemWithAreaCalculationOnSphere()
         {
             var geod = new Geodesic(6.4e6, 0);
             geod.GenInverse(1, 2, 3, 4, GeodesicFlags.Area, out _, out _, out _, out _, out _, out _, out var S12);
@@ -184,7 +184,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve28_CheckForBadPlacementOfAssignmentOf_r_a12_With_abs_f_GreaterThan0_01()
+        public void GeodSolve28_CheckForBadPlacementOfAssignmentOf_r_a12_With_abs_f_GreaterThan0_01()
         {
             var geod = new Geodesic(6.4e6, 0.1);
             var a12 = geod.Direct(1, 2, 10, 5e6, out _, out _);
@@ -193,7 +193,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve33_CheckMax_Negative_Zero_Positive_Zero_Issues()
+        public void GeodSolve33_CheckMax_Negative_Zero_Positive_Zero_Issues()
         {
             Geodesic.WGS84.Inverse(0, 0, 0, 179, out var s12, out var azi1, out var azi2);
             Assert.AreEqual(90.00000, azi1, 0.5e-5);
@@ -254,7 +254,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve55_CheckFixForNaNPlusPointOnEquatorOrPoleNotReturningAllNaNsInInverse()
+        public void GeodSolve55_CheckFixForNaNPlusPointOnEquatorOrPoleNotReturningAllNaNsInInverse()
         {
             Geodesic.WGS84.Inverse(double.NaN, 0, 0, 90, out var s12, out var azi1, out var azi2);
             Assert.IsTrue(double.IsNaN(azi1));
@@ -268,7 +268,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve59_CheckForPointsCloseWithLongitudesCloseTo180degApart()
+        public void GeodSolve59_CheckForPointsCloseWithLongitudesCloseTo180degApart()
         {
             Geodesic.WGS84.Inverse(5, 0.00000000000001, 10, 180, out var s12, out var azi1, out var azi2);
             Assert.AreEqual(0.000000000000035, azi1, 1.5e-14);
@@ -277,7 +277,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve61_MakeSureSmallNegativeAzimuthsAreWestGoing()
+        public void GeodSolve61_MakeSureSmallNegativeAzimuthsAreWestGoing()
         {
             Geodesic.WGS84.GenDirect(45, 0, -0.000000000000000003, false, 1e7,
                 GeodesicFlags.Latitude | GeodesicFlags.Longitude | GeodesicFlags.Azimuth | GeodesicFlags.LongUnroll,
@@ -296,7 +296,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve65_CheckForBugInEastGoingCheckInGeodesicLine()
+        public void GeodSolve65_CheckForBugInEastGoingCheckInGeodesicLine()
         {
             var line = Geodesic.WGS84.InverseLine(30, -0.000000000000000001, -31, 180, GeodesicFlags.All);
             var a12 = line.GenPosition(false, 1e7, GeodesicFlags.All | GeodesicFlags.LongUnroll,
@@ -325,7 +325,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve66_CheckForInverseLineIfLineIsSlightlyWestOfSAndThat_s12_IsCorrecltySet()
+        public void GeodSolve66_CheckForInverseLineIfLineIsSlightlyWestOfSAndThat_s12_IsCorrecltySet()
         {
             var line = Geodesic.WGS84.InverseLine(-5, -0.000000000000002, -10, 180);
             line.GenPosition(false, 2e7,
@@ -344,7 +344,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve71_CheckThatDirectLineSets_s13()
+        public void GeodSolve71_CheckThatDirectLineSets_s13()
         {
             var line = Geodesic.WGS84.DirectLine(1, 2, 45, 1e7);
             line.GenPosition(false, 0.5 * line.Distance,
@@ -357,7 +357,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve73_CheckForBackwardsFromThePoleBug()
+        public void GeodSolve73_CheckForBackwardsFromThePoleBug()
         {
             Geodesic.WGS84.Direct(90, 10, 180, -1e6, out var lat2, out var lon2, out var azi2);
             Assert.AreEqual(81.04623, lat2, 0.5e-5);
@@ -367,7 +367,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve74_CheckFixForInaccurateAreas()
+        public void GeodSolve74_CheckFixForInaccurateAreas()
         {
             var a12 = Geodesic.WGS84.Inverse(54.1589, 15.3872, 54.1591, 15.3877,
                 out var s12, out var azi1, out var azi2, out var m12, out var M12, out var M21, out var S12);
@@ -382,7 +382,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve76_TheDistanceFromWellingtonToSalamanca()
+        public void GeodSolve76_TheDistanceFromWellingtonToSalamanca()
         {
             Geodesic.WGS84.Inverse(-(41 + 19 / 60.0), 174 + 49 / 60.0, 40 + 58 / 60.0, -(5 + 30 / 60.0),
                 out var s12, out var azi1, out var azi2);
@@ -393,7 +393,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve78_AnExampleWhereTheNGSCalculatorFailsToConverge()
+        public void GeodSolve78_AnExampleWhereTheNGSCalculatorFailsToConverge()
         {
             Geodesic.WGS84.Inverse(27.2, 0.0, -27.1, 179.5,
                 out var s12, out var azi1, out var azi2);
@@ -404,7 +404,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolve80_Coverage_ComputingScaleInSpecialCases_ZeroLengthGeodesic_UsingAnIncapableLine()
+        public void GeodSolve80_Coverage_ComputingScaleInSpecialCases_ZeroLengthGeodesic_UsingAnIncapableLine()
         {
             Geodesic.WGS84.GenInverse(0, 0, 0, 90, GeodesicFlags.GeodesicScale,
                 out _, out _, out _, out _, out var M12, out var M21, out _);
@@ -444,7 +444,7 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
-        public void TestGeodSolv84_CheckFixForRangeErrorsWith_fmod_sin_cos_inf()
+        public void GeodSolve84_CheckFixForRangeErrorsWith_fmod_sin_cos_inf()
         {
             Geodesic.WGS84.Direct(0, 0, 90, double.PositiveInfinity, out var lat2, out var lon2, out var azi2);
             Assert.IsTrue(double.IsNaN(lat2));
