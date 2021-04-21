@@ -96,5 +96,8 @@ For changes adopted from original GeographicLib, please refer the its change log
   - Add overloads of `Direct` and `Inverse` in `Geodesic`/`GeodesicLine`, `GeodesicExact`/`GeodesicLineExact` and `Rhumb`/`RhumbLineExact`,
     that return the computation results as a single object.
 
+- **FIX**
+  - Fix stack overflow bug for `Forward(double lon0, double lat, double lon)` and `Reverse(double lon0, double x, double y)` in `TransverseMercatorExact`.
+
 ### Version 1.51.0 (released 2021/03/14)
 Initial stable release.
