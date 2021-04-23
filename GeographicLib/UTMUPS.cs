@@ -44,7 +44,7 @@ namespace GeographicLib
     /// between UTM and UPS and between UTM zones.
     /// </para>
     /// <para>
-    /// The <a href="http://www.nga.mil/">NGA</a> software package <a href="https://earth-info.nga.mil/index.php?dir=wgs84&action=wgs84#tab_geotrans">geotrans</a> also provides conversions to and from UTM and UPS.
+    /// The <a href="http://www.nga.mil/">NGA</a> software package <a href="https://earth-info.nga.mil/index.php?dir=wgs84&amp;action=wgs84#tab_geotrans">geotrans</a> also provides conversions to and from UTM and UPS.
     /// Version 2.4.2 (and earlier) suffers from some drawbacks:
     /// </para>
     /// <list type="bullet">
