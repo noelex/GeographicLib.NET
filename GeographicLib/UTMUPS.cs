@@ -17,7 +17,7 @@ namespace GeographicLib
     /// <list type="bullet">
     /// <item>
     /// J. W. Hager, J. F. Behensky, and B. W. Drew,
-    /// <a href="http://earth-info.nga.mil/GandG/publications/tm8358.2/TM8358_2.pdf">The Universal Grids: Universal Transverse Mercator (UTM) and Universal Polar Stereographic (UPS)</a>,
+    /// <a href="https://web.archive.org/web/20161214054445/http://earth-info.nga.mil/GandG/publications/tm8358.2/TM8358_2.pdf">The Universal Grids: Universal Transverse Mercator (UTM) and Universal Polar Stereographic (UPS)</a>,
     /// Defense Mapping Agency, Technical Manual TM8358.2 (1989).
     /// </item>
     /// </list>
@@ -27,7 +27,7 @@ namespace GeographicLib
     /// These are the algorithms recommended by the NGA document
     /// <list type="bullet">
     /// <item>
-    /// <a href="http://earth-info.nga.mil/GandG/publications/NGA_SIG_0012_2_0_0_UTMUPS/NGA.SIG.0012_2.0.0_UTMUPS.pdf">The Universal Grids and the Transverse Mercator and Polar Stereographic Map Projections</a>,
+    /// <a href="https://earth-info.nga.mil/coordsys/coord-download.php?file=website/NGA.SIG.0012_2.0.0_UTMUPS.pdf">The Universal Grids and the Transverse Mercator and Polar Stereographic Map Projections</a>,
     /// NGA.SIG.0012_2.0.0_UTMUPS (2014).
     /// </item>
     /// </list>
@@ -44,7 +44,7 @@ namespace GeographicLib
     /// between UTM and UPS and between UTM zones.
     /// </para>
     /// <para>
-    /// The <a href="http://www.nga.mil/">NGA</a> software package <a href="http://earth-info.nga.mil/GandG/geotrans/index.html">geotrans</a> also provides conversions to and from UTM and UPS.
+    /// The <a href="http://www.nga.mil/">NGA</a> software package <a href="https://earth-info.nga.mil/index.php?dir=wgs84&action=wgs84#tab_geotrans">geotrans</a> also provides conversions to and from UTM and UPS.
     /// Version 2.4.2 (and earlier) suffers from some drawbacks:
     /// </para>
     /// <list type="bullet">

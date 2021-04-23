@@ -14,7 +14,7 @@ namespace GeographicLib.Geocodes
     /// The World Geographic Reference System is described in
     /// <list type="bullet">
     /// <item><a href="https://en.wikipedia.org/wiki/Georef"></a></item>
-    /// <item><a href="http://earth-info.nga.mil/GandG/coordsys/grids/georef.pdf"></a></item>
+    /// <item><a href="https://web.archive.org/web/20161214054445/http://earth-info.nga.mil/GandG/coordsys/grids/georef.pdf"></a></item>
     /// </list>
     /// <para>
     /// It provides a compact string representation of a geographic area (expressed as latitude and longitude).

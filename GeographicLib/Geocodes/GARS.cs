@@ -14,7 +14,7 @@ namespace GeographicLib.Geocodes
     /// The Global Area Reference System is described in
     /// <list type="bullet">
     /// <item><a href="https://en.wikipedia.org/wiki/Global_Area_Reference_System"></a></item>
-    /// <item><a href="http://earth-info.nga.mil/GandG/coordsys/grids/gars.html"></a></item>
+    /// <item><a href="https://earth-info.nga.mil/index.php?dir=coordsys&amp;action=coordsys#tab_gars"></a></item>
     /// </list>
     /// <para>
     /// It provides a compact string representation of a geographic area (expressed as latitude and longitude).
