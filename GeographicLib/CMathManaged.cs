@@ -435,7 +435,7 @@ namespace GeographicLib
             return y_d[0];
         }
 
-#if !NET5_0
+#if !NET5_0_OR_GREATER
 
         private const int
             LOG2_TABLE_BITS = 6,
@@ -1237,5 +1237,5 @@ namespace GeographicLib
             return t;
         }
 #endif
-        }
+    }
 }

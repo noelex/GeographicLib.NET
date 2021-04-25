@@ -1819,7 +1819,7 @@ new object[]{1L, 4602678819172646912L, -1073},
 new object[]{-9223372036854775807L, -4620693217682128896L, -1073},
             };
 
-#if !NET5_0
+#if NET5_0_OR_GREATER
         public static IEnumerable<object[]> CopySign =>
             new[]
             {
