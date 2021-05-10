@@ -95,6 +95,7 @@ For changes adopted from original GeographicLib, please refer the its change log
   - Add managed implementation of `log2`.
   - Add overloads of `Direct` and `Inverse` in `Geodesic`/`GeodesicLine`, `GeodesicExact`/`GeodesicLineExact` and `Rhumb`/`RhumbLineExact`,
     that return the computation results as a single object.
+  - Add definitions of popular reference ellipsoids in `Ellipsoid` class.
 
 - **FIX**
   - Fix stack overflow bug for `Forward(double lon0, double lat, double lon)` and `Reverse(double lon0, double x, double y)` in `TransverseMercatorExact`.
