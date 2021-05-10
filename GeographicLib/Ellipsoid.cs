@@ -440,7 +440,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// 
+        /// Calculate the radius of curvature of the ellipsoid in the normal section at specified latitude inclined at specified angle.
         /// </summary>
         /// <param name="phi">the geographic latitude (degrees).</param>
         /// <param name="azi">the angle between the meridian and the normal section (degrees).</param>
