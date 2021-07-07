@@ -165,7 +165,7 @@ namespace GeographicLib
         internal static bool IsFinite(double x) => double.IsFinite(x);
 #endif
 
-#if !NET5_0
+#if !NET5_0_OR_GREATER
         /// <summary>
         /// Returns x * 2^n computed efficiently.
         /// </summary>

@@ -96,7 +96,7 @@ namespace GeographicLib.Tests
             Assert.AreEqual(expected, result);
         }
 
-#if !NET5_0
+#if !NET5_0_OR_GREATER
         [DataTestMethod]
         [DynamicData("CopySign", typeof(MathExTestData))]
         public void TestCopySign(long x, long y, long expected)

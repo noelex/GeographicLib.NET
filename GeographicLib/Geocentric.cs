@@ -135,12 +135,12 @@ namespace GeographicLib
         /// <param name="X"><i>x</i> component of geocentric coordinate (meters).</param>
         /// <param name="Y"><i>y</i> component of geocentric coordinate (meters).</param>
         /// <param name="Z"><i>z</i> component of geocentric coordinate (meters).</param>
-        /// <param name="M"> the length of the vector is 9, fill with the rotation matrix in row-major order.</param>
+        /// <param name="M">if the length of the vector is 9, fill with the rotation matrix in row-major order.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><i>X</i>, <i>x</i> component of geocentric coordinate (meters).</item>
-        /// <item><i>Y</i>, <i>y</i> component of geocentric coordinate (meters).</item>
-        /// <item><i>Z</i>, <i>z</i> component of geocentric coordinate (meters).</item>
+        /// <item><i>lat</i>, latitude of point (degrees).</item>
+        /// <item><i>lon</i>, longitude of point (degrees).</item>
+        /// <item><i>h</i>, height of point above the ellipsoid (meters).</item>
         /// </list>
         /// </returns>
         /// <remarks>
@@ -164,7 +164,7 @@ namespace GeographicLib
         /// If there are still multiple solutions with different latitudes (applies only if <i>Z</i> = 0), 
         /// then the solution with <i>lat</i> > 0 is returned.
         /// If there are still multiple solutions with different longitudes (applies only if <i>X</i> = <i>Y</i> = 0)
-        /// then <i>lon</i> = <c>0</c> is returned. The value of h returned satisfies <i>h</i> ≥ − <i>a</i> (1 − <i>e</i>^2) / sqrt(1 − <i>e</i>^2 sin^2<i>lat</i>).
+        /// then <i>lon</i> = <c>0</c> is returned. The value of <i>h</i> returned satisfies <i>h</i> ≥ − <i>a</i> (1 − <i>e</i>^2) / sqrt(1 − <i>e</i>^2 sin^2<i>lat</i>).
         /// The value of lon returned is in the range [−180°, 180°].
         /// </para>
         /// </remarks>

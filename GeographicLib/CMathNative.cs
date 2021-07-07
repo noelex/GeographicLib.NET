@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GeographicLib
 {
-#if NET5_0
+#if NET5_0_OR_GREATER
     class CMathNative : CMath
     {
         [ModuleInitializer]

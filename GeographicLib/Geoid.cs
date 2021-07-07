@@ -22,13 +22,13 @@ namespace GeographicLib
     /// into a rectangular grid of data.These geoid models are documented in
     /// <list type="bullet">
     /// <item>
-    /// EGM84: <a href="http://earth-info.nga.mil/GandG/wgs84/gravitymod/wgs84_180/wgs84_180.html"></a>
+    /// EGM84: <a href="https://earth-info.nga.mil/index.php?dir=wgs84&amp;action=wgs84#tab_egm84"></a>
     /// </item>
     /// <item>
-    /// EGM96: <a href="http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm96/egm96.html"></a>
+    /// EGM96: <a href="https://earth-info.nga.mil/index.php?dir=wgs84&amp;action=wgs84#tab_egm96"></a>
     /// </item>
     /// <item>
-    /// EGM2008: <a href="http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008"></a>
+    /// EGM2008: <a href="https://earth-info.nga.mil/index.php?dir=wgs84&amp;action=wgs84#tab_egm2008"></a>
     /// </item>
     /// </list>
     /// The geoids are defined in terms of spherical harmonics.
