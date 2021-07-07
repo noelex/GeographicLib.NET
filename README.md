@@ -16,7 +16,7 @@ Unlike the original NETGeographicLib, GeographicLib.NET is implemented in pure C
 You should be able to use GeographicLib.NET with any target framework and platform that supports .NET Standard 2.0 or above.
 
 ## Features
-Bellow is a list of planned and implemented features.
+Bellow is a list of implemented features.
  - [x] Projections (`AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner`, `Gnomonic`, `LambertConformalConic`, `PolarStereographic` and `TransverseMercator`)
  - [x] Geocodes (`GARS`, `Geohash`, `Georef`, `MGRS` and `OSGB`)
  - [x] Coordinate conversions (`UTMUPS`, `Geocentric` and `LocalCartesian`)
@@ -85,7 +85,7 @@ GeographicLib.NET adopts changes made in original GeographicLib and aligns its v
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from original GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
 
-### Version 1.52.0 (unreleased)
+### Version 1.52.0 (released 2021/07/07)
 - **BREAKING**
   - Modify overloads of `Forward` and `Reverse` in `AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner` and `LambertConformalConic` to return coordinates as tuples.
   - Modify methods using `out` parameters defined in `NormalGravity`, `GravityModel`, `GravityCircle`, `MagneticModel` and `MagnegticCircle` to return results as tuples.
