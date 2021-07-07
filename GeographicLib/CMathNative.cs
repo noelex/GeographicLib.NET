@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GeographicLib
 {
-#if NET5_0
+#if NET5_0_OR_GREATER
     class CMathNative : CMath
     {
         [ModuleInitializer]
@@ -110,6 +110,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             private static extern double frexp(double x, out int e);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double log2(double x);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -125,6 +128,8 @@ namespace GeographicLib
             public override double FusedMultiplyAdd(double x, double y, double z) => fma(x, y, z);
 
             public override double Frexp(double x, out int e) => frexp(x, out e);
+
+            public override double Log2(double x) => log2(x);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
@@ -172,6 +177,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             private static extern double frexp(double x, out int e);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double log2(double x);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -187,6 +195,8 @@ namespace GeographicLib
             public override double FusedMultiplyAdd(double x, double y, double z) => fma(x, y, z);
 
             public override double Frexp(double x, out int e) => frexp(x, out e);
+
+            public override double Log2(double x) => log2(x);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
@@ -234,6 +244,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             private static extern double frexp(double x, out int e);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double log2(double x);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -249,6 +262,8 @@ namespace GeographicLib
             public override double FusedMultiplyAdd(double x, double y, double z) => fma(x, y, z);
 
             public override double Frexp(double x, out int e) => frexp(x, out e);
+
+            public override double Log2(double x) => log2(x);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]

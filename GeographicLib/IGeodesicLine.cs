@@ -402,5 +402,72 @@
 
         #endregion
 
+        /// <summary>
+        /// Compute the position of point 2 which is a distance <i>s12</i> (meters) from point 1.
+        /// </summary>
+        /// <param name="s12">distance from point 1 to point 2 (meters); 
+        /// requires that the <see cref="IGeodesicLine"/> object was constructed with <i>caps</i> |= <see cref="GeodesicFlags.Distance"/>.</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="DirectGeodesicResult"/> instance should be set.
+        /// </param>
+        /// <returns>
+        /// A <see cref="DirectGeodesicResult"/> instance containing the result of the calcutation.
+        /// </returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for outmask are
+        /// <list type="bullet">
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Latitude"/> for the latitude <i>lat2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Longitude"/> for the latitude <i>lon2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Azimuth"/> for the latitude <i>azi2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Distance"/> for the distance <i>s12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.ReducedLength"/> for the reduced length <i>m12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.GeodesicScale"/> for the geodesic scales <i>M12</i> and <i>M21</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Area"/> for the area <i>S12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.LongUnroll"/> to unroll <i>lon2</i> instead of wrapping it into the range [−180°, 180°].</item>
+        /// </list>
+        /// The values of <i>lon2</i> and <i>azi2</i> returned are in the range [−180°, 180°].
+        /// <para>
+        /// The <see cref="IGeodesicLine"/> object must have been constructed with
+        /// <i>caps</i> |= <see cref="GeodesicFlags.DistanceIn"/>; otherwise <see cref="double.NaN"/> is returned 
+        /// and no parameters are set. Requesting a value which the <see cref="IGeodesicLine"/> object is not capable
+        /// of computing is not an error; the corresponding argument will not be altered.
+        /// </para>
+        /// </remarks>
+        DirectGeodesicResult Position(double s12, GeodesicFlags outmask = GeodesicFlags.All);
+
+        /// <summary>
+        /// Compute the position of point 2 which is an arc length <i>a12</i> (degrees) from point 1.
+        /// </summary>
+        /// <param name="a12">arc length from point 1 to point 2 (degrees); it can be negative.</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="DirectGeodesicResult"/> instance should be set.
+        /// </param>
+        /// <returns>A <see cref="DirectGeodesicResult"/> instance containing the result of the calcutation.</returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for outmask are
+        /// <list type="bullet">
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Latitude"/> for the latitude <i>lat2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Longitude"/> for the latitude <i>lon2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Azimuth"/> for the latitude <i>azi2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Distance"/> for the distance <i>s12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.ReducedLength"/> for the reduced length <i>m12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.GeodesicScale"/> for the geodesic scales <i>M12</i> and <i>M21</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Area"/> for the area <i>S12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.LongUnroll"/> to unroll <i>lon2</i> instead of wrapping it into the range [−180°, 180°].</item>
+        /// </list>
+        /// The values of <i>lon2</i> and <i>azi2</i> returned are in the range [−180°, 180°].
+        /// <para>
+        /// The <see cref="IGeodesicLine"/> object must have been constructed with
+        /// <i>caps</i> |= <see cref="GeodesicFlags.DistanceIn"/>; otherwise <see cref="double.NaN"/> is returned 
+        /// and no parameters are set. Requesting a value which the <see cref="IGeodesicLine"/> object is not capable
+        /// of computing is not an error; the corresponding argument will not be altered.
+        /// </para>
+        /// </remarks>
+        DirectGeodesicResult ArcPosition(double a12, GeodesicFlags outmask = GeodesicFlags.All);
+
     }
 }

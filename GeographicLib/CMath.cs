@@ -20,12 +20,14 @@ namespace GeographicLib
 
         public abstract double Frexp(double x, out int e);
 
-#if !NET5_0
+#if !NET5_0_OR_GREATER
         public abstract double CopySign(double x, double y);
 
         public abstract double ScaleB(double number, int exp);
 
         public abstract double FusedMultiplyAdd(double x, double y, double z);
+
+        public abstract double Log2(double x);
 #endif
 
 #if NETSTANDARD2_0

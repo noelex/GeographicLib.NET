@@ -495,5 +495,87 @@
                            GeodesicFlags caps = GeodesicFlags.All);
 
         #endregion
+
+        /// <summary>
+        /// Solve the direct geodesic problem where the length of the geodesic is specified in terms of arc length.
+        /// </summary>
+        /// <param name="lat1">latitude of point 1 (degrees).</param>
+        /// <param name="lon1">longitude of point 1 (degrees).</param>
+        /// <param name="azi1">azimuth at point 1 (degrees).</param>
+        /// <param name="a12">arc length of between point 1 and point 2 (degrees).</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="DirectGeodesicResult"/> instance should be set.
+        /// </param>
+        /// <returns>
+        /// A <see cref="DirectGeodesicResult"/> instance containing the result of the calcutation.
+        /// </returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for outmask are
+        /// <list type="bullet">
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Latitude"/> for the latitude <i>lat2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Longitude"/> for the latitude <i>lon2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Azimuth"/> for the latitude <i>azi2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Distance"/> for the distance <i>s12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.ReducedLength"/> for the reduced length <i>m12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.GeodesicScale"/> for the geodesic scales <i>M12</i> and <i>M21</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Area"/> for the area <i>S12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.LongUnroll"/> to unroll <i>lon2</i> instead of wrapping it into the range [−180°, 180°].</item>
+        /// </list>
+        /// <para>
+        /// With the <see cref="GeodesicFlags.LongUnroll"/> bit set, the quantity <i>lon2</i> − <i>lon1</i> indicates how many times 
+        /// and in what sense the geodesic encircles the ellipsoid.
+        /// </para>
+        /// </remarks>
+        DirectGeodesicResult ArcDirect(double lat1, double lon1, double azi1, double a12, GeodesicFlags outmask = GeodesicFlags.All);
+
+        /// <summary>
+        /// Solve the direct geodesic problem where the length of the geodesic is specified in terms of distance.
+        /// </summary>
+        /// <param name="lat1">latitude of point 1 (degrees).</param>
+        /// <param name="lon1">longitude of point 1 (degrees).</param>
+        /// <param name="azi1">azimuth at point 1 (degrees).</param>
+        /// <param name="s12">distance between point 1 and point 2 (meters); it can be negative.</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="DirectGeodesicResult"/> instance should be set.
+        /// </param>
+        /// <returns>
+        /// A <see cref="DirectGeodesicResult"/> instance containing the result of the calcutation.
+        /// </returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for outmask are
+        /// <list type="bullet">
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Latitude"/> for the latitude <i>lat2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Longitude"/> for the latitude <i>lon2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Azimuth"/> for the latitude <i>azi2</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Distance"/> for the distance <i>s12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.ReducedLength"/> for the reduced length <i>m12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.GeodesicScale"/> for the geodesic scales <i>M12</i> and <i>M21</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Area"/> for the area <i>S12</i>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.LongUnroll"/> to unroll <i>lon2</i> instead of wrapping it into the range [−180°, 180°].</item>
+        /// </list>
+        /// <para>
+        /// With the <see cref="GeodesicFlags.LongUnroll"/> bit set, the quantity <i>lon2</i> − <i>lon1</i> indicates how many times 
+        /// and in what sense the geodesic encircles the ellipsoid.
+        /// </para>
+        /// </remarks>
+        DirectGeodesicResult Direct(double lat1, double lon1, double azi1, double s12, GeodesicFlags outmask = GeodesicFlags.All);
+
+        /// <summary>
+        /// Solve the inverse geodesic problem.
+        /// </summary>
+        /// <param name="lat1">latitude of point 1 (degrees).</param>
+        /// <param name="lon1">longitude of point 1 (degrees).</param>
+        /// <param name="lat2">latitude of point 2 (degrees).</param>
+        /// <param name="lon2">longitude of point 2 (degrees).</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="InverseGeodesicResult"/> instance should be set.
+        /// </param>
+        /// <returns>A <see cref="InverseGeodesicResult"/> instance containing the result of the calcutation.</returns>
+        InverseGeodesicResult Inverse(double lat1, double lon1, double lat2, double lon2, GeodesicFlags outmask = GeodesicFlags.All);
     }
 }

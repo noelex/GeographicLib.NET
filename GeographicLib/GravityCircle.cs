@@ -99,39 +99,45 @@ namespace GeographicLib
         /// Evaluate the gravity.
         /// </summary>
         /// <param name="lon">the geographic longitude (degrees).</param>
-        /// <param name="gx">the easterly component of the acceleration (m s^−2).</param>
-        /// <param name="gy">the northerly component of the acceleration (m s^−2).</param>
-        /// <param name="gz">the upward component of the acceleration (m s^−2); this is usually negative.</param>
         /// <returns>
-        /// <i>W</i>, the sum of the gravitational and centrifugal potentials (m^2 s^−2).
+        /// <list type="bullet">
+        /// <item><i>W</i>, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</item>
+        /// <item><i>gx</i>, the easterly component of the acceleration (m s^−2).</item>
+        /// <item><i>gy</i>, the northerly component of the acceleration (m s^−2).</item>
+        /// <item><i>gz</i>, the upward component of the acceleration (m s^−2); this is usually negative.</item>
+        /// </list>
         /// </returns>
         /// <remarks>The function includes the effects of the earth's rotation.</remarks>
-        public double Gravity(double lon, out double gx, out double gy, out double gz)
+        public (double W, double gx, double gy, double gz) Gravity(double lon)
         {
-            Span<double> M=stackalloc double[Geocentric.dim2_];
+            Span<double> M = stackalloc double[Geocentric.dim2_];
             SinCosd(lon, out var slam, out var clam);
-            var Wres = W(slam, clam, out gx, out gy, out gz);
+            var (Wres, gx, gy, gz) = W(slam, clam);
             Geocentric.Rotation(_sphi, _cphi, slam, clam, M);
-            Geocentric.Unrotate(M, gx, gy, gz,out gx, out gy, out gz);
-            return Wres;
+            Geocentric.Unrotate(M, gx, gy, gz, out gx, out gy, out gz);
+            return (Wres, gx, gy, gz);
         }
 
         /// <summary>
         /// Evaluate the gravity disturbance vector.
         /// </summary>
         /// <param name="lon">the geographic longitude (degrees).</param>
-        /// <param name="deltax">the easterly component of the disturbance vector (m s^−2).</param>
-        /// <param name="deltay">the northerly component of the disturbance vector (m s^−2).</param>
-        /// <param name="deltaz">the upward component of the disturbance vector (m s^−2).</param>
-        /// <returns><i>T</i>, the corresponding disturbing potential (m2 s−2).</returns>
-        public double Disturbance(double lon, out double deltax, out double deltay, out double deltaz)
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>T</i>, the corresponding disturbing potential (m2 s−2).</item>
+        /// <item><i>deltax</i>, the easterly component of the disturbance vector (m s^−2).</item>
+        /// <item><i>deltay</i>, the northerly component of the disturbance vector (m s^−2).</item>
+        /// <item><i>deltaz</i>, the upward component of the disturbance vector (m s^−2).</item>
+        /// </list>
+        /// </returns>
+        public (double T, double deltax, double deltay, double deltaz) Disturbance(double lon)
         {
             Span<double> M = stackalloc double[Geocentric.dim2_];
             SinCosd(lon, out var slam, out var clam);
-            var Tres = InternalT(slam, clam, out deltax, out deltay, out deltaz, true, true);
+            var Tres = InternalT(slam, clam, out var deltax, out var deltay, out var deltaz, true, true);
             Geocentric.Rotation(_sphi, _cphi, slam, clam, M);
             Geocentric.Unrotate(M, deltax, deltay, deltaz, out deltax, out deltay, out deltaz);
-            return Tres;
+            return (Tres, deltax, deltay, deltaz);
         }
 
         /// <summary>
@@ -146,7 +152,7 @@ namespace GeographicLib
         /// </remarks>
         public double GeoidHeight(double lon)
         {
-            if (_caps .HasFlag( GravityFlags.GeoidHeight))
+            if (_caps.HasFlag(GravityFlags.GeoidHeight))
                 return double.NaN;
 
             SinCosd(lon, out var slam, out var clam);
@@ -158,22 +164,25 @@ namespace GeographicLib
         /// <summary>
         /// Evaluate the components of the gravity anomaly vector using the spherical approximation.
         /// </summary>
-        /// <param name="lon">the geographic longitude (degrees).</param>
-        /// <param name="Dg01">the gravity anomaly (m s^−2).</param>
-        /// <param name="xi">the northerly component of the deflection of the vertical (degrees).</param>
-        /// <param name="eta">the easterly component of the deflection of the vertical (degrees).</param>
+        /// <param name="lon">the geographic longitude (degrees).</param>   w
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Dg01</i>, the gravity anomaly (m s^−2).</item>
+        /// <item><i>xi</i>, the northerly component of the deflection of the vertical (degrees).</item>
+        /// <item><i>eta</i>, the easterly component of the deflection of the vertical (degrees).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// The spherical approximation (see Heiskanen and Moritz, Sec 2-14) is used so that the results of the NGA codes are
         /// reproduced accurately. approximations used here.
         /// Details are given in
         /// <a href="https://geographiclib.sourceforge.io/html/gravity.html#gravitygeoid">Details of the geoid height and anomaly calculations</a>.
         /// </remarks>
-        public void SphericalAnomaly(double lon, out double Dg01, out double xi, out double eta)
+        public (double Dg01, double xi, double eta) SphericalAnomaly(double lon)
         {
             if (_caps.HasFlag(GravityFlags.SphericalAnomaly))
             {
-                Dg01 = xi = eta = double.NaN;
-                return;
+                return (double.NaN, double.NaN, double.NaN);
             }
 
             SinCosd(lon, out var slam, out var clam);
@@ -181,57 +190,70 @@ namespace GeographicLib
               deltax, deltay, deltaz,
               T = InternalT(slam, clam, out deltax, out deltay, out deltaz, true, false);
             // Rotate cartesian into spherical coordinates
-            Span<double> MC=stackalloc double[Geocentric.dim2_];
+            Span<double> MC = stackalloc double[Geocentric.dim2_];
             Geocentric.Rotation(_spsi, _cpsi, slam, clam, MC);
             Geocentric.Unrotate(MC, deltax, deltay, deltaz, out deltax, out deltay, out deltaz);
             // H+M, Eq 2-151c
-            Dg01 = -deltaz - 2 * T * _invR;
-            xi = -(deltay / _gamma) / Degree;
-            eta = -(deltax / _gamma) / Degree;
+            var Dg01 = -deltaz - 2 * T * _invR;
+            var xi = -(deltay / _gamma) / Degree;
+            var eta = -(deltax / _gamma) / Degree;
+
+            return (Dg01, xi, eta);
         }
 
         /// <summary>
         /// Evaluate the components of the acceleration due to gravity and the centrifugal acceleration in geocentric coordinates.
         /// </summary>
         /// <param name="lon">the geographic longitude (degrees).</param>
-        /// <param name="gX">the <i>X</i> component of the acceleration (m s^−2).</param>
-        /// <param name="gY">the <i>Y</i> component of the acceleration (m s^−2).</param>
-        /// <param name="gZ">the <i>Z</i> component of the acceleration (m s^−2).</param>
-        /// <returns><i>W</i> = <i>V</i> + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</returns>
-        public double W(double lon, out double gX, out double gY, out double gZ)
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>W</i> = <i>V</i> + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</item>
+        /// <item><i>gX</i>, the <i>X</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>gY</i>, the <i>Y</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>gZ</i>, the <i>Z</i> component of the acceleration (m s^−2).</item>
+        /// </list>
+        /// </returns>
+        public (double W, double gX, double gY, double gZ) W(double lon)
         {
             SinCosd(lon, out var slam, out var clam);
-            return W(slam, clam, out gX, out gY, out gZ);
+            return W(slam, clam);
         }
 
         /// <summary>
         /// Evaluate the components of the acceleration due to gravity in geocentric coordinates.
         /// </summary>
         /// <param name="lon">the geographic longitude (degrees).</param>
-        /// <param name="GX">the <i>X</i> component of the acceleration (m s^−2).</param>
-        /// <param name="GY">the <i>Y</i> component of the acceleration (m s^−2).</param>
-        /// <param name="GZ">the <i>Z</i> component of the acceleration (m s^−2).</param>
-        /// <returns><i>V</i> = <i>W</i> - Φ, the gravitational potential (m^2 s^−2).</returns>
-        public double V(double lon, out double GX, out double GY, out double GZ)
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>V</i> = <i>W</i> - Φ, the gravitational potential (m^2 s^−2).</item>
+        /// <item><i>GX</i>, the <i>X</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>GY</i>, the <i>Y</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>GZ</i>, the <i>Z</i> component of the acceleration (m s^−2).</item>
+        /// </list>
+        /// </returns>
+        public (double V, double GX, double GY, double GZ) V(double lon)
         {
             SinCosd(lon, out var slam, out var clam);
-            return V(slam, clam, out GX, out GY, out GZ);
+            return V(slam, clam);
         }
 
         /// <summary>
         /// Evaluate the components of the gravity disturbance in geocentric coordinates.
         /// </summary>
         /// <param name="lon">the geographic longitude (degrees).</param>
-        /// <param name="deltaX">the <i>X</i> component of the gravity disturbance (m s^−2).</param>
-        /// <param name="deltaY">the <i>Y</i> component of the gravity disturbance (m s^−2).</param>
-        /// <param name="deltaZ">the <i>Z</i> component of the gravity disturbance (m s^−2).</param>
         /// <returns>
-        /// <i>T</i> = <i>W</i> - <i>U</i> the disturbing potential (also called the anomalous potential) (m^2 s^−2).
+        /// <list type="bullet">
+        /// <item><i>T</i> = <i>W</i> - <i>U</i>, the disturbing potential (also called the anomalous potential) (m^2 s^−2).</item>
+        /// <item><i>deltaX</i>, the <i>X</i> component of the gravity disturbance (m s^−2).</item>
+        /// <item><i>deltaY</i>, the <i>Y</i> component of the gravity disturbance (m s^−2).</item>
+        /// <item><i>deltaZ</i>, the <i>Z</i> component of the gravity disturbance (m s^−2).</item>
+        /// </list>
         /// </returns>
-        public double T(double lon, out double deltaX, out double deltaY, out double deltaZ)
+        public (double T, double deltaX, double deltaY, double deltaZ) Td(double lon)
         {
             SinCosd(lon, out var slam, out var clam);
-            return InternalT(slam, clam, out deltaX, out deltaY, out deltaZ, true, true);
+            return (InternalT(slam, clam, out var deltaX, out var deltaY, out var deltaZ, true, true),
+                    deltaX, deltaY, deltaZ);
         }
 
         /// <summary>
@@ -247,31 +269,29 @@ namespace GeographicLib
             return InternalT(slam, clam, out _, out _, out _, false, true);
         }
 
-        private double W(double slam, double clam,
-                     out double gX, out double gY, out double gZ)
+        private (double W, double gX, double gY, double gZ) W(double slam, double clam)
         {
-            var Wres = V(slam, clam, out gX, out gY, out gZ) + _frot * _Px / 2;
+            var (Wres, gX, gY, gZ) = V(slam, clam);
+            Wres += _frot * _Px / 2;
             gX += _frot * clam;
             gY += _frot * slam;
-            return Wres;
+            return (Wres, gX, gY, gZ);
         }
 
-        private double V(double slam, double clam,
-                     out double GX, out double GY, out double GZ)
+        private (double V, double GX, double GY, double GZ) V(double slam, double clam)
         {
-            if (_caps.HasFlag(GravityFlags.Gravity) )
+            if (_caps.HasFlag(GravityFlags.Gravity))
             {
-                GX = GY = GZ = double.NaN;
-                return double.NaN;
+                return (double.NaN, double.NaN, double.NaN, double.NaN);
             }
             double
-              Vres = _gravitational.Evaluate(slam, clam, out GX, out GY, out GZ),
+              Vres = _gravitational.Evaluate(slam, clam, out var GX, out var GY, out var GZ),
               f = _GMmodel / _amodel;
             Vres *= f;
             GX *= f;
             GY *= f;
             GZ *= f;
-            return Vres;
+            return (Vres, GX, GY, GZ);
         }
 
         private double InternalT(double slam, double clam,

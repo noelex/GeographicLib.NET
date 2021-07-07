@@ -3,6 +3,10 @@
 [![master](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml)
 [![develop](https://github.com/noelex/GeographicLib.NET/actions/workflows/develop.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/develop.yml)
 
+[GeographicLib](https://sourceforge.net/p/geographiclib) is a small set of C++ classes for performing conversions between geographic,
+UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations,
+and for solving geodesic problems.
+
 GeographicLib.NET is a native .NET implementation of [GeographicLib](https://sourceforge.net/p/geographiclib) written in pure C#.
 
 ## What's different from NETGeographicLib
@@ -12,13 +16,13 @@ Unlike the original NETGeographicLib, GeographicLib.NET is implemented in pure C
 You should be able to use GeographicLib.NET with any target framework and platform that supports .NET Standard 2.0 or above.
 
 ## Features
-Bellow is a list of planned and implemented features.
+Bellow is a list of implemented features.
  - [x] Projections (`AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner`, `Gnomonic`, `LambertConformalConic`, `PolarStereographic` and `TransverseMercator`)
  - [x] Geocodes (`GARS`, `Geohash`, `Georef`, `MGRS` and `OSGB`)
  - [x] Coordinate conversions (`UTMUPS`, `Geocentric` and `LocalCartesian`)
  - [x] Coordinate parsing/formatting (`DMS` and `GeoCoords`)
  - [x] Geodesic (`Geodesic`, `GeodesicLine`, `GeodesicExact` and `GeodesicLineExact`)
- - [x] Rhumb (`Rhumb`, `RhumbLine`)
+ - [x] Rhumb (`Rhumb` and `RhumbLine`)
  - [x] PolygonArea (`PolygonArea<T>`, `PolygonArea`, `PolygonAreaExact` and `PolygonAreaRhumb`)
  - [x] Geoid (`Geoid`)
  - [x] GravityModel (`GravityCircle`, `NormalGravity` and `GravityModel`)
@@ -48,12 +52,13 @@ dotnet add package GeographicLib.NET --prerelease
 ```
 
 ## Mathematical Functions
-GeographicLib uses several C mathematical functions that are not present in or not available in all versions of .NET. These functions are:
+GeographicLib uses several C mathematical functions that are not available in all versions of .NET. These functions are:
  - remquo
  - hypot
  - log1p
  - expm1
  - frexp
+ - log2 (available since .NET 5.0)
  - fma (available since .NET 5.0)
  - scalbn (available since .NET 5.0)
  - copysign (available since .NET 5.0)
@@ -61,15 +66,39 @@ GeographicLib uses several C mathematical functions that are not present in or n
  - asinh (available since .NET Standard 2.1)
  - cbrt (available since .NET Standard 2.1)
 
-GeographicLib.NET provides managed implemetations of these functions (ported from [musl libc](https://musl.libc.org/)).
+GeographicLib.NET provides managed implementations of these functions (ported from [musl libc](https://musl.libc.org/)).
 
-`GeographicLib.MathEx` class will use implemetations provided by .NET runtime whenenver possible, and will fallback to managed implemetations when not available in .NET runtime. 
+`GeographicLib.MathEx` class will use implementations provided by .NET runtime whenenver possible, and will fallback to managed implementations when not available in .NET runtime. 
 
-You can also force `GeographicLib.MathEx` to fallback to native implemations provided by system C runtime libraries,
-rather than managed implementaions, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
-These functions provide better performance, but may produce completely different results in some edge cases.
+You can also force `GeographicLib.MathEx` to fallback to platform dependent implementations provided by system C runtime libraries,
+rather than managed implementations, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
+These functions provide better performance, but may produce different results on different platform in some edge cases.
 
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
 Since the API surface of GeographicLib.NET is highly compatible with the original GeographicLib,
 you can also refer the original documentation [here](https://geographiclib.sourceforge.io/html/index.html) for usage and explanation.
+
+## Change Log
+GeographicLib.NET adopts changes made in original GeographicLib and aligns its version number with original GeographicLib releases.
+
+Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
+For changes adopted from original GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
+
+### Version 1.52.0 (released 2021/07/07)
+- **BREAKING**
+  - Modify overloads of `Forward` and `Reverse` in `AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner` and `LambertConformalConic` to return coordinates as tuples.
+  - Modify methods using `out` parameters defined in `NormalGravity`, `GravityModel`, `GravityCircle`, `MagneticModel` and `MagnegticCircle` to return results as tuples.
+
+- **NEW**
+  - Add constructor overloads that accept `IEllipsoid` as parameter for `AlbersEqualArea` and `LambertConformalConic`.
+  - Add managed implementation of `log2`.
+  - Add overloads of `Direct` and `Inverse` in `Geodesic`/`GeodesicLine`, `GeodesicExact`/`GeodesicLineExact` and `Rhumb`/`RhumbLineExact`,
+    that return the computation results as a single object.
+  - Add definitions of popular reference ellipsoids in `Ellipsoid` class.
+
+- **FIX**
+  - Fix stack overflow bug for `Forward(double lon0, double lat, double lon)` and `Reverse(double lon0, double x, double y)` in `TransverseMercatorExact`.
+
+### Version 1.51.0 (released 2021/03/14)
+Initial stable release.

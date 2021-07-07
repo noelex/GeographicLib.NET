@@ -15,16 +15,16 @@ namespace GeographicLib.Geocodes
     /// <list type="bullet">
     /// <item>
     /// J. W. Hager, L. L. Fry, S. S. Jacks, D. R. Hill,
-    /// <a href="http://earth-info.nga.mil/GandG/publications/tm8358.1/pdf/TM8358_1.pdf">Datums, Ellipsoids, Grids, and Grid Reference Systems</a>,
+    /// <a href="https://web.archive.org/web/20161214054445/http://earth-info.nga.mil/GandG/publications/tm8358.1/pdf/TM8358_1.pdf">Datums, Ellipsoids, Grids, and Grid Reference Systems</a>,
     /// Defense Mapping Agency, Technical Manual TM8358.1 (1990).
     /// </item>
     /// </list>
     /// This document has been updated by the two NGA documents
     /// <list type="bullet">
-    /// <item><a href="http://earth-info.nga.mil/GandG/publications/NGA_STND_0037_2_0_0_GRIDS/NGA.STND.0037_2.0.0_GRIDS.pdf">
-    /// Universal Grids and Grid Reference Systems</a>, NGA.STND.0037_2.0.0_GRIDS (2014).</item>
-    /// <item><a href="http://earth-info.nga.mil/GandG/publications/NGA_SIG_0012_2_0_0_UTMUPS/NGA.SIG.0012_2.0.0_UTMUPS.pdf">
-    /// The Universal Grids and the Transverse Mercator and Polar Stereographic Map Projections</a>, NGA.SIG.0012_2.0.0_UTMUPS (2014).</item>
+    /// <item><a href="https://earth-info.nga.mil/php/download.php?file=coord-grids">
+    /// Universal Grids and Grid Reference Systems</a>, NGA.STND.0037 (2014).</item>
+    /// <item><a href="https://earth-info.nga.mil/php/download.php?file=coord-utmups">
+    /// The Universal Grids and the Transverse Mercator and Polar Stereographic Map Projections</a>, NGA.SIG.0012 (2014).</item>
     /// </list>
     /// This implementation has the following properties:
     /// <list type="bullet">
@@ -41,7 +41,7 @@ namespace GeographicLib.Geocodes
     /// is the maximum consistent with staying within the letter ranges of the <see cref="MGRS"/> scheme.</item>
     /// <item>All the transformations are implemented as static methods in the <see cref="MGRS"/> class.</item>
     /// </list>
-    /// The <a href="http://www.nga.mil">NGA</a> software package <a href="http://earth-info.nga.mil/GandG/geotrans/index.html">geotrans</a>
+    /// The <a href="http://www.nga.mil">NGA</a> software package <a href="https://earth-info.nga.mil/index.php?dir=wgs84&amp;action=wgs84#tab_geotrans">geotrans</a>
     /// also provides conversions to and from <see cref="MGRS"/>. Version 3.0 (and earlier) suffers from some drawbacks:
     /// <list type="bullet">
     /// <item>Inconsistent rules are used to determine the whether a particular <see cref="MGRS"/> coordinate is legal. A more systematic approach is taken here.</item>
@@ -697,32 +697,32 @@ namespace GeographicLib.Geocodes
         public static void Check()
         {
             double t = tile_;
-            var (lat, lon) = UTMUPS.Reverse(31, true, 1 * t, 0 * t);
+            var (_, lon) = UTMUPS.Reverse(31, true, 1 * t, 0 * t);
             if (!(lon < 0))
                 throw new GeographicException("MGRS::Check: equator coverage failure");
-            (lat, lon) = UTMUPS.Reverse(31, true, 1 * t, 95 * t);
+            var (lat, _) = UTMUPS.Reverse(31, true, 1 * t, 95 * t);
             if (!(lat > 84))
                 throw new GeographicException("MGRS::Check: UTM doesn't reach latitude = 84");
-            (lat, lon) = UTMUPS.Reverse(31, false, 1 * t, 10 * t);
+            (lat, _) = UTMUPS.Reverse(31, false, 1 * t, 10 * t);
             if (!(lat < -80))
                 throw new GeographicException("MGRS::Check: UTM doesn't reach latitude = -80");
-            var (zone, northp, x, y) = UTMUPS.Forward(56, 3, 32);
+            var (_, _, x, _) = UTMUPS.Forward(56, 3, 32);
             if (!(x > 1 * t))
                 throw new GeographicException("MGRS::Check: Norway exception creates a gap");
-            (zone, northp, x, y) = UTMUPS.Forward(72, 21, 35);
+            (_, _, x, _) = UTMUPS.Forward(72, 21, 35);
             if (!(x > 1 * t))
                 throw new GeographicException("MGRS::Check: Svalbard exception creates a gap");
-            (lat, lon) = UTMUPS.Reverse(0, true, 20 * t, 13 * t);
+            (lat, _) = UTMUPS.Reverse(0, true, 20 * t, 13 * t);
             if (!(lat < 84))
                 throw new GeographicException("MGRS::Check: North UPS doesn't reach latitude = 84");
-            (lat, lon) = UTMUPS.Reverse(0, false, 20 * t, 8 * t);
+            (lat, _) = UTMUPS.Reverse(0, false, 20 * t, 8 * t);
             if (!(lat > -80))
                 throw new GeographicException("MGRS::Check: South UPS doesn't reach latitude = -80");
 
             var bandchecks = tab.Length / 3;
             for (int i = 0; i < bandchecks; ++i)
             {
-                (lat, lon) = UTMUPS.Reverse(38, true, tab[3 * i + 1] * t, tab[3 * i + 2] * t);
+                (lat, _) = UTMUPS.Reverse(38, true, tab[3 * i + 1] * t, tab[3 * i + 2] * t);
                 if (!(LatitudeBand(lat) == tab[3 * i + 0]))
                     throw new GeographicException(
                         $"MGRS::Check: Band error, b = {tab[3 * i + 0]}, x = {tab[3 * i + 1]}00km, y = {tab[3 * i + 2]}00km");

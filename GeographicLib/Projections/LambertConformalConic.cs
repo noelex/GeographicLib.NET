@@ -68,6 +68,30 @@ namespace GeographicLib.Projections
         /// <summary>
         /// Constructor with a single standard parallel.
         /// </summary>
+        /// <param name="ellipsoid"><see cref="IEllipsoid"/> instance to be used in projection.</param>
+        /// <param name="stdlat">standard parallel (degrees), the circle of tangency.</param>
+        /// <param name="k0">scale on the standard parallel.</param>
+        public LambertConformalConic(IEllipsoid ellipsoid, double stdlat, double k0)
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat, k0) { }
+
+        /// <summary>
+        /// Constructor with two standard parallels.
+        /// </summary>
+        /// <param name="ellipsoid"><see cref="IEllipsoid"/> instance to be used in projection.</param>
+        /// <param name="stdlat1">first standard parallel (degrees).</param>
+        /// <param name="stdlat2">second standard parallel (degrees).</param>
+        /// <param name="k1">scale on the standard parallels.</param>
+        /// <exception cref="GeographicException">
+        /// When <i>a</i>, (1 − <i>f</i>) <i>a</i>, or <paramref name="k1"/> is not positive. 
+        /// When <paramref name="stdlat1"/> or <paramref name="stdlat2"/> is not in [−90°, 90°], 
+        /// or if either <paramref name="stdlat1"/> or <paramref name="stdlat2"/> is a pole and <paramref name="stdlat1"/> is not equal <paramref name="stdlat2"/>.
+        /// </exception>
+        public LambertConformalConic(IEllipsoid ellipsoid, double stdlat1, double stdlat2, double k1)
+            :this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat1, stdlat2, k1) { }
+
+        /// <summary>
+        /// Constructor with a single standard parallel.
+        /// </summary>
         /// <param name="a">equatorial radius of ellipsoid (meters).</param>
         /// <param name="f">flattening of ellipsoid. Setting <i>f</i> = 0 gives a sphere. Negative <i>f</i> gives a prolate ellipsoid.</param>
         /// <param name="stdlat">standard parallel (degrees), the circle of tangency.</param>
@@ -546,7 +570,7 @@ namespace GeographicLib.Projections
             if (Abs(lat) == 90 && !(_nc == 0 && lat * _n > 0))
                 throw new GeographicException("Incompatible polar latitude in SetScale");
 
-            Forward(0, lat, 0, out _, out _, out _, out var kold);
+            Forward(0, lat, 0, out _, out var kold);
             k /= kold;
             _scale *= k;
             _k0 *= k;
@@ -558,19 +582,20 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
         /// <param name="gamma">meridian convergence at point (degrees).</param>
         /// <param name="k">scale of projection at point.</param>
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
         /// <remarks>
         /// The latitude origin is given by <see cref="OriginLatitude"/>. 
         /// No false easting or northing is added and <paramref name="lat"/> should be in the range [−90°, 90°].
         /// The error in the projection is less than about 10 nm (10 nanometers), true distance, 
         /// and the errors in the meridian convergence and scale are consistent with this. 
-        /// The values of <paramref name="x"/> and <paramref name="y"/> returned for points which project to infinity
+        /// The values of <i>x</i> and <i>y</i> returned for points which project to infinity
         /// (i.e., one or both of the poles) will be large but finite.
         /// </remarks>
-        public void Forward(double lon0, double lat, double lon, out double x, out double y, out double gamma, out double k)
+        public (double x, double y) Forward(double lon0, double lat, double lon, out double gamma, out double k)
         {
             lon = AngDiff(lon0, lon);
             // From Snyder, we have
@@ -598,8 +623,8 @@ namespace GeographicLib.Projections
                                   (tchi > 0 ? 1 / (scchi + tchi) : (scchi - tchi))
                                   - (_t0nm1 + 1)) / (-_n) :
                                  Dexp(-_n * psi, -_n * _psi0) * dpsi);
-            x = (_nrho0 + _n * drho) * (_n != 0 ? stheta / _n : lam);
-            y = _nrho0 *
+            var x = (_nrho0 + _n * drho) * (_n != 0 ? stheta / _n : lam);
+            var y = _nrho0 *
               (_n != 0 ?
                (ctheta < 0 ? 1 - ctheta : Sq(stheta) / (1 + ctheta)) / _n : 0)
               - drho * ctheta;
@@ -608,26 +633,29 @@ namespace GeographicLib.Projections
                * (tchi >= 0 ? scchi + tchi : 1 / (scchi - tchi)) / (_scchi0 + _tchi0));
             y *= _sign;
             gamma = _sign * theta / Degree;
+
+            return (x, y);
         }
 
         /// <summary>
         /// Reverse projection, from Lambert conformal conic to geographic.
         /// </summary>
         /// <param name="lon0">central meridian longitude (degrees).</param>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
         /// <param name="gamma">meridian convergence at point (degrees).</param>
         /// <param name="k">scale of projection at point.</param>
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
         /// <remarks>
         /// The latitude origin is given by <see cref="OriginLatitude"/>.
         /// No false easting or northing is added. 
-        /// The value of <paramref name="lon"/> returned is in the range [−180°, 180°].
+        /// The value of <i>lon</i> returned is in the range [−180°, 180°].
         /// The error in the projection is less than about 10 nm (10 nanometers), true distance, 
         /// and the errors in the meridian convergence and scale are consistent with this.
         /// </remarks>
-        public void Reverse(double lon0, double x, double y, out double lat, out double lon, out double gamma, out double k)
+        public (double lat, double lon) Reverse(double lon0, double x, double y, out double gamma, out double k)
         {
             // From Snyder, we have
             //
@@ -688,13 +716,15 @@ namespace GeographicLib.Projections
               tphi = Tauf(tchi, _es),
               scbet = Hypot(_fm * tphi), scchi = Hypot(tchi),
               lam = _n != 0 ? gamma / _n : x / y1;
-            lat = Atand(_sign * tphi);
-            lon = lam / Degree;
+            var lat = Atand(_sign * tphi);
+            var lon = lam / Degree;
             lon = AngNormalize(lon + AngNormalize(lon0));
             k = _k0 * (scbet / _scbet0) /
               (Exp(_nc != 0 ? -(Sq(_nc) / (1 + _n)) * dpsi : 0)
                * (tchi >= 0 ? scchi + tchi : 1 / (scchi - tchi)) / (_scchi0 + _tchi0));
             gamma /= _sign * Degree;
+
+            return (lat, lon);
         }
 
         /// <summary>
@@ -703,9 +733,10 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
-        public void Forward(double lon0, double lat, double lon, out double x, out double y) => Forward(lon0, lat, lon, out x, out y, out _, out _);
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
+        public (double x, double y) Forward(double lon0, double lat, double lon) => Forward(lon0, lat, lon, out _, out _);
 
         /// <summary>
         /// Reverse without returning convergence and scale.
@@ -713,9 +744,10 @@ namespace GeographicLib.Projections
         /// <param name="lon0">central meridian longitude (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
-        public void Reverse(double lon0, double x, double y, out double lat, out double lon) => Reverse(lon0, x, y, out lat, out lon, out _, out _);
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
+        public (double lat, double lon) Reverse(double lon0, double x, double y) => Reverse(lon0, x, y, out _, out _);
 
         #endregion
     }

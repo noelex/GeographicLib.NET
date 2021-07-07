@@ -136,7 +136,7 @@ namespace GeographicLib
                 Span<byte> id = stackalloc byte[idlength_];
                 if (coeffstr.Read(id) != idlength_)
                     throw new GeographicException("No header in " + coeff);
-                if (MemoryMarshal.Cast<char,byte>(_id.AsSpan()).SequenceEqual(id))
+                if (MemoryMarshal.Cast<char, byte>(_id.AsSpan()).SequenceEqual(id))
                     throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
                 int N = 0, M = 0;
                 if (truncate) { N = Nmax; M = Mmax; }
@@ -228,21 +228,24 @@ namespace GeographicLib
         /// <param name="lat">the geographic latitude (degrees).</param>
         /// <param name="lon">the geographic longitude (degrees).</param>
         /// <param name="h">the height above the ellipsoid (meters).</param>
-        /// <param name="gx">the easterly component of the acceleration (m s^−2).</param>
-        /// <param name="gy">the northerly component of the acceleration (m s^−2).</param>
-        /// <param name="gz">the upward component of the acceleration (m s^−2); this is usually negative.</param>
-        /// <returns><i>W</i>, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</returns>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>W</i>, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</item>
+        /// <item><i>gx</i>, the easterly component of the acceleration (m s^−2).</item>
+        /// <item><i>gy</i>, the northerly component of the acceleration (m s^−2).</item>
+        /// <item><i>gz</i>, the upward component of the acceleration (m s^−2); this is usually negative.</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// The function includes the effects of the earth's rotation.
         /// </remarks>
-        public double Gravity(double lat, double lon, double h,
-                       out double gx, out double gy, out double gz)
+        public (double W, double gx, double gy, double gz) Gravity(double lat, double lon, double h)
         {
             Span<double> M = stackalloc double[Geocentric.dim2_];
             var (X, Y, Z) = _earth.Earth.IntForward(lat, lon, h, M);
-            var Wres = W(X, Y, Z, out gx, out gy, out gz);
+            var (Wres, gx,gy,gz) = W(X, Y, Z);
             Geocentric.Unrotate(M, gx, gy, gz, out gx, out gy, out gz);
-            return Wres;
+            return (Wres, gx, gy,gz);
         }
 
         /// <summary>
@@ -251,18 +254,21 @@ namespace GeographicLib
         /// <param name="lat">the geographic latitude (degrees).</param>
         /// <param name="lon">the geographic longitude (degrees).</param>
         /// <param name="h">the height above the ellipsoid (meters).</param>
-        /// <param name="deltax">the easterly component of the disturbance vector (m s^−2).</param>
-        /// <param name="deltay">the northerly component of the disturbance vector (m s^−2).</param>
-        /// <param name="deltaz">the upward component of the disturbance vector (m s^−2).</param>
-        /// <returns><i>T</i>, the corresponding disturbing potential (m^2 s^−2).</returns>
-        public double Disturbance(double lat, double lon, double h,
-                           out double deltax, out double deltay, out double deltaz)
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>T</i>, the corresponding disturbing potential (m2 s−2).</item>
+        /// <item><i>deltax</i>, the easterly component of the disturbance vector (m s^−2).</item>
+        /// <item><i>deltay</i>, the northerly component of the disturbance vector (m s^−2).</item>
+        /// <item><i>deltaz</i>, the upward component of the disturbance vector (m s^−2).</item>
+        /// </list>
+        /// </returns>
+        public (double T, double deltax, double deltay, double deltaz) Disturbance(double lat, double lon, double h)
         {
             Span<double> M = stackalloc double[Geocentric.dim2_];
             var (X, Y, Z) = _earth.Earth.IntForward(lat, lon, h, M);
-            var Tres = InternalT(X, Y, Z, out deltax, out deltay, out deltaz, true, true);
+            var Tres = InternalT(X, Y, Z, out var deltax, out var deltay, out var deltaz, true, true);
             Geocentric.Unrotate(M, deltax, deltay, deltaz, out deltax, out deltay, out deltaz);
-            return Tres;
+            return (Tres, deltax, deltay, deltaz);
         }
 
         /// <summary>
@@ -272,7 +278,7 @@ namespace GeographicLib
         /// <param name="lon">the geographic longitude (degrees).</param>
         /// <returns><i>N</i>, the height of the geoid above the <see cref="ReferenceEllipsoid"/> (meters).</returns>
         /// <remarks>
-        /// This calls <see cref="NormalGravity.U(double, double, double, out double, out double, out double)"/> for
+        /// This calls <see cref="NormalGravity.U(double, double, double)"/> for
         /// <see cref="ReferenceEllipsoid"/>. Some approximations are made in computing the geoid height so that the results of
         /// the NGA codes are reproduced accurately. Details are given in
         /// <a href="https://geographiclib.sourceforge.io/html/gravity.html#gravitygeoid">Details of the geoid height and anomaly calculations</a>.
@@ -295,17 +301,20 @@ namespace GeographicLib
         /// <param name="lat">the geographic latitude (degrees).</param>
         /// <param name="lon">the geographic longitude (degrees).</param>
         /// <param name="h">the height above the ellipsoid (meters).</param>
-        /// <param name="Dg01">the gravity anomaly (m s^−2).</param>
-        /// <param name="xi">the northerly component of the deflection of the vertical (degrees).</param>
-        /// <param name="eta">the easterly component of the deflection of the vertical (degrees).</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Dg01</i>, the gravity anomaly (m s^−2).</item>
+        /// <item><i>xi</i>, the northerly component of the deflection of the vertical (degrees).</item>
+        /// <item><i>eta</i>, the easterly component of the deflection of the vertical (degrees).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// The spherical approximation (see Heiskanen and Moritz, Sec 2-14) is used so that the results of
         /// the NGA codes are reproduced accurately. approximations used here.
         /// Details are given in
         /// <a href="https://geographiclib.sourceforge.io/html/gravity.html#gravitygeoid">Details of the geoid height and anomaly calculations</a>.
         /// </remarks>
-        public void SphericalAnomaly(double lat, double lon, double h,
-                          out double Dg01, out double xi, out double eta)
+        public (double Dg01, double xi, double eta) SphericalAnomaly(double lat, double lon, double h)
         {
             Span<double> M = stackalloc double[Geocentric.dim2_];
             var (X, Y, Z) = _earth.Earth.IntForward(lat, lon, h, M);
@@ -322,11 +331,13 @@ namespace GeographicLib
             Geocentric.Rotation(spsi, cpsi, slam, clam, MC);
             Geocentric.Unrotate(MC, deltax, deltay, deltaz, out deltax, out deltay, out deltaz);
             // H+M, Eq 2-151c
-            Dg01 = -deltaz - 2 * T / R;
-            _earth.U(X, Y, Z, out var gammaX, out var gammaY, out var gammaZ);
+            var Dg01 = -deltaz - 2 * T / R;
+            var (_, gammaX, gammaY, gammaZ) = _earth.U(X, Y, Z);
             var gamma = Hypot(Hypot(gammaX, gammaY), gammaZ);
-            xi = -(deltay / gamma) / Degree;
-            eta = -(deltax / gamma) / Degree;
+            var xi = -(deltay / gamma) / Degree;
+            var eta = -(deltax / gamma) / Degree;
+
+            return (Dg01, xi, eta);
         }
 
         /// <summary>
@@ -335,21 +346,26 @@ namespace GeographicLib
         /// <param name="X">the <i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y">the <i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Z">the <i>Z</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="gX">the <i>X</i> component of the acceleration (m s^−2).</param>
-        /// <param name="gY">the <i>Y</i> component of the acceleration (m s^−2).</param>
-        /// <param name="gZ">the <i>Z</i> component of the acceleration (m s^−2).</param>
-        /// <returns><i>W</i> = <i>V</i> + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</returns>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>W</i> = <i>V</i> + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</item>
+        /// <item><i>gX</i>, the <i>X</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>gY</i>, the <i>Y</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>gZ</i>, the <i>Z</i> component of the acceleration (m s^−2).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
-        /// This calls <see cref="NormalGravity.U(double, double, double, out double, out double, out double)"/>
+        /// This calls <see cref="NormalGravity.U(double, double, double)"/>
         /// for <see cref="ReferenceEllipsoid"/>.
         /// </remarks>
-        public double W(double X, double Y, double Z,
-                 out double gX, out double gY, out double gZ)
+        public (double W, double gX, double gY, double gZ) W(double X, double Y, double Z)
         {
-            var Wres = V(X, Y, Z, out gX, out gY, out gZ) + _earth.Phi(X, Y, out var fX, out var fY);
+            var (Wres, gX, gY, gZ) = V(X, Y, Z);
+            var (phi, fX, fY) = _earth.Phi(X, Y);
+            Wres += phi;
             gX += fX;
             gY += fY;
-            return Wres;
+            return (Wres, gX, gY, gZ);
         }
 
         /// <summary>
@@ -358,21 +374,24 @@ namespace GeographicLib
         /// <param name="X">the <i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y">the <i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Z">the <i>Z</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="GX">the <i>X</i> component of the acceleration (m s^−2).</param>
-        /// <param name="GY">the <i>Y</i> component of the acceleration (m s^−2).</param>
-        /// <param name="GZ">the <i>Z</i> component of the acceleration (m s^−2).</param>
-        /// <returns><i>V</i> = <i>W</i> - Φ, the gravitational potential (m^2 s^−2).</returns>
-        public double V(double X, double Y, double Z,
-                 out double GX, out double GY, out double GZ)
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>V</i> = <i>W</i> - Φ, the gravitational potential (m^2 s^−2).</item>
+        /// <item><i>GX</i>, the <i>X</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>GY</i>, the <i>Y</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>GZ</i>, the <i>Z</i> component of the acceleration (m s^−2).</item>
+        /// </list>
+        /// </returns>
+        public (double V, double GX, double GY, double GZ) V(double X, double Y, double Z)
         {
             double
-              Vres = _gravitational.Evaluate(X, Y, Z, out GX, out GY, out GZ),
+              Vres = _gravitational.Evaluate(X, Y, Z, out var GX, out var GY, out var GZ),
               f = _GMmodel / _amodel;
             Vres *= f;
             GX *= f;
             GY *= f;
             GZ *= f;
-            return Vres;
+            return (Vres, GX, GY, GZ);
         }
 
         /// <summary>
@@ -381,15 +400,16 @@ namespace GeographicLib
         /// <param name="X">the <i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y">the <i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Z">the <i>Z</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="deltaX">the <i>X</i> component of the gravity disturbance (m s^−2).</param>
-        /// <param name="deltaY">the <i>Y</i> component of the gravity disturbance (m s^−2).</param>
-        /// <param name="deltaZ">the <i>Z</i> component of the gravity disturbance (m s^−2).</param>
         /// <returns>
-        /// <i>T</i> = <i>W</i> - <i>U</i>, the disturbing potential (also called the anomalous potential) (m^2 s^−2).
+        /// <list type="bullet">
+        /// <item><i>T</i> = <i>W</i> - <i>U</i>, the disturbing potential (also called the anomalous potential) (m^2 s^−2).</item>
+        /// <item><i>deltaX</i>, the <i>X</i> component of the gravity disturbance (m s^−2).</item>
+        /// <item><i>deltaY</i>, the <i>Y</i> component of the gravity disturbance (m s^−2).</item>
+        /// <item><i>deltaZ</i>, the <i>Z</i> component of the gravity disturbance (m s^−2).</item>
+        /// </list>
         /// </returns>
-        public double T(double X, double Y, double Z,
-                 out double deltaX, out double deltaY, out double deltaZ)
-            => InternalT(X, Y, Z, out deltaX, out deltaY, out deltaZ, true, true);
+        public (double T, double deltaX, double deltaY, double deltaZ) Td(double X, double Y, double Z)
+            => (InternalT(X, Y, Z, out var deltaX, out var deltaY, out var deltaZ, true, true), deltaX, deltaY, deltaZ);
 
         /// <summary>
         /// Evaluate disturbing potential in geocentric coordinates.
@@ -409,33 +429,38 @@ namespace GeographicLib
         /// <param name="X">the <i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y">the <i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Z">the <i>Z</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="gammaX">the <i>X</i> component of the normal acceleration (m s^−2).</param>
-        /// <param name="gammaY">the <i>Y</i> component of the normal acceleration (m s^−2).</param>
-        /// <param name="gammaZ">the <i>Z</i> component of the normal acceleration (m s^−2).</param>
         /// <returns>
-        /// <i>U</i> = <i>V</i>0 + Φ, the sum of the normal gravitational and centrifugal potentials (m^2 s^−2).
+        /// <list type="bullet">
+        /// <item><i>U</i> = <i>V</i>0 + Φ, the sum of the normal gravitational and centrifugal potentials (m^2 s^−2).</item>
+        /// <item><i>gammaX</i>, the <i>X</i> component of the normal acceleration (m s^−2).</item>
+        /// <item><i>gammaY</i>, the <i>Y</i> component of the normal acceleration (m s^−2).</item>
+        /// <item><i>gammaZ</i>, the <i>Z</i> component of the normal acceleration (m s^−2).</item>
+        /// </list>
         /// </returns>
         /// <remarks>
-        /// This calls <see cref="NormalGravity.U(double, double, double, out double, out double, out double)"/>
+        /// This calls <see cref="NormalGravity.U(double, double, double)"/>
         /// for <see cref="ReferenceEllipsoid"/>.
         /// </remarks>
-        public double U(double X, double Y, double Z,
-                 out double gammaX, out double gammaY, out double gammaZ)
-            => _earth.U(X, Y, Z, out gammaX, out gammaY, out gammaZ);
+        public (double U, double gammaX, double gammaY, double gammaZ) U(double X, double Y, double Z)
+            => _earth.U(X, Y, Z);
 
         /// <summary>
         /// Evaluate the centrifugal acceleration in geocentric coordinates.
         /// </summary>
         /// <param name="X">the <i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y">the <i>Y</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="fX">the <i>X</i> component of the centrifugal acceleration (m s^−2).</param>
-        /// <param name="fY">the <i>Y</i> component of the centrifugal acceleration (m s^−2).</param>
-        /// <returns>Φ, the centrifugal potential (m2 s−2).</returns>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item>Φ, the centrifugal potential (m^2 s^−2).</item>
+        /// <item><i>fX</i>, the <i>X</i> component of the centrifugal acceleration (m s^−2).</item>
+        /// <item><i>fY</i>, the <i>Y</i> component of the centrifugal acceleration (m s^−2).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
-        /// This calls <see cref="NormalGravity.Phi(double, double, out double, out double)"/> for <see cref="ReferenceEllipsoid"/>.
+        /// This calls <see cref="NormalGravity.Phi(double, double)"/> for <see cref="ReferenceEllipsoid"/>.
         /// </remarks>
-        public double Phi(double X, double Y, out double fX, out double fY)
-            => _earth.Phi(X, Y, out fX, out fY);
+        public (double phi, double fX, double fY) Phi(double X, double Y)
+            => _earth.Phi(X, Y);
 
         /// <summary>
         /// Create a <see cref="GravityCircle"/> object to allow the gravity field at many points with constant
@@ -481,12 +506,13 @@ namespace GeographicLib
               fx, fy, gamma;
             if (((int)caps & (int)GravityCapability.Gamma) != 0)
             {
-                _earth.U(X, Y, Z, out fx, out fy, out var fz); // fy = 0
+                double fz;
+                (_, fx, fy, fz) = _earth.U(X, Y, Z); // fy = 0
                 gamma = Hypot(fx, fz);
             }
             else
                 gamma = double.NaN;
-            _earth.Phi(X, Y, out fx, out fy);
+            (_, fx, fy) = _earth.Phi(X, Y);
             return new GravityCircle(caps,
                                  _earth._a, _earth._f, lat, h, Z, X, M[7], M[8],
                                  _amodel, _GMmodel, _dzonal0, _corrmult,

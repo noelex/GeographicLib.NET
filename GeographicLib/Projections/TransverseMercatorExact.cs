@@ -605,7 +605,7 @@ namespace GeographicLib.Projections
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
         /// <returns><i>x</i>, easting of point and <i>y</i>, northing of point, in meters.</returns>
-        public (double x, double y) Forward(double lon0, double lat, double lon) => Forward(lon0, lat, lon);
+        public (double x, double y) Forward(double lon0, double lat, double lon) => Forward(lon0, lat, lon, out _, out _);
 
         /// <summary>
         /// <see cref="Reverse(double, double, double, out double, out double)"/> without returning the convergence and scale.
@@ -614,7 +614,7 @@ namespace GeographicLib.Projections
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
         /// <returns><i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degrees.</returns>
-        public (double lat, double lon) Reverse(double lon0, double x, double y) => Reverse(lon0, x, y);
+        public (double lat, double lon) Reverse(double lon0, double x, double y) => Reverse(lon0, x, y, out _, out _);
 
     }
 }

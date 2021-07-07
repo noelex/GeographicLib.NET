@@ -56,74 +56,103 @@ namespace GeographicLib
                         CircularEngine circ0, CircularEngine circ1, CircularEngine circ2 = null)
             : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, lat, h, t, cphi, sphi, t1, dt0, interpolate, circ0, circ1, circ2) { }
 
-        private void Field(double lon, bool diffp,
-                           out double Bx, out double By, out double Bz,
+        private (double Bx, double By, double Bz) Field(double lon, bool diffp,
                            out double Bxt, out double Byt, out double Bzt)
         {
+            Bxt = Byt = Bzt = default;
+
             SinCosd(lon, out var slam, out var clam);
             Span<double> M = stackalloc double[Geocentric.dim2_];
             Geocentric.Rotation(_sphi, _cphi, slam, clam, M);
 
-            double BXc = 0, BYc = 0, BZc = 0;
-            _circ0.Evaluate(slam, clam, out var BX0, out var BY0, out var BZ0);
-            _circ1.Evaluate(slam, clam, out var BX1, out var BY1, out var BZ1);
+            var (BX, BY, BZ) = FieldGeocentric(slam, clam, out var BXt, out var BYt, out var BZt);
+            if (diffp)
+                Geocentric.Unrotate(M, BXt, BYt, BZt, out Bxt, out Byt, out Bzt);
+            Geocentric.Unrotate(M, BX, BY, BZ, out var Bx, out var By, out var Bz);
 
+            return (Bx, By, Bz);
+        }
+
+        private (double BX, double BY, double BZ) FieldGeocentric(double slam, double clam,
+                         out double BXt, out double BYt, out double BZt)
+        {
+            double BXc = 0, BYc = 0, BZc = 0;
+            _circ0.Evaluate(slam, clam, out var BX, out var BY, out var BZ);
+            _circ1.Evaluate(slam, clam, out BXt, out BYt, out BZt);
             if (_constterm)
                 _circ2.Evaluate(slam, clam, out BXc, out BYc, out BZc);
-
             if (_interpolate)
             {
-                BX1 = (BX1 - BX0) / _dt0;
-                BY1 = (BY1 - BY0) / _dt0;
-                BZ1 = (BZ1 - BZ0) / _dt0;
+                BXt = (BXt - BX) / _dt0;
+                BYt = (BYt - BY) / _dt0;
+                BZt = (BZt - BZ) / _dt0;
             }
+            BX += _t1 * BXt + BXc;
+            BY += _t1 * BYt + BYc;
+            BZ += _t1 * BZt + BZc;
 
-            BX0 += _t1 * BX1 + BXc;
-            BY0 += _t1 * BY1 + BYc;
-            BZ0 += _t1 * BZ1 + BZc;
+            BXt *= -_a;
+            BYt *= -_a;
+            BZt *= -_a;
 
-            if (diffp)
-            {
-                Geocentric.Unrotate(M, BX1, BY1, BZ1, out Bxt, out Byt, out Bzt);
-                Bxt *= -_a;
-                Byt *= -_a;
-                Bzt *= -_a;
-            }
-            else
-            {
-                Bxt = Byt = Bzt = double.NaN;
-            }
+            BX *= -_a;
+            BY *= -_a;
+            BZ *= -_a;
 
-            Geocentric.Unrotate(M, BX0, BY0, BZ0, out Bx, out By, out Bz);
-            Bx *= -_a;
-            By *= -_a;
-            Bz *= -_a;
+            return (BX, BY, BZ);
         }
 
         /// <summary>
         /// Evaluate the components of the geomagnetic field at a particular longitude.
         /// </summary>
         /// <param name="lon">longitude of the point (degrees).</param>
-        /// <param name="Bx">the easterly component of the magnetic field (nanotesla).</param>
-        /// <param name="By">the northerly component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the vertical (up) component of the magnetic field (nanotesla).</param>
-        public void Evaluate(double lon, out double Bx, out double By, out double Bz)
-            => Field(lon, false, out Bx, out By, out Bz, out _, out _, out _);
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Bx</i>, the easterly component of the magnetic field (nanotesla).</item>
+        /// <item><i>By</i>, the northerly component of the magnetic field (nanotesla).</item>
+        /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double Bx, double By, double Bz) Evaluate(double lon)
+            => Field(lon, false, out _, out _, out _);
 
         /// <summary>
         /// Evaluate the components of the geomagnetic field and their time derivatives at a particular longitude.
         /// </summary>
         /// <param name="lon">longitude of the point (degrees).</param>
-        /// <param name="Bx">the easterly component of the magnetic field (nanotesla).</param>
-        /// <param name="By">the northerly component of the magnetic field (nanotesla).</param>
-        /// <param name="Bz">the vertical (up) component of the magnetic field (nanotesla).</param>
         /// <param name="Bxt">the rate of change of <i>Bx</i> (nT/yr).</param>
         /// <param name="Byt">the rate of change of <i>By</i> (nT/yr).</param>
         /// <param name="Bzt">the rate of change of <i>Bz</i> (nT/yr).</param>
-        public void Evaluate(double lon,
-                             out double Bx, out double By, out double Bz,
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>Bx</i>, the easterly component of the magnetic field (nanotesla).</item>
+        /// <item><i>By</i>, the northerly component of the magnetic field (nanotesla).</item>
+        /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double Bx, double By, double Bz) Evaluate(double lon,
                              out double Bxt, out double Byt, out double Bzt)
-            => Field(lon, false, out Bx, out By, out Bz, out Bxt, out Byt, out Bzt);
+            => Field(lon, false, out Bxt, out Byt, out Bzt);
+
+        /// <summary>
+        /// Evaluate the components of the geomagnetic field and their time derivatives at a particular longitude.
+        /// </summary>
+        /// <param name="lon">longitude of the point (degrees).</param>
+        /// <param name="BXt">the rate of change of <i>BX</i> (nT/yr).</param>
+        /// <param name="BYt">the rate of change of <i>BY</i> (nT/yr).</param>
+        /// <param name="BZt">the rate of change of <i>BZ</i> (nT/yr).</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>BX</i>, the <i>X</i> component of the magnetic field (nanotesla).</item>
+        /// <item><i>BY</i>, the <i>Y</i> component of the magnetic field (nanotesla).</item>
+        /// <item><i>BZ</i>, the <i>Z</i> component of the magnetic field (nanotesla).</item>
+        /// </list>
+        /// </returns>
+        public (double BX, double BY, double BZ) FieldGeocentric(double lon, out double BXt, out double BYt, out double BZt)
+        {
+            SinCosd(lon, out var slam, out var clam);
+            return FieldGeocentric(slam, clam, out BXt, out BYt, out BZt);
+        }
 
         /// <summary>
         /// Gets a value representing the equatorial radius (<i>a</i>) of the ellipsoid.

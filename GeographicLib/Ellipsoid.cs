@@ -64,10 +64,10 @@ namespace GeographicLib
 
         internal Memory<double> RectifyingToConformalCoeffs => _tm._bet;
 
-/// <summary>
-/// Gets a value representing the equatorial radius of the ellipsoid (meters).  This is the value used in the constructor.
-/// </summary>
-public double EquatorialRadius => _a;
+        /// <summary>
+        /// Gets a value representing the equatorial radius of the ellipsoid (meters).  This is the value used in the constructor.
+        /// </summary>
+        public double EquatorialRadius => _a;
 
         /// <summary>
         /// Gets a value representing the polar semi-axis (meters).
@@ -440,7 +440,7 @@ public double EquatorialRadius => _a;
         }
 
         /// <summary>
-        /// 
+        /// Calculate the radius of curvature of the ellipsoid in the normal section at specified latitude inclined at specified angle.
         /// </summary>
         /// <param name="phi">the geographic latitude (degrees).</param>
         /// <param name="azi">the angle between the meridian and the normal section (degrees).</param>
@@ -566,9 +566,123 @@ public double EquatorialRadius => _a;
         #endregion
 
         /// <summary>
-        /// A global instantiation of Ellipsoid with the parameters for the WGS84 ellipsoid.
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the WGS-84 (1984) reference ellipsoid.
         /// </summary>
-        /// <returns></returns>
         public static Ellipsoid WGS84 { get; } = new Ellipsoid(Constants.WGS84_a, Constants.WGS84_f);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Maupertuis (1738) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Maupertuis { get; } = new Ellipsoid(6397300, 1 / 191d);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Plessis (1817) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Plessis { get; } = new Ellipsoid(6376523, 1 / 308.64);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Everest (1830) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Everest { get; } = new Ellipsoid(6377299.365, 1 / 300.80172554);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Everest 1830 Modified (1967) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Everest1830Modified { get; } = new Ellipsoid(6377304.063, 1 / 300.8017);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Everest 1830 (1967 Definition) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Everest1830 { get; } = new Ellipsoid(6377299.365, 1 / 300.80172554);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Airy (1830) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Airy { get; } = new Ellipsoid(6377563.396, 1 / 299.3249646);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Bessel (1841) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Bessel { get; } = new Ellipsoid(6377397.155, 1 / 299.1528128);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Clarke (1866) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Clarke1866 { get; } = new Ellipsoid(6378206.4, 1 / 294.9786982);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Clarke (1878) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Clarke1878 { get; } = new Ellipsoid(6378190, 1 / 293.4659980);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Clarke (1880) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Clarke1880 { get; } = new Ellipsoid(6378249.145, 1 / 293.465);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Helmert (1906) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Helmert { get; } = new Ellipsoid(6378200, 1 / 298.3);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Hayford (1910) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Hayford { get; } = new Ellipsoid(6378388, 1 / 297d);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the International (1924) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid International { get; } = new Ellipsoid(6378388, 1 / 297d);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Krassovsky (1940) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid Krassovsky { get; } = new Ellipsoid(6378245, 1 / 298.3);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the WGS66 (1966) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid WGS66 { get; } = new Ellipsoid(6378145, 1 / 298.25);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the Australian National (1966) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid AustralianNational { get; } = new Ellipsoid(6378160, 1 / 298.25);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the New International (1967) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid NewInternational { get; } = new Ellipsoid(6378157.5, 1 / 298.24961539);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the GRS-67 (1967) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid GRS67 { get; } = new Ellipsoid(6378160, 1 / 298.247167427);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the South American (1969) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid SouthAmerican { get; } = new Ellipsoid(6378160, 1 / 298.25);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the WGS-72 (1972) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid WGS72 { get; } = new Ellipsoid(6378135, 1 / 298.26);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the GRS-80 (1979) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid GRS80 { get; } = new Ellipsoid(6378137, 1 / 298.257222101);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the IERS (1989) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid IERS1989 { get; } = new Ellipsoid(6378136, 1 / 298.257);
+
+        /// <summary>
+        /// A global instantiation of <see cref="Ellipsoid"/> with the parameters for the IERS (2003) reference ellipsoid.
+        /// </summary>
+        public static Ellipsoid IERS2003 { get; } = new Ellipsoid(6378136.6, 1 / 298.25642);
     }
 }

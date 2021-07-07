@@ -27,13 +27,13 @@ namespace GeographicLib.Projections
     public class AzimuthalEquidistant : IEllipsoid
     {
         private readonly double eps_ = 0.01 * Sqrt(DBL_MIN);
-        private readonly Geodesic _earth;
+        private readonly IGeodesic _earth;
 
         /// <summary>
         /// Constructor for <see cref="AzimuthalEquidistant"/>.
         /// </summary>
-        /// <param name="earth">the <see cref="Geodesic"/> object to use for geodesic calculations.</param>
-        public AzimuthalEquidistant(Geodesic earth) => _earth = earth;
+        /// <param name="earth">the <see cref="IGeodesic"/> object to use for geodesic calculations.</param>
+        public AzimuthalEquidistant(IGeodesic earth) => _earth = earth;
 
         /// <summary>
         /// Initialize a <see cref="AzimuthalEquidistant"/> with <see cref="Geodesic.WGS84"/>.
@@ -57,25 +57,27 @@ namespace GeographicLib.Projections
         /// <param name="lon0">longitude of center point of projection (degrees).</param>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
         /// <param name="azi">azimuth of easting direction at point (degrees).</param>
         /// <param name="rk">reciprocal of azimuthal northing scale at point.</param>
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
         /// <remarks>
         /// <paramref name="lat0"/> and <paramref name="lat"/>  should be in the range [−90°, 90°].
         /// The scale of the projection is 1 in the "radial" direction, <paramref name="azi"/> clockwise from true north,
         /// and is 1/<paramref name="rk"/> in the direction perpendicular to this.
-        /// A call to <see cref="Forward(double, double, double, double, out double, out double, out double, out double)"/> 
-        /// followed by a call to <see cref="Reverse(double, double, double, double, out double, out double, out double, out double)"/> 
+        /// A call to <see cref="Forward(double, double, double, double, out double, out double)"/> 
+        /// followed by a call to <see cref="Reverse(double, double, double, double, out double, out double)"/> 
         /// will return the original (<paramref name="lat"/>, <paramref name="lon"/>) (to within roundoff).
         /// </remarks>
-        public void Forward(double lat0, double lon0, double lat, double lon,
-            out double x, out double y, out double azi, out double rk)
+        public (double x, double y) Forward(double lat0, double lon0, double lat, double lon, out double azi, out double rk)
         {
             var sig = _earth.Inverse(lat0, lon0, lat, lon, out var s, out var azi0, out azi, out var m);
-            SinCosd(azi0, out x, out y);
+            SinCosd(azi0, out var x, out var y);
             x *= s; y *= s;
             rk = !(sig <= eps_) ? m / s : 1;
+
+            return (x, y);
         }
 
         /// <summary>
@@ -85,49 +87,52 @@ namespace GeographicLib.Projections
         /// <param name="lon0">longitude of center point of projection (degrees).</param>
         /// <param name="lat">latitude of point (degrees).</param>
         /// <param name="lon">longitude of point (degrees).</param>
-        /// <param name="x">easting of point (meters).</param>
-        /// <param name="y">northing of point (meters).</param>
+        /// <returns>
+        /// <i>x</i>, easting of point and <i>y</i>, northing of point, in meters.
+        /// </returns>
         /// <remarks>
         /// <paramref name="lat0"/> and <paramref name="lat"/>  should be in the range [−90°, 90°].
         /// The scale of the projection is 1 in the "radial" direction, <i>azi</i> clockwise from true north,
         /// and is 1/<i>rk</i> in the direction perpendicular to this.
-        /// A call to <see cref="Forward(double, double, double, double, out double, out double)"/> followed by a call to
-        /// <see cref="Reverse(double, double, double, double, out double, out double)"/> 
+        /// A call to <see cref="Forward(double, double, double, double)"/> followed by a call to
+        /// <see cref="Reverse(double, double, double, double)"/> 
         /// will return the original (<paramref name="lat"/>, <paramref name="lon"/>) (to within roundoff).
         /// </remarks>
-        public void Forward(double lat0, double lon0, double lat, double lon,
-            out double x, out double y) => Forward(lat0, lon0, lat, lon, out x, out y, out _, out _);
+        public (double x, double y) Forward(double lat0, double lon0, double lat, double lon)
+            => Forward(lat0, lon0, lat, lon, out _, out _);
 
         /// <summary>
         /// Reverse projection, from azimuthal equidistant to geographic.
         /// </summary>
         /// <param name="lat0">latitude of center point of projection (degrees).</param>
         /// <param name="lon0">longitude of center point of projection (degrees).</param>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
         /// <param name="azi">azimuth of easting direction at point (degrees).</param>
         /// <param name="rk">reciprocal of azimuthal northing scale at point.</param>
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
         /// <remarks>
         /// <paramref name="lat0"/> should be in the range [−90°, 90°].
-        /// <paramref name="lat"/> will be in the range [−90°, 90°] and <paramref name="lon"/> will be in the range [−180°, 180°].
+        /// <i>lat</i> will be in the range [−90°, 90°] and <i>lon</i> will be in the range [−180°, 180°].
         /// The scale of the projection is 1 in the "radial" direction, <paramref name="azi"/> clockwise from true north,
         /// and is 1/<paramref name="rk"/> in the direction perpendicular to this.
-        /// A call to <see cref="Reverse(double, double, double, double, out double, out double, out double, out double)"/> 
-        /// followed by a call to <see cref="Forward(double, double, double, double, out double, out double, out double, out double)"/> 
+        /// A call to <see cref="Reverse(double, double, double, double, out double, out double)"/> 
+        /// followed by a call to <see cref="Forward(double, double, double, double, out double, out double)"/> 
         /// will return the original (<paramref name="x"/>, <paramref name="y"/>) (to within roundoff) only if the geodesic to 
         /// (<paramref name="x"/>, <paramref name="y"/>) is a shortes path.
         /// </remarks>
-        public void Reverse(double lat0, double lon0, double x, double y,
-            out double lat, out double lon, out double azi, out double rk)
+        public (double lat, double lon) Reverse(double lat0, double lon0, double x, double y, out double azi, out double rk)
         {
             double
               azi0 = Atan2d(x, y),
               s = Hypot(x, y);
 
-            var sig = _earth.Direct(lat0, lon0, azi0, s, out lat, out lon, out azi, out var m);
+            var sig = _earth.Direct(lat0, lon0, azi0, s, out var lat, out var lon, out azi, out var m);
             rk = !(sig <= eps_) ? m / s : 1;
+
+            return (lat, lon);
         }
 
         /// <summary>
@@ -135,22 +140,23 @@ namespace GeographicLib.Projections
         /// </summary>
         /// <param name="lat0">latitude of center point of projection (degrees).</param>
         /// <param name="lon0">longitude of center point of projection (degrees).</param>
-        /// <param name="lat">latitude of point (degrees).</param>
-        /// <param name="lon">longitude of point (degrees).</param>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
+        /// <returns>
+        /// <i>lat</i>, latitude of point and <i>lon</i>, longitude of point, in degress.
+        /// </returns>
         /// <remarks>
         /// <paramref name="lat0"/> should be in the range [−90°, 90°].
-        /// <paramref name="lat"/> will be in the range [−90°, 90°] and <paramref name="lon"/> will be in the range [−180°, 180°].
+        /// <i>lat</i> will be in the range [−90°, 90°] and <i>lon</i> will be in the range [−180°, 180°].
         /// The scale of the projection is 1 in the "radial" direction, <i>azi</i> clockwise from true north,
         /// and is 1/<i>rk</i> in the direction perpendicular to this.
-        /// A call to <see cref="Reverse(double, double, double, double, out double, out double)"/> 
-        /// followed by a call to <see cref="Reverse(double, double, double, double, out double, out double)"/> 
+        /// A call to <see cref="Reverse(double, double, double, double)"/> 
+        /// followed by a call to <see cref="Forward(double, double, double, double)"/> 
         /// will return the original (<paramref name="x"/>, <paramref name="y"/>) (to within roundoff) only if the geodesic to 
         /// (<paramref name="x"/>, <paramref name="y"/>) is a shortes path.
         /// </remarks>
-        public void Reverse(double lat0, double lon0, double x, double y, out double lat, out double lon)
-            => Reverse(lat0, lon0, x, y, out lat, out lon, out _, out _);
+        public (double lat, double lon) Reverse(double lat0, double lon0, double x, double y)
+            => Reverse(lat0, lon0, x, y, out _, out _);
 
     }
 }

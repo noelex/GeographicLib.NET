@@ -75,7 +75,7 @@ namespace GeographicLib
         private const int maxit_ = 20;
         private const double maxe_ = 1 - DBL_EPSILON;
         private static readonly double eps2_ = Sqrt(DBL_EPSILON) / 100;
-        private static readonly double lg2eps_ = -Log(DBL_EPSILON / 2) / Log(2);
+        private static readonly double lg2eps_ = -Log2(DBL_EPSILON / 2);
 
         internal readonly double _a, _GM, _omega, _f, _J2, _omega2, _aomega2;
         private readonly double _e2, _ep2, _b, _E, _U0, _gammae, _gammap, _Q0, _k, _fstar;
@@ -172,24 +172,28 @@ namespace GeographicLib
         /// </summary>
         /// <param name="lat">the geographic latitude (degrees).</param>
         /// <param name="h">the height above the ellipsoid (meters).</param>
-        /// <param name="gammay">the northerly component of the acceleration (m s^−2).</param>
-        /// <param name="gammaz">the upward component of the acceleration (m s−^2); this is usually negative.</param>
-        /// <returns><i>U</i>, the corresponding normal potential (m^2 s^−2).</returns>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><i>U</i>, the corresponding normal potential (m^2 s^−2).</item>
+        /// <item><i>gammay</i>, the northerly component of the acceleration (m s^−2).</item>
+        /// <item><i>gammaz</i>, the upward component of the acceleration (m s−^2); this is usually negative.</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// Due to the axial symmetry of the ellipsoid, the result is independent of the value of the longitude and the easterly
         /// component of the acceleration vanishes, <i>gammax</i> = 0. The function includes the effects of the earth's rotation.
-        /// When <i>h</i> = 0, this function gives <paramref name="gammay"/> = 0 and the returned value matches that of
+        /// When <i>h</i> = 0, this function gives <i>gammay</i> = 0 and the returned value matches that of
         /// <see cref="SurfaceGravity(double)"/>.
         /// </remarks>
-        public double Gravity(double lat, double h, out double gammay, out double gammaz)
+        public (double U, double gammay, double gammaz) Gravity(double lat, double h)
         {
             Span<double> M = stackalloc double[Geocentric.dim2_];
             var (X, Y, Z) = _earth.IntForward(lat, 0, h, M);
-            var Ures = U(X, Y, Z, out var gammaX, out var gammaY, out var gammaZ);
+            var (Ures, gammaX, gammaY, gammaZ) = U(X, Y, Z);
             // gammax = M[0] * gammaX + M[3] * gammaY + M[6] * gammaZ;
-            gammay = M[1] * gammaX + M[4] * gammaY + M[7] * gammaZ;
-            gammaz = M[2] * gammaX + M[5] * gammaY + M[8] * gammaZ;
-            return Ures;
+            var gammay = M[1] * gammaX + M[4] * gammaY + M[7] * gammaZ;
+            var gammaz = M[2] * gammaX + M[5] * gammaY + M[8] * gammaZ;
+            return (Ures, gammay, gammaz);
         }
 
         /// <summary>
@@ -198,22 +202,25 @@ namespace GeographicLib
         /// <param name="X"><i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y"><i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Z"><i>Z</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="gammaX">the <i>X</i> component of the acceleration (m s^−2).</param>
-        /// <param name="gammaY">the <i>Y</i> component of the acceleration (m s^−2).</param>
-        /// <param name="gammaZ">the <i>Z</i> component of the acceleration (m s^−2).</param>
         /// <returns>
-        /// <i>U</i> = <i>V</i>0 + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).
+        /// <list type="bullet">
+        /// <item><i>U</i> = <i>V</i>0 + Φ, the sum of the gravitational and centrifugal potentials (m^2 s^−2).</item>
+        /// <item><i>gammaX</i>, the <i>X</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>gammaY</i>, the <i>Y</i> component of the acceleration (m s^−2).</item>
+        /// <item><i>gammaZ</i>, the <i>Z</i> component of the acceleration (m s^−2).</item>
+        /// </list>
         /// </returns>
         /// <remarks>
         /// The acceleration given by <b>γ</b> = ∇<i>U</i> = ∇<i>V</i>0 + ∇Φ = <b>Γ</b> + <b>f</b>.
         /// </remarks>
-        public double U(double X, double Y, double Z,
-                 out double gammaX, out double gammaY, out double gammaZ)
+        public (double U, double gammaX, double gammaY, double gammaZ) U(double X, double Y, double Z)
         {
-            var Ures = V0(X, Y, Z, out gammaX, out gammaY, out gammaZ) + Phi(X, Y, out var fX, out var fY);
+            var (Ures, gammaX, gammaY, gammaZ) = V0(X, Y, Z);
+            var (phi, fX, fY) = Phi(X, Y);
+            Ures += phi;
             gammaX += fX;
             gammaY += fY;
-            return Ures;
+            return (Ures, gammaX, gammaY, gammaZ);
         }
 
         /// <summary>
@@ -222,19 +229,20 @@ namespace GeographicLib
         /// <param name="X"><i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y"><i>Y</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Z"><i>Z</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="GammaX">the <i>X</i> component of the acceleration due to the gravitational force (m s^−2).</param>
-        /// <param name="GammaY">the <i>Y</i> component of the acceleration due to the gravitational force (m s^−2).</param>
-        /// <param name="GammaZ">the <i>Z</i> component of the acceleration due to the gravitational force (m s^−2).</param>
         /// <returns>
-        /// <i>V</i>0, the gravitational potential (m^2 s^−2).
+        /// <list type="bullet">
+        /// <item><i>V</i>0, the gravitational potential (m^2 s^−2).</item>
+        /// <item><i>GammaX</i>, the <i>X</i> component of the acceleration due to the gravitational force (m s^−2).</item>
+        /// <item><i>GammaY</i>, the <i>Y</i> component of the acceleration due to the gravitational force (m s^−2).</item>
+        /// <item><i>GammaZ</i>, the <i>Z</i> component of the acceleration due to the gravitational force (m s^−2).</item>
+        /// </list>
         /// </returns>
         /// <remarks>
         /// This function excludes the centrifugal acceleration and is appropriate to use for space applications.
-        /// In terrestrial applications, the function <see cref="U(double, double, double, out double, out double, out double)"/>
+        /// In terrestrial applications, the function <see cref="U(double, double, double)"/>
         /// (which includes this effect) should usually be used.
         /// </remarks>
-        public double V0(double X, double Y, double Z,
-                 out double GammaX, out double GammaY, out double GammaZ)
+        public (double V0, double GammaX, double GammaY, double GammaZ) V0(double X, double Y, double Z)
         {
             // See H+M, Sec 6-2
             double
@@ -284,10 +292,10 @@ namespace GeographicLib
               t = u * invw / uE,
               gamp = t * cbet * gamu - invw * sbet * gamb;
             // H+M, Eq 6-12
-            GammaX = gamp * clam;
-            GammaY = gamp * slam;
-            GammaZ = invw * sbet * gamu + t * cbet * gamb;
-            return Vres;
+            var GammaX = gamp * clam;
+            var GammaY = gamp * slam;
+            var GammaZ = invw * sbet * gamu + t * cbet * gamb;
+            return (Vres, GammaX, GammaY, GammaZ);
         }
 
         /// <summary>
@@ -295,20 +303,24 @@ namespace GeographicLib
         /// </summary>
         /// <param name="X"><i>X</i> component of geocentric coordinate of point (meters).</param>
         /// <param name="Y"><i>Y</i> component of geocentric coordinate of point (meters).</param>
-        /// <param name="fX">the <i>X</i> component of the centrifugal acceleration (m s^−2).</param>
-        /// <param name="fY">the <i>Y</i> component of the centrifugal acceleration (m s^−2).</param>
-        /// <returns>Φ, the centrifugal potential (m^2 s^−2).</returns>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item>Φ, the centrifugal potential (m^2 s^−2).</item>
+        /// <item><i>fX</i>, the <i>X</i> component of the centrifugal acceleration (m s^−2).</item>
+        /// <item><i>fY</i>, the <i>Y</i> component of the centrifugal acceleration (m s^−2).</item>
+        /// </list>
+        /// </returns>
         /// <remarks>
         /// Φ is independent of <i>Z</i>, thus <i>fZ</i> = 0.
-        /// This function <see cref="U(double, double, double, out double, out double, out double)"/> sums the results of
-        /// <see cref="V0(double, double, double, out double, out double, out double)"/> and <see cref="Phi(double, double, out double, out double)"/>.
+        /// This function <see cref="U(double, double, double)"/> sums the results of
+        /// <see cref="V0(double, double, double)"/> and <see cref="Phi(double, double)"/>.
         /// </remarks>
-        public double Phi(double X, double Y, out double fX, out double fY)
+        public (double phi, double fX, double fY) Phi(double X, double Y)
         {
-            fX = _omega2 * X;
-            fY = _omega2 * Y;
+            var fX = _omega2 * X;
+            var fY = _omega2 * Y;
             // N.B. fZ = 0;
-            return _omega2 * (Sq(X) + Sq(Y)) / 2;
+            return (_omega2 * (Sq(X) + Sq(Y)) / 2, fX, fY);
         }
 
         /// <summary>
@@ -492,7 +504,7 @@ namespace GeographicLib
                                         // a stronger condition is x^n < epsilon/2
                                         // taking log2 of both sides, a stronger condition is n*(-e) < -lg2eps;
                                         // or n*e > lg2eps or n > ceiling(lg2eps/e)
-            int n = (int)Ceiling(lg2eps_ / e);
+            int n = x == 0 ? 1 : (int)Ceiling(lg2eps_ / e);
             double v = 0;
             while (n-- != 0)                 // iterating from n-1 down to 0
                 v = -x * v - 1 / (2 * n + 7);

@@ -135,12 +135,12 @@ namespace GeographicLib
         /// <param name="X"><i>x</i> component of geocentric coordinate (meters).</param>
         /// <param name="Y"><i>y</i> component of geocentric coordinate (meters).</param>
         /// <param name="Z"><i>z</i> component of geocentric coordinate (meters).</param>
-        /// <param name="M"> the length of the vector is 9, fill with the rotation matrix in row-major order.</param>
+        /// <param name="M">if the length of the vector is 9, fill with the rotation matrix in row-major order.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><i>X</i>, <i>x</i> component of geocentric coordinate (meters).</item>
-        /// <item><i>Y</i>, <i>y</i> component of geocentric coordinate (meters).</item>
-        /// <item><i>Z</i>, <i>z</i> component of geocentric coordinate (meters).</item>
+        /// <item><i>lat</i>, latitude of point (degrees).</item>
+        /// <item><i>lon</i>, longitude of point (degrees).</item>
+        /// <item><i>h</i>, height of point above the ellipsoid (meters).</item>
         /// </list>
         /// </returns>
         /// <remarks>
@@ -164,7 +164,7 @@ namespace GeographicLib
         /// If there are still multiple solutions with different latitudes (applies only if <i>Z</i> = 0), 
         /// then the solution with <i>lat</i> > 0 is returned.
         /// If there are still multiple solutions with different longitudes (applies only if <i>X</i> = <i>Y</i> = 0)
-        /// then <i>lon</i> = <c>0</c> is returned. The value of h returned satisfies <i>h</i> ≥ − <i>a</i> (1 − <i>e</i>^2) / sqrt(1 − <i>e</i>^2 sin^2<i>lat</i>).
+        /// then <i>lon</i> = <c>0</c> is returned. The value of <i>h</i> returned satisfies <i>h</i> ≥ − <i>a</i> (1 − <i>e</i>^2) / sqrt(1 − <i>e</i>^2 sin^2<i>lat</i>).
         /// The value of lon returned is in the range [−180°, 180°].
         /// </para>
         /// </remarks>
@@ -191,6 +191,20 @@ namespace GeographicLib
         }
 
         /// <summary>
+        /// Perform [X,Y,Z]^t = M.[x,y,z]^t (typically local cartesian to geocentric)
+        /// </summary>
+        /// <param name="M"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
+        internal static (double X, double Y, double Z) Rotate(ReadOnlySpan<double> M, double x, double y, double z)
+        {
+            Unrotate(M, x, y, z, out var X, out var Y, out var Z);
+            return (X, Y, Z);
+        }
+
+        /// <summary>
         /// Perform [x,y,z]^t = M^t.[X,Y,Z]^t (typically geocentric to local cartesian)
         /// </summary>
         /// <param name="M"></param>
@@ -207,6 +221,20 @@ namespace GeographicLib
             x = M[0] * X + M[3] * Y + M[6] * Z;
             y = M[1] * X + M[4] * Y + M[7] * Z;
             z = M[2] * X + M[5] * Y + M[8] * Z;
+        }
+
+        /// <summary>
+        /// Perform [x,y,z]^t = M^t.[X,Y,Z]^t (typically geocentric to local cartesian)
+        /// </summary>
+        /// <param name="M"></param>
+        /// <param name="X"></param>
+        /// <param name="Y"></param>
+        /// <param name="Z"></param>
+        /// <returns></returns>
+        internal static (double x, double y, double z) Unrotate(ReadOnlySpan<double> M, double X, double Y, double Z)
+        {
+            Unrotate(M, X, Y, Z, out var x, out var y, out var z);
+            return (x, y, z);
         }
 
         /// <summary>

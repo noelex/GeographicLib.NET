@@ -111,6 +111,42 @@ namespace GeographicLib
         }
 
         /// <summary>
+        /// Compute the position of point 2 which is a distance <paramref name="s12"/> (meters) from point 1.
+        /// </summary>
+        /// <param name="s12">distance between point 1 and point 2 (meters); it can be negative.</param>
+        /// <param name="outmask">
+        /// a bitor'ed combination of <see cref="GeodesicFlags"/> values specifying
+        /// which of the properties in returned <see cref="DirectRhumbResult"/> instance should be set.
+        /// </param>
+        /// <returns>A <see cref="DirectRhumbResult"/> instance containing the result of the calcutation.</returns>
+        /// <remarks>
+        /// The <see cref="GeodesicFlags"/> values possible for <paramref name="outmask"/> are
+        /// <list type="bullet">
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Latitude"/> for the latitude returned in <see cref="DirectRhumbResult.Latitude"/>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Longitude"/> for the longitude returned in  <see cref="DirectRhumbResult.Longitude"/>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.Area"/> for the area returned in  <see cref="RhumbResult.Area"/>;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.All"/> for all of the above;</item>
+        /// <item><i>outmask</i> |= <see cref="GeodesicFlags.LongUnroll"/> to unroll <see cref="DirectRhumbResult.Longitude"/> instead of wrapping it into the range [−180°, 180°].</item>
+        /// </list>
+        /// With the <see cref="GeodesicFlags.LongUnroll"/> bit set, the quantity <see cref="DirectRhumbResult.Longitude"/> − <i>lon1</i> indicates
+        /// how many times and in what sense the rhumb line encircles the ellipsoid.
+        /// <para>
+        /// If <paramref name="s12"/> is large enough that the rhumb line crosses a pole,
+        /// the longitude of point 2 is indeterminate (a <see cref="double.NaN"/> is returned for <see cref="DirectRhumbResult.Longitude"/> and <see cref="RhumbResult.Area"/>).
+        /// </para>
+        /// </remarks>
+        public DirectRhumbResult Position(double s12, GeodesicFlags outmask = GeodesicFlags.All)
+        {
+            GenPosition(s12, outmask, out var lat2, out var lon2, out var S12);
+            return new DirectRhumbResult
+            {
+                Latitude = lat2,
+                Longitude = lon2,
+                Area = S12
+            };
+        }
+
+        /// <summary>
         /// Compute the position of point 2 which is a distance <paramref name="s12"/> (meters) from point 1. The area is not computed.
         /// </summary>
         /// <param name="s12">distance between point 1 and point 2 (meters); it can be negative.</param>

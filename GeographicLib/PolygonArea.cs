@@ -43,6 +43,36 @@ namespace GeographicLib
     /// This is a templated class to allow it to be used with <see cref="Geodesic"/>, <see cref="GeodesicExact"/>, and <see cref="Rhumb"/>.
     /// <see cref="PolygonArea"/>, <see cref="PolygonAreaExact"/>, and <see cref="PolygonAreaRhumb"/> are typedefs for these cases.
     /// </para>
+    /// <para>
+    /// For <see cref="PolygonArea"/> (edges defined by <see cref="Geodesic"/>), an upper bound on the error is about 0.1 m^2 per vertex.
+    /// However this is a wildly pessimistic estimate in most cases.
+    /// A more realistic estimate of the error is given by a test involving 10^7 approximately regular polygons on the WGS84 ellipsoid.
+    /// The centers and the orientations of the polygons were uniformly distributed, the number of vertices was log-uniformly distributed in [3, 300],
+    /// and the center to vertex distance log-uniformly distributed in [0.1 m, 9000 km].
+    /// </para>
+    /// <para>
+    /// Using double precision (the standard precision for GeographicLib and GeographicLib.NET), the maximum error in the perimeter was 200 nm,
+    /// and the maximum error in the area was
+    /// <code>
+    /// <para>0.0013 m^2 for perimeter &lt; 10 km</para>
+    /// <para>0.0070 m^2 for perimeter &lt; 100 km</para>
+    /// <para>0.070 m^2 for perimeter &lt; 1000 km</para>
+    /// <para>0.11 m^2 for all perimeters</para>
+    /// </code>
+    /// </para>
+    /// <para>
+    /// The errors are given in terms of the perimeter, because it is expected that the errors depend mainly on the number of edges and the edge lengths.
+    /// </para>
+    /// <para>
+    /// Using long doubles (GEOGRPAHICLIB_PRECISION = 3, which is not supported by GeographicLib.NET), the maximum error in the perimeter was 200 pm,
+    /// and the maximum error in the area was
+    /// </para>
+    /// <code>
+    /// <para>0.7 mm^2 for perimeter &lt; 10 km</para>
+    /// <para>3.2 mm^2 for perimeter &lt; 100 km</para>
+    /// <para>21 mm^2 for perimeter &lt; 1000 km</para>
+    /// <para>45 mm^2 for all perimeters</para>
+    /// </code>
     /// </remarks>
     public class PolygonArea<T> where T : IGeodesicLike
     {

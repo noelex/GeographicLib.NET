@@ -199,5 +199,32 @@ namespace GeographicLib
                        out s12, out azi1, out azi2, out m12, out M12, out M21, out _);
 
         #endregion
+
+        /// <inheritdoc/>
+        public DirectGeodesicResult Direct(double lat1, double lon1, double azi1, double s12, GeodesicFlags outmask = GeodesicFlags.All)
+            => Line(lat1, lon1, azi1, outmask).Position(s12, outmask);
+
+        /// <inheritdoc/>
+        public DirectGeodesicResult ArcDirect(double lat1, double lon1, double azi1, double a12, GeodesicFlags outmask = GeodesicFlags.All)
+            => Line(lat1, lon1, azi1, outmask).ArcPosition(a12, outmask);
+
+        /// <inheritdoc/>
+        public InverseGeodesicResult Inverse(double lat1, double lon1, double lat2, double lon2, GeodesicFlags outmask = GeodesicFlags.All)
+        {
+            var a12 = GenInverse(lat1, lon1, lat2, lon2, outmask, 
+                out var s12, out var azi1, out var azi2, out var m12, out var M12, out var M21, out var S12);
+
+            return new InverseGeodesicResult
+            {
+                ArcLength = a12,
+                Area = S12,
+                Azimuth1 = azi1,
+                Azimuth2 = azi2,
+                Distance = s12,
+                GeodesicScale12 = M12,
+                GeodesicScale21 = M21,
+                ReducedLength = m12
+            };
+        }
     }
 }
