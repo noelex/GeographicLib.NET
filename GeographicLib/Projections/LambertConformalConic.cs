@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿using static GeographicLib.MathEx;
 using static System.Math;
-using static GeographicLib.MathEx;
 
 namespace GeographicLib.Projections
 {
@@ -87,7 +83,7 @@ namespace GeographicLib.Projections
         /// or if either <paramref name="stdlat1"/> or <paramref name="stdlat2"/> is a pole and <paramref name="stdlat1"/> is not equal <paramref name="stdlat2"/>.
         /// </exception>
         public LambertConformalConic(IEllipsoid ellipsoid, double stdlat1, double stdlat2, double k1)
-            :this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat1, stdlat2, k1) { }
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat1, stdlat2, k1) { }
 
         /// <summary>
         /// Constructor with a single standard parallel.
@@ -552,7 +548,7 @@ namespace GeographicLib.Projections
         /// <summary>
         /// Freeze current <see cref="LambertConformalConic"/> instance to prevent its scale being modified.
         /// </summary>
-        public LambertConformalConic Freeze() { IsFrozen = false; return this; }
+        public LambertConformalConic Freeze() { IsFrozen = true; return this; }
 
         /// <summary>
         /// Set the scale for the projection.

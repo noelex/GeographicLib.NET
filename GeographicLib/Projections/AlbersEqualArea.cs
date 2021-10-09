@@ -1,8 +1,6 @@
-﻿using System;
-
-using static System.Math;
+﻿using static GeographicLib.Macros;
 using static GeographicLib.MathEx;
-using static GeographicLib.Macros;
+using static System.Math;
 
 namespace GeographicLib.Projections
 {
@@ -41,11 +39,6 @@ namespace GeographicLib.Projections
         private readonly double _n0, _m02, _nrho0, _txi0, _scxi0, _sxi0;
 
         private double _k0, _k2;
-
-        private static readonly AlbersEqualArea
-            _cylindrical = new AlbersEqualArea(Constants.WGS84_a, Constants.WGS84_f, 0, 1, 0, 1, 1),
-            _north = new AlbersEqualArea(Constants.WGS84_a, Constants.WGS84_f, 1, 0, 1, 0, 1),
-            _south = new AlbersEqualArea(Constants.WGS84_a, Constants.WGS84_f, 1, 0, 1, 0, 1);
 
         /// <summary>
         /// Newton iterations in Reverse
@@ -86,7 +79,7 @@ namespace GeographicLib.Projections
         /// <param name="stdlat2">second standard parallel (degrees).</param>
         /// <param name="k1">azimuthal scale on the standard parallels.</param>
         public AlbersEqualArea(IEllipsoid ellipsoid, double stdlat1, double stdlat2, double k1)
-            :this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat1, stdlat2, k1) { }
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, stdlat1, stdlat2, k1) { }
 
         /// <summary>
         /// Constructor with a single standard parallel.
@@ -218,26 +211,26 @@ namespace GeographicLib.Projections
         /// <i>stdlat</i> = 0, and <i>k0</i> = 1.This degenerates to the cylindrical equalarea projection.
         /// </summary>
         /// <returns></returns>
-        public static AlbersEqualArea Cylindrical => _cylindrical.IsFrozen ? _cylindrical : _cylindrical.Freeze();
+        public static AlbersEqualArea Cylindrical { get; } = new AlbersEqualArea(Constants.WGS84_a, Constants.WGS84_f, 0, 1, 0, 1, 1).Freeze();
 
         /// <summary>
         /// A global instantiation of <see cref="AlbersEqualArea"/> with the WGS84 ellipsoid, 
         /// <i>stdlat</i> = 90°, and <i>k0</i> = 1.This degenerates to the Lambert azimuthal equal area projection.
         /// </summary>
         /// <returns></returns>
-        public static AlbersEqualArea North => _north.IsFrozen ? _north : _north.Freeze();
+        public static AlbersEqualArea North { get; } = new AlbersEqualArea(Constants.WGS84_a, Constants.WGS84_f, 1, 0, 1, 0, 1).Freeze();
 
         /// <summary>
         /// A global instantiation of <see cref="AlbersEqualArea"/> with the WGS84 ellipsoid, 
         /// <i>stdlat</i> = -90°, and <i>k0</i> = 1.This degenerates to the Lambert azimuthal equal area projection.
         /// </summary>
         /// <returns></returns>
-        public static AlbersEqualArea South() => _south.IsFrozen ? _south : _south.Freeze();
+        public static AlbersEqualArea South { get; } = new AlbersEqualArea(Constants.WGS84_a, Constants.WGS84_f, -1, 0, -1, 0, 1).Freeze();
 
         /// <summary>
         /// Freeze current <see cref="AlbersEqualArea"/> instance to prevent its scale being modified.
         /// </summary>
-        public AlbersEqualArea Freeze() { IsFrozen = false; return this; }
+        public AlbersEqualArea Freeze() { IsFrozen = true; return this; }
 
         /// <summary>
         /// Set the azimuthal scale for the projection.
@@ -401,8 +394,8 @@ namespace GeographicLib.Projections
                 // taking log2 of both sides, a stronger condition is
                 // (n-1)*(-e) < -lg2eps or (n-1)*e > lg2eps or n > ceiling(lg2eps/e)+1
                 int n = x == 0 ? 1 : (int)Ceiling(lg2eps_ / e) + 1;
-                while (n--!=0)               // iterating from n-1 down to 0
-                    s = x * s + (n!=0 ? 1 : 0) / (double)(2 * n + 1);
+                while (n-- != 0)               // iterating from n-1 down to 0
+                    s = x * s + (n != 0 ? 1 : 0) / (double)(2 * n + 1);
             }
             else
             {
@@ -445,8 +438,8 @@ namespace GeographicLib.Projections
 
         // Rearrange difference so that 1 - x is in the denominator, then do a
         // straight divided difference.
-        private double DDAtanhEE0(double x, double y) 
-            => (DAtanhEE(1, y) - DAtanhEE(x, y))/(1 - x);
+        private double DDAtanhEE0(double x, double y)
+            => (DAtanhEE(1, y) - DAtanhEE(x, y)) / (1 - x);
 
         // The expansion for e2 small
         private double DDAtanhEE1(double x, double y)
@@ -466,7 +459,8 @@ namespace GeographicLib.Projections
             // Use if e2 is sufficiently small.
             var s = 0d;
             double z = 1, k = 1, t = 0, c = 0, en = 1;
-            while (true) {
+            while (true)
+            {
                 t = y * t + z; c += t; z *= x;
                 t = y * t + z; c += t; z *= x;
                 k += 2; en *= _e2;

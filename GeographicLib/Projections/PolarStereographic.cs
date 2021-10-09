@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿using static GeographicLib.MathEx;
 using static System.Math;
-using static GeographicLib.MathEx;
 
 namespace GeographicLib.Projections
 {
@@ -30,8 +26,6 @@ namespace GeographicLib.Projections
     {
         private readonly double _a, _f, _e2, _es, _e2m, _c;
         private double _k0;
-
-        private static readonly PolarStereographic _ups = new PolarStereographic(Ellipsoid.WGS84, Constants.UPS_k0);
 
         /// <summary>
         /// Initialize a new <see cref="PolarStereographic"/> instance with specified ellipsoid and scale.
@@ -71,7 +65,7 @@ namespace GeographicLib.Projections
         /// A global instantiation of <see cref="PolarStereographic"/> with
         /// the WGS84 ellipsoid and the UPS scale factor. However, unlike UPS, no false easting or northing is added.
         /// </summary>
-        public static PolarStereographic UPS => _ups.IsFrozen ? _ups : _ups.Freeze();
+        public static PolarStereographic UPS { get; } = new PolarStereographic(Ellipsoid.WGS84, Constants.UPS_k0);
 
         /// <summary>
         /// Gets a value representing central scale for the projection.  This is the azimuthal scale on the latitude of origin.
@@ -96,7 +90,7 @@ namespace GeographicLib.Projections
         /// <summary>
         /// Freeze current <see cref="PolarStereographic"/> instance to prevent its scale being modified.
         /// </summary>
-        public PolarStereographic Freeze() { IsFrozen = false; return this; }
+        public PolarStereographic Freeze() { IsFrozen = true; return this; }
 
         /// <summary>
         /// Forward projection, from geographic to projected coordinate system.
