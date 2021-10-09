@@ -486,5 +486,35 @@ namespace GeographicLib.Tests
             Assert.IsTrue(double.IsNaN(lon2));
             Assert.IsTrue(double.IsNaN(azi2));
         }
+
+        [TestMethod]
+        public void GeodSolve92_CheckFixForInaccurateHypotWithPython()
+        {
+            var result = Geodesic.WGS84.Inverse(37.757540000000006, -122.47018, 37.75754, -122.470177);
+            var resultExact = GeodesicExact.WGS84.Inverse(37.757540000000006, -122.47018, 37.75754, -122.470177);
+
+            Assert.AreEqual(89.9999992, result.Azimuth1, 1e-7);
+            Assert.AreEqual(90.000001, result.Azimuth2, 1e-6);
+            Assert.AreEqual(0.264, result.Distance, 1e-3);
+
+            Assert.AreEqual(89.9999992, resultExact.Azimuth1, 1e-7);
+            Assert.AreEqual(90.000001, resultExact.Azimuth2, 1e-6);
+            Assert.AreEqual(0.264, resultExact.Distance, 1e-3);
+        }
+
+        [TestMethod]
+        public void GeodSolve94_CheckFixFor_lat2_eq_NaN_BeingTreatedAs_lat2_eq_Zero()
+        {
+            var result = Geodesic.WGS84.Inverse(0, 0, double.NaN, 90);
+            var resultExact = GeodesicExact.WGS84.Inverse(0, 0, double.NaN, 90);
+
+            Assert.IsTrue(double.IsNaN(result.Azimuth1));
+            Assert.IsTrue(double.IsNaN(result.Azimuth2));
+            Assert.IsTrue(double.IsNaN(result.Distance));
+
+            Assert.IsTrue(double.IsNaN(resultExact.Azimuth1));
+            Assert.IsTrue(double.IsNaN(resultExact.Azimuth2));
+            Assert.IsTrue(double.IsNaN(resultExact.Distance));
+        }
     }
 }
