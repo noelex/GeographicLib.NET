@@ -383,7 +383,7 @@ namespace GeographicLib
         /// <summary>
         /// A global instantiation of <see cref="NormalGravity"/> for the WGS84 ellipsoid.
         /// </summary>
-        public static NormalGravity WGS84 =>
+        public static NormalGravity WGS84 { get; } =
                 new NormalGravity(
                     Constants.WGS84_a,
                     Constants.WGS84_GM,
@@ -395,7 +395,7 @@ namespace GeographicLib
         /// <summary>
         /// A global instantiation of <see cref="NormalGravity"/> for the GRS80 ellipsoid.
         /// </summary>
-        public static NormalGravity GRS80 =>
+        public static NormalGravity GRS80 { get; } =
                 new NormalGravity(
                     Constants.GRS80_a,
                     Constants.GRS80_GM,
