@@ -85,6 +85,14 @@ GeographicLib.NET adopts changes made in original GeographicLib and aligns its v
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from original GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
 
+### Version 2.0.0 (unreleased)
+- **BREAKING**
+  - Fixed typos in `Ellipsoid`. (`SecondFlatterning` to `SecondFlattening` and `ThirdFlatterning` to `ThirdFlattening`)
+
+- **FIX**
+  - Fixed the issue that `Freeze` method in `AlbersEqualArea`, `LambertConformalConic` and `PolarStereographic` was not working correctly.
+  - Fixed duplicate instantiation of `WGS84` and `GRS80` static properties defined in `NormalGravity`.
+
 ### Version 1.52.0 (released 2021/07/07)
 - **BREAKING**
   - Modify overloads of `Forward` and `Reverse` in `AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner` and `LambertConformalConic` to return coordinates as tuples.
