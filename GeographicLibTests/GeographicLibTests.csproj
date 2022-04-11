@@ -34,6 +34,12 @@
     <None Update="gravity\egm96.egm.cof">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="magnetic\emm2017.wmm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="magnetic\emm2017.wmm.cof">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="magnetic\wmm2020.wmm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

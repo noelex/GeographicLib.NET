@@ -85,6 +85,10 @@ GeographicLib.NET adopts changes made in original GeographicLib and aligns its v
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from original GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
 
+### Version 1.52.1 (not released)
+- **FIX**
+  - Add support for Word Magnetic Model Format v2 (#17).
+
 ### Version 1.52.0 (released 2021/07/07)
 - **BREAKING**
   - Modify overloads of `Forward` and `Reverse` in `AlbersEqualArea`, `AzimuthalEquidistant`, `CassiniSoldner` and `LambertConformalConic` to return coordinates as tuples.

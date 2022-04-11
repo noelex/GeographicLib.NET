@@ -224,7 +224,7 @@ namespace GeographicLib
                     throw new GeographicException(_filename + " does not contain WMMF-n signature");
 
                 var parts = line.TrimEnd().Split(new[] { "WMMF-" }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 0 || parts[0] != "1")
+                if (parts.Length == 0 || (parts[0] != "1" && parts[0] != "2"))
                     throw new GeographicException("Unknown version in " + _filename + ": " + parts[0]);
 
                 while ((line = metastr.ReadLine()) != null)
