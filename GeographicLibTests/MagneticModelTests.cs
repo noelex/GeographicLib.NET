@@ -40,6 +40,21 @@ namespace GeographicLib.Tests
             Assert.AreEqual(850000, model.MaxHeight);
         }
 
+        [TestMethod]
+        public void Test_LoadModel_EMM2017()
+        {
+            var model = new MagneticModel("emm2017",
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "magnetic"));
+
+            Assert.AreEqual("Enhanced Magnetic Model 2017", model.Description);
+            Assert.AreEqual(DateTime.Parse("2017-07-05"), model.DateTime);
+            Assert.AreEqual("emm2017", model.MagneticModelName);
+            Assert.AreEqual(2000, model.MinTime);
+            Assert.AreEqual(2022, model.MaxTime);
+            Assert.AreEqual(-20000, model.MinHeight);
+            Assert.AreEqual(10000000, model.MaxHeight);
+        }
+
         [DataTestMethod]
         [DataRow(2020, "16:46:33N 3:00:34W", 300,
             -1.59908987711, 12.00271322006, 33973.4874018165, 33960.2567138655, -948.0559950443, 7222.9691748258, 34732.8249634531,

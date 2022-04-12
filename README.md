@@ -92,6 +92,7 @@ For changes adopted from original GeographicLib, please refer the its change log
 - **FIX**
   - Fixed the issue that `Freeze` method in `AlbersEqualArea`, `LambertConformalConic` and `PolarStereographic` was not working correctly.
   - Fixed duplicate instantiation of `WGS84` and `GRS80` static properties defined in `NormalGravity`.
+  - Add support for Word Magnetic Model Format v2 ([issue #17](https://github.com/noelex/GeographicLib.NET/issues/17)).
 
 ### Version 1.52.0 (released 2021/07/07)
 - **BREAKING**

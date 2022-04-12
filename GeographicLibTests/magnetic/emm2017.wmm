@@ -1,0 +1,25 @@
+WMMF-2
+# A World Magnetic Model (Format 2) file.  For documentation on the
+# format of this file see
+# https://geographiclib.sourceforge.io/html/magnetic.html#magneticformat
+Name            emm2017
+Description     Enhanced Magnetic Model 2017
+URL             https://ngdc.noaa.gov/geomag/EMM/index.html
+Publisher       National Oceanic and Atmospheric Administration
+ReleaseDate     2017-07-05
+ConversionDate  2017-07-30
+DataVersion     1
+Radius          6371200
+NumModels	18
+NumConstants	1
+Epoch           2000
+DeltaEpoch	1
+MinTime         2000
+MaxTime         2022
+MinHeight       -20000
+MaxHeight       10000000
+
+# The coefficients are stored in a file obtained by appending ".cof" to
+# the name of this file.  The coefficients were obtained from
+# EMM2000.COF thru EMM2017.COF and EMM2017SV.COF in the EMM2017 distribution.
+ID              EMM2017A
