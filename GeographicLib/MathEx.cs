@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-
-using static System.Math;
 using static GeographicLib.Macros;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -349,7 +344,15 @@ namespace GeographicLib
             r = Remquo(x, 90, out var q);
             r *= Degree;
 
+#if NET6_0_OR_GREATER
+            // TODO: Math.SinCos is failing test case PlanimeterTests.TestComputeWithPoints on Windows,
+            // procuding error ranging from 0.0002 to 0.02 meters, which is much greater than expected error 1e-8.
+            // Needs further investigation.
+            // var (s, c) = SinCos(r);
+            var (s, c) = (Sin(r), Cos(r));
+#else
             double s = Sin(r), c = Cos(r);
+#endif
 
             switch ((uint)q & 3U)
             {

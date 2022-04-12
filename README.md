@@ -68,11 +68,11 @@ GeographicLib uses several C mathematical functions that are not available in al
 
 GeographicLib.NET provides managed implementations of these functions (ported from [musl libc](https://musl.libc.org/)).
 
-`GeographicLib.MathEx` class will use implementations provided by .NET runtime whenenver possible, and will fallback to managed implementations when not available in .NET runtime. 
+`GeographicLib.MathEx` class will use implementations provided by .NET runtime whenever possible, and will fallback to managed implementations when not available in .NET runtime. 
 
 You can also force `GeographicLib.MathEx` to fallback to platform dependent implementations provided by system C runtime libraries,
 rather than managed implementations, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
-These functions provide better performance, but may produce different results on different platform in some edge cases.
+These functions provide better performance, but may produce inconsistent results on different platforms in some edge cases.
 
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
@@ -85,14 +85,17 @@ GeographicLib.NET adopts changes made in original GeographicLib and aligns its v
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from original GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
 
-### Version 2.0.0 (unreleased)
+### Version 1.52.1 (unreleased)
+- **NEW**
+  - GeographicLib.NET also targets .NET 6.0 now.
+
 - **BREAKING**
-  - Fixed typos in `Ellipsoid`. (`SecondFlatterning` to `SecondFlattening` and `ThirdFlatterning` to `ThirdFlattening`)
+  - Fixed typos in `Ellipsoid`. (Renamed `SecondFlatterning` to `SecondFlattening` and `ThirdFlatterning` to `ThirdFlattening`)
 
 - **FIX**
   - Fixed the issue that `Freeze` method in `AlbersEqualArea`, `LambertConformalConic` and `PolarStereographic` was not working correctly.
   - Fixed duplicate instantiation of `WGS84` and `GRS80` static properties defined in `NormalGravity`.
-  - Add support for Word Magnetic Model Format v2 ([issue #17](https://github.com/noelex/GeographicLib.NET/issues/17)).
+  - [Add missing support for World Magnetic Model Format v2](https://github.com/noelex/GeographicLib.NET/issues/17).
 
 ### Version 1.52.0 (released 2021/07/07)
 - **BREAKING**
