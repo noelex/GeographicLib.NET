@@ -37,7 +37,8 @@ namespace GeographicLib
     /// The computation of the elliptic integrals uses the algorithms given in
     /// - B.C.Carlson,
     ///   <a href = "https://doi.org/10.1007/BF02198293" > Computation of real or
-    /// complex elliptic integrals</a>, Numerical Algorithms 10, 13--26 (1995).
+    /// complex elliptic integrals</a>, Numerical Algorithms 10, 13--26 (1995);
+    /// <a href="https://arxiv.org/abs/math/9409227">preprint</a>.
     /// with the additional optimizations given in https://dlmf.nist.gov/19.36.i.
     /// The computation of the Jacobi elliptic functions uses the algorithm given
     /// in
@@ -650,7 +651,15 @@ namespace GeographicLib
         /// <returns><i>Rf</i>(<i>x</i>, <i>y</i>, <i>z</i>).</returns>
         /// <remarks>
         /// <i>Rf</i> is defined in <a href="https://dlmf.nist.gov/19.16.E1"/>.
-        /// If one of the arguments is zero, it is more efficient to call the two-argument version of this function with the non-zero arguments.
+        /// <para>
+        /// At most one of arguments, <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>, can be zero and those
+        /// arguments that are nonzero must be positive. 
+        /// </para>
+        /// <para>
+        /// If one of the arguments is
+        /// zero, it is more efficient to call the two-argument version of this
+        /// function with the non-zero arguments.
+        /// </para>
         /// </remarks>
         public static double RF(double x, double y, double z)
         {
@@ -698,6 +707,9 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns><i>Rf</i>(<i>x</i>, <i>y</i>, 0).</returns>
+        /// <remarks>
+        /// The arguments <paramref name="x"/> and <paramref name="y"/> must be positive.
+        /// </remarks>
         public static double RF(double x, double y)
         {
             // Carlson, eqs 2.36 - 2.38
@@ -724,6 +736,9 @@ namespace GeographicLib
         /// <returns><i>Rc</i>(x, y) = <i>Rf</i>(<i>x</i>, <i>y</i>, <i>y</i>).</returns>
         /// <remarks>
         /// <i>Rc</i> is defined in <a href="https://dlmf.nist.gov/19.16.E17"/>.
+        /// <para>
+        /// Requires <paramref name="x"/> >= 0 and <paramref name="y"/> &gt; 0.
+        /// </para>
         /// </remarks>
         public static double RC(double x, double y) =>
             // Defined only for y != 0 and x >= 0.
@@ -747,7 +762,11 @@ namespace GeographicLib
         /// <param name="z"></param>
         /// <returns><i>Rg</i>(<i>x</i>, <i>y</i>, <i>z</i>).</returns>
         /// <remarks>
-        /// <i>Rg</i> is defined in Carlson, eq 1.5. See also <a href="https://dlmf.nist.gov/19.16.E3"/>.
+        /// <i>Rg</i> is defined in Carlson, eq 1.5. See also <a href="https://dlmf.nist.gov/19.23.E6_5"/>.
+        /// <para>
+        /// At most one of arguments, <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>, can be zero and those
+        /// arguments that are nonzero must be positive.
+        /// </para>
         /// If one of the arguments is zero, it is more efficient to call the
         /// two-argument version of this function with the non-zero arguments.
         /// </remarks>
@@ -767,6 +786,9 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns><i>Rg</i>(<i>x</i>, <i>y</i>, 0).</returns>
+        /// <remarks>
+        /// The arguments <paramref name="x"/> and <paramref name="y"/> must be positive.
+        /// </remarks>
         public static double RG(double x, double y)
         {
             // Carlson, eqs 2.36 - 2.39
@@ -802,6 +824,10 @@ namespace GeographicLib
         /// <returns><i>Rj</i>(<i>x</i>, <i>y</i>, <i>z</i>, <i>p</i>).</returns>
         /// <remarks>
         /// <i>Rd</i> is defined in <a href="https://dlmf.nist.gov/19.16.E2"/>.
+        /// <para>
+        /// Requires <paramref name="p"/> &gt; 0, and <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>
+        /// are nonnegative with at most one of them being 0.
+        /// </para>
         /// </remarks>
         public static double RJ(double x, double y, double z, double p)
         {
@@ -868,6 +894,10 @@ namespace GeographicLib
         /// <returns><i>Rd</i>(<i>x</i>, <i>y</i>, <i>z</i>) = <i>Rj(<i>x</i>, <i>y</i>, <i>z</i>)</i>.</returns>
         /// <remarks>
         /// <i>Rd</i> is defined in <a href="https://dlmf.nist.gov/19.16.E5"/>.
+        /// <para>
+        /// Requires <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/> to be positive
+        /// except that at most one of <paramref name="x"/> and <paramref name="y"/> can be 0.
+        /// </para>
         /// </remarks>
         public static double RD(double x, double y, double z)
         {
