@@ -11,7 +11,7 @@ GeographicLib.NET is a native .NET implementation of [GeographicLib](https://sou
 
 ## What's different from NETGeographicLib
 
-Unlike the original NETGeographicLib, GeographicLib.NET is implemented in pure C# without binding the original C++ GeograpbicLib library by using C++/CLI or P/Invoke, thus achieves higher level of portability.
+Unlike NETGeographicLib, GeographicLib.NET is implemented in pure C# without binding the C++ GeograpbicLib library by using C++/CLI or P/Invoke, thus achieves higher level of portability.
 
 You should be able to use GeographicLib.NET with any target framework and platform that supports .NET Standard 2.0 or above.
 
@@ -76,14 +76,14 @@ These functions provide better performance, but may produce inconsistent results
 
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
-Since the API surface of GeographicLib.NET is highly compatible with the original GeographicLib,
-you can also refer the original documentation [here](https://geographiclib.sourceforge.io/html/index.html) for usage and explanation.
+Since the API surface of GeographicLib.NET is highly compatible with GeographicLib,
+you can also refer the its documentation [here](https://geographiclib.sourceforge.io/html/index.html) for usage and detailed explanation.
 
 ## Change Log
-GeographicLib.NET adopts changes made in original GeographicLib and aligns its version number with original GeographicLib releases.
+GeographicLib.NET adopts changes made in GeographicLib and aligns its version number with GeographicLib releases.
 
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
-For changes adopted from original GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
+For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
 
 ### Version 1.52.1 (unreleased)
 - **NEW**
@@ -94,7 +94,7 @@ For changes adopted from original GeographicLib, please refer the its change log
   - Fixed typos in `Ellipsoid`. (Renamed `SecondFlatterning` to `SecondFlattening` and `ThirdFlatterning` to `ThirdFlattening`)
 
 - **FIX**
-  - Fixed the issue that `Freeze` method in `AlbersEqualArea`, `LambertConformalConic` and `PolarStereographic` was not working correctly.
+  - Fixed an issue that `Freeze` method in `AlbersEqualArea`, `LambertConformalConic` and `PolarStereographic` was not working correctly.
   - Fixed duplicate instantiation of `WGS84` and `GRS80` static properties defined in `NormalGravity`.
   - [Add missing support for World Magnetic Model Format v2](https://github.com/noelex/GeographicLib.NET/issues/17).
 
