@@ -326,7 +326,7 @@ namespace GeographicLib
         /// <summary>
         /// Compute the magnetic field in geocentric coordinate.
         /// </summary>
-        /// <param name="t">the time (years).</param>
+        /// <param name="t">the time (fractional years).</param>
         /// <param name="X"><i>X</i> component of geocentric coordinate (meters).</param>
         /// <param name="Y"><i>Y</i> component of geocentric coordinate (meters).</param>
         /// <param name="Z"><i>Z</i> component of geocentric coordinate (meters).</param>
@@ -379,7 +379,7 @@ namespace GeographicLib
         /// <summary>
         /// Evaluate the components of the geomagnetic field.
         /// </summary>
-        /// <param name="t">the time (years).</param>
+        /// <param name="t">the time (fractional years).</param>
         /// <param name="lat">latitude of the point (degrees).</param>
         /// <param name="lon">longitude of the point (degrees).</param>
         /// <param name="h">the height of the point above the ellipsoid (meters).</param>
@@ -396,7 +396,7 @@ namespace GeographicLib
         /// <summary>
         /// Evaluate the components of the geomagnetic field and their time derivatives.
         /// </summary>
-        /// <param name="t">the time (years).</param>
+        /// <param name="t">the time (fractional years).</param>
         /// <param name="lat">latitude of the point (degrees).</param>
         /// <param name="lon">longitude of the point (degrees).</param>
         /// <param name="h">the height of the point above the ellipsoid (meters).</param>
@@ -418,9 +418,9 @@ namespace GeographicLib
         /// Create a <see cref="MagneticCircle"/> object to allow the geomagnetic field at many points with constant
         /// <i>lat</i>, <i>h</i>, and <i>t</i> and varying lon to be computed efficiently.
         /// </summary>
-        /// <param name="h">the time (years).</param>
+        /// <param name="h">the height of the point above the ellipsoid (meters).</param>
         /// <param name="lat">latitude of the point (degrees).</param>
-        /// <param name="t">the time (years).</param>
+        /// <param name="t">the time (fractional years).</param>
         /// <returns>
         /// a <see cref="MagneticCircle"/> object whose <see cref="MagneticCircle.Evaluate(double, out double, out double, out double)"/> member function
         /// computes the field at particular values of <i>lon</i>.
