@@ -454,12 +454,13 @@ namespace GeographicLib
             // and handle mpfr as in AngRound.
             switch (q)
             {
-                case 0: return 0 + ang;
-                case 1: return (y >= 0 ? 180 : -180) - ang;
-                case 2: return 90 - ang;
-                case 3: return -90 + ang;
-                default: throw new NotImplementedException();
+                case 1: ang = CopySign(180, y) - ang; break;
+                case 2: ang = 90 - ang; break;
+                case 3: ang = -90 + ang; break;
+                default: break;
             }
+
+            return ang;
         }
 
         /// <summary>

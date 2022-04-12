@@ -10,7 +10,50 @@ namespace GeographicLib.Tests
     [TestClass]
     public class MathExTests
     {
-        [TestMethod()]
+        [DataTestMethod]
+        [DataRow(+0.0, -0.0, +1.0)]
+        [DataRow(-0.0, -0.0, -1.0)]
+        [DataRow(+0.0, +0.0, +0.0)]
+        [DataRow(-0.0, +0.0, -0.0)]
+        [DataRow(+0.0, -1.0, +1.0)]
+        [DataRow(-0.0, -1.0, -1.0)]
+        [DataRow(+0.0, +1.0, +0.0)]
+        [DataRow(-0.0, +1.0, -0.0)]
+        [DataRow(-1.0, +0.0, -0.5)]
+        [DataRow(-1.0, -0.0, -0.5)]
+        [DataRow(+1.0, +0.0, +0.5)]
+        [DataRow(+1.0, -0.0, +0.5)]
+        [DataRow(+1.0, double.NegativeInfinity, +1.0)]
+        [DataRow(-1.0, double.NegativeInfinity, -1.0)]
+        [DataRow(+1.0, double.PositiveInfinity, +0.0)]
+        [DataRow(-1.0, double.PositiveInfinity, -0.0)]
+        [DataRow(double.PositiveInfinity, +1.0, +0.5)]
+        [DataRow(double.PositiveInfinity, -1.0, +0.5)]
+        [DataRow(double.NegativeInfinity, +1.0, -0.5)]
+        [DataRow(double.NegativeInfinity, -1.0, -0.5)]
+        [DataRow(double.PositiveInfinity, double.NegativeInfinity, +0.75)]
+        [DataRow(double.NegativeInfinity, double.NegativeInfinity, -0.75)]
+        [DataRow(double.PositiveInfinity, double.PositiveInfinity, +0.25)]
+        [DataRow(double.NegativeInfinity, double.PositiveInfinity, -0.25)]
+        [DataRow(double.NaN, +1.0, double.NaN)]
+        [DataRow(+1.0, double.NaN, double.NaN)]
+        public void TestAtan(double y, double x, double r)
+        {
+            r *= 180;
+            var r1 = MathEx.Atan2d(y, x);
+
+            if (double.IsNaN(r))
+            {
+                Assert.IsTrue(double.IsNaN(r1));
+            }
+            else
+            {
+                Assert.AreEqual(r, r1);
+                Assert.AreEqual(Math.Sign(r), Math.Sign(r1));
+            }
+        }
+
+        [TestMethod]
         public void TestSinCosd()
         {
             var sin9 = Math.Sin(9 * MathEx.Degree);
