@@ -14,9 +14,9 @@
 		<Product>GeographicLib.NET</Product>
 		<Company />
 		<Description>
-			GeographicLib is a small set of C++ classes for performing conversions between geographic, UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations, and for solving geodesic problems.
+			<![CDATA[GeographicLib is a small set of C++ classes for performing conversions between geographic, UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations, and for solving geodesic problems.
 
-			GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.
+GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.]]>
 		</Description>
 		<Copyright>Copyright (c) 2021 GeographicLib.NET contributors</Copyright>
 		<VersionPrefix>1.52.1</VersionPrefix>
@@ -36,7 +36,7 @@
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 	</ItemGroup>
@@ -46,10 +46,17 @@
 		<PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<None Include="..\LICENSE">
+
+	<ItemGroup >
+		<None Include="$(SolutionDir)\README.md">
 			<Pack>True</Pack>
-			<PackagePath></PackagePath>
+			<PackagePath>\</PackagePath>
+			<Visible>false</Visible>
+		</None>
+		<None Include="$(SolutionDir)\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+			<Visible>false</Visible>
 		</None>
 	</ItemGroup>
 </Project>
