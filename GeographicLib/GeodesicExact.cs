@@ -528,7 +528,7 @@ namespace GeographicLib
             lat2 = AngRound(LatFix(lat2));
             // Swap points so that point with higher (abs) latitude is point 1
             // If one latitude is a nan, then it becomes lat1.
-            int swapp = Abs(lat1) < Abs(lat2) ? -1 : 1;
+            int swapp = Abs(lat1) < Abs(lat2) || double.IsNaN(lat2) ? -1 : 1;
             if (swapp < 0)
             {
                 lonsign *= -1;

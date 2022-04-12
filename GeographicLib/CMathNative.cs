@@ -12,8 +12,7 @@ namespace GeographicLib
 #if NET5_0_OR_GREATER
     class CMathNative : CMath
     {
-        [ModuleInitializer]
-        internal static void Init()
+        static CMathNative()
         {
             NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), (libraryName, assembly, searchPath) =>
             {

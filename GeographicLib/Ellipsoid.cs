@@ -113,14 +113,14 @@ namespace GeographicLib
         /// the ellipsoid.This is zero, positive, or negative for a sphere,
         /// oblate ellipsoid, or prolate ellipsoid.
         /// </summary>
-        public double SecondFlatterning => _f / (1 - _f);
+        public double SecondFlattening => _f / (1 - _f);
 
         /// <summary>
         /// <i>n</i> = (<i>a</i> - <i>b</i>) / (<i>a</i> + <i>b</i>), the third flattening
         /// of the ellipsoid.This is zero, positive, or negative for a sphere,
         /// oblate ellipsoid, or prolate ellipsoid.
         /// </summary>
-        public double ThirdFlatterning => _n;
+        public double ThirdFlattening => _n;
 
         /// <summary>
         /// <i>e</i>^2 = (<i>a</i>^2 - <i>b</i>^2) / <i>a</i>^2, the eccentricity squared
