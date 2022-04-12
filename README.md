@@ -87,7 +87,8 @@ For changes adopted from original GeographicLib, please refer the its change log
 
 ### Version 1.52.1 (unreleased)
 - **NEW**
-  - GeographicLib.NET also targets .NET 6.0 now.
+  - Target .NET 6.0 in addition to .NET 5.0, .NET Standard 2.1 and .NET Standard 2.0.
+  - [Source Link](https://github.com/dotnet/sourcelink) support.
 
 - **BREAKING**
   - Fixed typos in `Ellipsoid`. (Renamed `SecondFlatterning` to `SecondFlattening` and `ThirdFlatterning` to `ThirdFlattening`)
