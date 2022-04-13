@@ -25,22 +25,32 @@ namespace GeographicLib.Tests
         }
 
         [DataTestMethod]
-        [DataRow(nan,  "nan")]
-        [DataRow(-inf, "-inf")]
-        [DataRow(-3.5, "-4")]
-        [DataRow(-2.5, "-2")]
-        [DataRow(-1.5, "-2")]
-        [DataRow(-0.5, "-0")]
-        [DataRow(-0.0, "-0")]
-        [DataRow(+0.0, "0")]
-        [DataRow(+0.5, "0")]
-        [DataRow(+1.5, "2")]
-        [DataRow(+2.5, "2")]
-        [DataRow(+3.5, "4")]
-        [DataRow(+inf, "inf")]
-        public void TestToFixedstring(double value, string r)
+        [DataRow(nan, 0, "nan")]
+        [DataRow(-inf, 0, "-inf")]
+        [DataRow(-3.5, 0, "-4")]
+        [DataRow(-2.5, 0, "-2")]
+        [DataRow(-1.5, 0, "-2")]
+        [DataRow(-0.5, 0, "-0")]
+        [DataRow(-0.0, 0, "-0")]
+        [DataRow(+0.0, 0, "0")]
+        [DataRow(+0.5, 0, "0")]
+        [DataRow(+1.5, 0, "2")]
+        [DataRow(+2.5, 0, "2")]
+        [DataRow(+3.5, 0, "4")]
+        [DataRow(+inf, 0, "inf")]
+        [DataRow(-1.75, 1, "-1.8")]
+        [DataRow(-1.25, 1, "-1.2")]
+        [DataRow(-0.75, 1, "-0.8")]
+        [DataRow(-0.25, 1, "-0.2")]
+        [DataRow(-0.0, 1, "-0.0")]
+        [DataRow(+0.0, 1, "0.0")]
+        [DataRow(+0.25, 1, "0.2")]
+        [DataRow(+0.75, 1, "0.8")]
+        [DataRow(+1.25, 1, "1.2")]
+        [DataRow(+1.75, 1, "1.8")]
+        public void TestToFixedstring(double value,int prec, string r)
         {
-            var r1 = value.ToFixedString(0);
+            var r1 = value.ToFixedString(prec);
             Assert.AreEqual(r, r1);
         }
     }
