@@ -1545,10 +1545,10 @@ namespace GeographicLib
             }
 
             if (outmask.Flags().HasAny(GeodesicFlags.Distance))
-                s12 = 0 + s12x;           // Convert -0 to 0
+                s12 = 0d + s12x;           // Convert -0 to 0
 
             if (outmask.Flags().HasAny(GeodesicFlags.ReducedLength))
-                m12 = 0 + m12x;           // Convert -0 to 0
+                m12 = 0d + m12x;           // Convert -0 to 0
 
             if (outmask.Flags().HasAny(GeodesicFlags.Area))
             {

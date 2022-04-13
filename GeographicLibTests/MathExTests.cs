@@ -11,49 +11,6 @@ namespace GeographicLib.Tests
     public class MathExTests
     {
         [DataTestMethod]
-        [DataRow(+0.0, -0.0, +1.0)]
-        [DataRow(-0.0, -0.0, -1.0)]
-        [DataRow(+0.0, +0.0, +0.0)]
-        [DataRow(-0.0, +0.0, -0.0)]
-        [DataRow(+0.0, -1.0, +1.0)]
-        [DataRow(-0.0, -1.0, -1.0)]
-        [DataRow(+0.0, +1.0, +0.0)]
-        [DataRow(-0.0, +1.0, -0.0)]
-        [DataRow(-1.0, +0.0, -0.5)]
-        [DataRow(-1.0, -0.0, -0.5)]
-        [DataRow(+1.0, +0.0, +0.5)]
-        [DataRow(+1.0, -0.0, +0.5)]
-        [DataRow(+1.0, double.NegativeInfinity, +1.0)]
-        [DataRow(-1.0, double.NegativeInfinity, -1.0)]
-        [DataRow(+1.0, double.PositiveInfinity, +0.0)]
-        [DataRow(-1.0, double.PositiveInfinity, -0.0)]
-        [DataRow(double.PositiveInfinity, +1.0, +0.5)]
-        [DataRow(double.PositiveInfinity, -1.0, +0.5)]
-        [DataRow(double.NegativeInfinity, +1.0, -0.5)]
-        [DataRow(double.NegativeInfinity, -1.0, -0.5)]
-        [DataRow(double.PositiveInfinity, double.NegativeInfinity, +0.75)]
-        [DataRow(double.NegativeInfinity, double.NegativeInfinity, -0.75)]
-        [DataRow(double.PositiveInfinity, double.PositiveInfinity, +0.25)]
-        [DataRow(double.NegativeInfinity, double.PositiveInfinity, -0.25)]
-        [DataRow(double.NaN, +1.0, double.NaN)]
-        [DataRow(+1.0, double.NaN, double.NaN)]
-        public void TestAtan(double y, double x, double r)
-        {
-            r *= 180;
-            var r1 = MathEx.Atan2d(y, x);
-
-            if (double.IsNaN(r))
-            {
-                Assert.IsTrue(double.IsNaN(r1));
-            }
-            else
-            {
-                Assert.AreEqual(r, r1);
-                Assert.AreEqual(Math.Sign(r), Math.Sign(r1));
-            }
-        }
-
-        [DataTestMethod]
         [DynamicData("Sum", typeof(MathExTestData))]
         public void TestSum(double u, double v, double r)
         {
@@ -115,6 +72,15 @@ namespace GeographicLib.Tests
         {
             var r1 = MathEx.AngDiff(x, y);
             Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("SinCosd", typeof(MathExTestData))]
+        public void TestSinCosd_Sign(double x, double sinx, double cosx)
+        {
+            MathEx.SinCosd(x, out var sinx1, out var cosx1);
+            Assert.That.EqualsExactly(sinx, sinx1);
+            Assert.That.EqualsExactly(cosx, cosx1);
         }
 
         [TestMethod]

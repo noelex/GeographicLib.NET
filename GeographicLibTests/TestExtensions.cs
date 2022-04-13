@@ -18,7 +18,7 @@ namespace GeographicLib.Tests
             {
                 var expectedStr = $"{(MathEx.SignBit(expected) ? "" : "+")}{expected}";
                 var actualStr= $"{(MathEx.SignBit(actual) ? "" : "+")}{actual}";
-                throw new AssertFailedException($"Expected {expectedStr}, actual value is {actualStr}.");
+                throw new AssertFailedException($"Expected: {expectedStr}, Actual: {actualStr}.");
             }
         }
         

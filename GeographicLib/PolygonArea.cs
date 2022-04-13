@@ -270,7 +270,7 @@ namespace GeographicLib
             tempsum += S12;
             int crossings = _crossings + Transit(_lon1, _lon0);
             AreaReduce(ref tempsum, crossings, reverse, sign);
-            area = 0 + tempsum;
+            area = 0d + tempsum;
             return (_num, perimeter, area);
         }
 
@@ -307,7 +307,7 @@ namespace GeographicLib
                 return (num, perimeter, area);
 
             AreaReduce(ref tempsum, crossings, reverse, sign);
-            area = 0 + tempsum;
+            area = 0d + tempsum;
             return (num, perimeter, area);
         }
 

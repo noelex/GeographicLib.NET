@@ -29,6 +29,34 @@ namespace GeographicLib.Tests
                 new object[]{+0.0, +0.0, +0.0},
             };
 
+        public static IEnumerable<object[]> SinCosd =>
+            new[]
+            {
+                new object[]{-inf,   nan,  nan},
+                new object[]{-810d, -1.0, +0.0},
+                new object[]{-720d, -0.0, +1.0},
+                new object[]{-630d, +1.0, +0.0},
+                new object[]{-540d, -0.0, -1.0},
+                new object[]{-450d, -1.0, +0.0},
+                new object[]{-360d, -0.0, +1.0},
+                new object[]{-270d, +1.0, +0.0},
+                new object[]{-180d, -0.0, -1.0},
+                new object[]{ -90d, -1.0, +0.0},
+                new object[]{  -0d, -0.0, +1.0},
+                new object[]{  +0d, +0.0, +1.0},
+                new object[]{ +90d, +1.0, +0.0},
+                new object[]{+180d, +0.0, -1.0},
+                new object[]{+270d, -1.0, +0.0},
+                new object[]{+360d, +0.0, +1.0},
+                new object[]{+450d, +1.0, +0.0},
+                new object[]{+540d, +0.0, -1.0},
+                new object[]{+630d, -1.0, +0.0},
+                new object[]{+720d, +0.0, +1.0},
+                new object[]{+810d, +1.0, +0.0},
+                new object[]{ +inf,  nan,  nan},
+                new object[]{  nan,  nan,  nan}
+            };
+
         public static IEnumerable<object[]> Sind =>
             new[]
             {
@@ -184,6 +212,7 @@ namespace GeographicLib.Tests
                 new object[]{+720d, +0.0},
                 new object[]{+900d, +180d},
             };
+
         public static IEnumerable<object[]> AngDiff =>
             new[]
             {

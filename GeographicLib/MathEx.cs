@@ -446,7 +446,7 @@ namespace GeographicLib
             // quadrant.
             int q = 0;
             if (Abs(y) > Abs(x)) { Swap(ref x, ref y); q = 2; }
-            if (x < 0) { x = -x; ++q; }
+            if (SignBit(x)) { x = -x; ++q; }
             // here x >= 0 and x >= abs(y), so angle is in [-pi/4, pi/4]
             var ang = Atan2(y, x) / Degree;
 
