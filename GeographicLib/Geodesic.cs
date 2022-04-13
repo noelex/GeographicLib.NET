@@ -1273,7 +1273,7 @@ namespace GeographicLib
             var lon12 = AngDiff(lon1, lon2, out var lon12s);
 
             // Make longitude difference positive.
-            int lonsign = lon12 >= 0 ? 1 : -1;
+            int lonsign = SignBit(lon12) ? -1 : 1;
             // If very close to being on the same half-meridian, then make it so.
             lon12 = lonsign * AngRound(lon12);
             lon12s = AngRound((180 - lon12) - lonsign * lon12s);
@@ -1303,7 +1303,7 @@ namespace GeographicLib
             }
 
             // Make lat1 <= 0
-            int latsign = lat1 < 0 ? 1 : -1;
+            int latsign = SignBit(lat1) ? 1 : -1;
             lat1 *= latsign;
             lat2 *= latsign;
 

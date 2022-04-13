@@ -464,8 +464,8 @@ namespace GeographicLib.Projections
             lon = AngDiff(lon0, lon);
             // Explicitly enforce the parity
             int
-              latsign = (!_extendp && lat < 0) ? -1 : 1,
-              lonsign = (!_extendp && lon < 0) ? -1 : 1;
+              latsign = (!_extendp && SignBit(lat)) ? -1 : 1,
+              lonsign = (!_extendp && SignBit(lon)) ? -1 : 1;
             lon *= lonsign;
             lat *= latsign;
             bool backside = !_extendp && lon > 90;
@@ -546,10 +546,10 @@ namespace GeographicLib.Projections
               eta = x / (_a * _k0);
             // Explicitly enforce the parity
             int
-              latsign = !_extendp && y < 0 ? -1 : 1,
-              lonsign = !_extendp && x < 0 ? -1 : 1;
-            xi *= latsign;
-            eta *= lonsign;
+              xisign = (!_extendp && SignBit(xi)) ? -1 : 1,
+              etasign = (!_extendp && SignBit(eta)) ? -1 : 1;
+            xi *= xisign;
+            eta *= etasign;
             bool backside = !_extendp && xi > _Eu.E();
             if (backside)
                 xi = 2 * _Eu.E() - xi;
@@ -587,12 +587,12 @@ namespace GeographicLib.Projections
 
             if (backside)
                 lon = 180 - lon;
-            lon *= lonsign;
+            lon *= etasign;
             lon = AngNormalize(lon + AngNormalize(lon0));
-            lat *= latsign;
+            lat *= xisign;
             if (backside)
                 gamma = 180 - gamma;
-            gamma *= latsign * lonsign;
+            gamma *= xisign * etasign;
             k *= _k0;
 
             return (lat, lon);

@@ -360,21 +360,10 @@ namespace GeographicLib
         public string ToGeoString(int prec = 0, bool longfirst = false)
         {
             prec = Max(0, Min(9 + 0 /*Math::extra_digits()*/, prec) + 5);
-            var os = new StringBuilder();
-            var format = $"F{prec}";//os << fixed << setprecision(prec);
 
-            double a = longfirst ? _long : _lat;
-            double b = longfirst ? _lat : _long;
-            if (!double.IsNaN(a))
-                os.AppendFormat(format, a);
-            else
-                os.Append("nan");
-            os.Append(" ");
-            if (!double.IsNaN(b))
-                os.AppendFormat(format, b);
-            else
-                os.Append("nan");
-            return os.ToString();
+            return Utility.ToFixedString(longfirst ? _long : _lat, prec)
+                + " " + Utility.ToFixedString(longfirst ? _lat : _long, prec);
+
         }
 
         /// <summary>

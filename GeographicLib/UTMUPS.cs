@@ -282,7 +282,7 @@ namespace GeographicLib
         {
             if (Abs(lat) > 90)
                 throw new GeographicException($"Latitude {lat}d not in [-90d, 90d]");
-            bool northp1 = lat >= 0;
+            bool northp1 = !SignBit(lat);
             int zone1 = StandardZone(lat, lon, setzone);
             if (zone1 == (int)ZoneSpec.Invalid)
             {
@@ -297,8 +297,7 @@ namespace GeographicLib
             {
                 double
                   lon0 = CentralMeridian(zone1),
-                  dlon = lon - lon0;
-                dlon = Abs(dlon - 360 * Floor((dlon + 180) / 360));
+                  dlon = AngDiff(lon0, lon);
                 if (!(dlon <= 60))
                     // Check isn't really necessary because CheckCoords catches this case.
                     // But this allows a more meaningful error message to be given.

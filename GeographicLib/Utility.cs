@@ -14,7 +14,7 @@ namespace GeographicLib
     public static class Utility
     {
 #if NETSTANDARD2_0
-        public static int IndexOf(this string str, char c, StringComparison stringComparison)
+        internal static int IndexOf(this string str, char c, StringComparison stringComparison)
             => str.IndexOf(c.ToString(), stringComparison);
 #endif
         /// <summary>
@@ -35,7 +35,20 @@ namespace GeographicLib
             if (!MathEx.IsFinite(x))
                 return x < 0 ? "-inf" :
                     (x > 0 ? "inf" : "nan");
+#if NETSTANDARD2_0
+            // In .NET Framework and .NET Core up to .NET Core 2.0, MidpointRounding.AwayFromZero is the default.
+            // See https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
+            if (p >= 0)
+            {
+                x = Math.Round(x, p, MidpointRounding.ToEven);
+            }
+
+            // double.ToString does not output sign for zero in early versions of .NET.
+            var sign = x == 0 && MathEx.SignBit(x) ? "-" : "";
+            return string.Format("{0}{1}", sign, p >= 0 ? x.ToString($"F{p}") : x.ToString());
+#else
             return p >= 0 ? x.ToString($"F{p}") : x.ToString();
+#endif
         }
 
         internal static double ParseFract(this string s) => ParseFract(s.AsSpan());
@@ -64,11 +77,18 @@ namespace GeographicLib
             }
 
 
-            if (!double.TryParse(t.ToString(), out x) && (x = t.NumMatch()) != 0)
+            if (!double.TryParse(t.ToString(), out x) && (x = t.NumMatch()) == 0)
             {
                 throw new GeographicException($"Cannot decode {t.ToString()}");
             }
 
+#if NETSTANDARD2_0
+            // double.TryParse ignores sign of zero in early versions of .NET.
+            if (t[0] == '-')
+            {
+                x = MathEx.CopySign(x, -1);
+            }
+#endif
             return x;
         }
 
@@ -88,12 +108,13 @@ namespace GeographicLib
             if (p1 == -1 || p1 + 1 < p0 + 3)
                 return 0;
 
-            if (s.SequenceEqual("NAN".AsSpan()) || s.SequenceEqual("1.#QNAN".AsSpan()) ||
-               s.SequenceEqual("1.#SNAN".AsSpan()) || s.SequenceEqual("1.#IND".AsSpan()) || s.SequenceEqual("1.#R".AsSpan()))
+            if (t.SequenceEqual("NAN".AsSpan()) || t.SequenceEqual("1.#QNAN".AsSpan()) ||
+               t.SequenceEqual("1.#SNAN".AsSpan()) || t.SequenceEqual("1.#IND".AsSpan()) || t.SequenceEqual("1.#R".AsSpan()))
             {
                 return double.NaN;
             }
 
+            t = t.Slice(p0);
             if (t.SequenceEqual("INF".AsSpan()) || t.SequenceEqual("1.#INF".AsSpan()) || t.SequenceEqual("∞".AsSpan()))
             {
                 return sign * double.PositiveInfinity;

@@ -337,8 +337,8 @@ namespace GeographicLib.Projections
             lon = AngDiff(lon0, lon);
             // Explicitly enforce the parity
             int
-              latsign = (lat < 0) ? -1 : 1,
-              lonsign = (lon < 0) ? -1 : 1;
+              latsign = SignBit(lat) ? -1 : 1,
+              lonsign = SignBit(lon) ? -1 : 1;
             lon *= lonsign;
             lat *= latsign;
             bool backside = lon > 90;
@@ -533,8 +533,8 @@ namespace GeographicLib.Projections
 
             // Explicitly enforce the parity
             int
-              xisign = (xi < 0) ? -1 : 1,
-              etasign = (eta < 0) ? -1 : 1;
+              xisign = SignBit(xi) ? -1 : 1,
+              etasign = SignBit(eta) ? -1 : 1;
 
             xi *= xisign;
             eta *= etasign;

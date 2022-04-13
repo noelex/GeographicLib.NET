@@ -394,7 +394,7 @@ namespace GeographicLib
                 .Trim();
 
             // The trimmed string in [beg, end)
-            double v = 0;
+            double v = -0.0; // So "-0" returns -0.0
             int i = 0;
             var ind1 = HemisphereIndicator.None;
 
@@ -576,8 +576,15 @@ namespace GeographicLib
             for (var i = 0; i < prec; ++i)
                 scale *= 10;
             if (ind == HemisphereIndicator.Azimuth)
-                angle -= Floor(angle / 360) * 360;
-            int sign = angle < 0 ? -1 : 1;
+            {
+                angle = AngNormalize(angle);
+                // Only angles strictly less than 0 can become 360; convert -0 to +0.
+                if (angle < 0)
+                    angle += 360;
+                else
+                    angle = 0 + angle;
+            }
+            var sign = SignBit(angle) ? -1 : 1;
             angle *= sign;
 
             // Break off integer part to preserve precision in manipulation of

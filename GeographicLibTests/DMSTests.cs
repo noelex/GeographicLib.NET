@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static GeographicLib.Tests.MathExTestData;
 
 namespace GeographicLib.Tests
 {
@@ -30,6 +31,23 @@ namespace GeographicLib.Tests
             var (latVal, lonVal) = DMS.Decode(components[0], components[1]);
             Assert.AreEqual(lat, latVal, 0.001);
             Assert.AreEqual(lon, lonVal, 0.001);
+        }
+
+        [DataTestMethod]
+        [DataRow("+0", +0.0)]
+        [DataRow("-0", -0.0)]
+        [DataRow("nan", nan)]
+        [DataRow("+inf", +inf)]
+        [DataRow("inf", +inf)]
+        [DataRow("-inf", -inf)]
+        [DataRow("+0N", +0.0)]
+        [DataRow("-0N", -0.0)]
+        [DataRow("+0S", -0.0)]
+        [DataRow("-0S", +0.0)]
+        public void TestSign(string input, double r)
+        {
+            var (r1, _) = DMS.Decode(input);
+            Assert.That.EqualsExactly(r, r1);
         }
     }
 }

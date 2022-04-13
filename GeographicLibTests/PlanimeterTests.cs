@@ -10,8 +10,10 @@ namespace GeographicLib.Tests
     [TestClass]
     public class PlanimeterTests
     {
-        private PolygonArea polygon = new PolygonArea(Geodesic.WGS84);
-        private PolygonArea polyline = new PolygonArea(Geodesic.WGS84, true);
+        private readonly IPolygonArea 
+            polygon = new PolygonArea(Geodesic.WGS84),
+            polyline = new PolygonArea(Geodesic.WGS84, true),
+            polygonR = new PolygonAreaRhumb(Rhumb.WGS84);
 
         private (int num, double perimeter, double area) Planimeter((double lat, double lon)[] points)
         {
@@ -22,6 +24,17 @@ namespace GeographicLib.Tests
             }
 
             return polygon.Compute(false, true);
+        }
+
+        private (int num, double perimeter, double area) PlanimeterRhumb((double lat, double lon)[] points)
+        {
+            polygonR.Clear();
+            foreach (var (lat, lon) in points)
+            {
+                polygonR.AddPoint(lat, lon);
+            }
+
+            return polygonR.Compute(false, true);
         }
 
         [TestMethod]
@@ -82,9 +95,26 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
+        public void Planimeter11_AreaOfArcticCircle_Rhumb()
+        {
+            var points = new[] {
+                (DMS.DecodeAngle("66:33:44"), 0d),
+                (DMS.DecodeAngle("66:33:44"), 180),
+                (DMS.DecodeAngle("66:33:44"), 360)
+            };
+            var (_, perimeter, area) = PlanimeterRhumb(points);
+            Assert.AreEqual(15985058, perimeter, 1);
+            Assert.AreEqual(21208418252300, area, 100);
+        }
+
+        [TestMethod]
         public void Planimeter12_AreaOfArcticCircle()
         {
-            var points = new[] { (66.562222222, 0d), (66.562222222, 180) };
+            var points = new[] { 
+                (DMS.DecodeAngle("66:33:44"), 0d),
+                (DMS.DecodeAngle("66:33:44"), 180),
+                (DMS.DecodeAngle("66:33:44"), 360)
+            };
             var (_, perimeter, area) = Planimeter(points);
             Assert.AreEqual(10465729, perimeter, 1);
             Assert.AreEqual(0, area, 1);

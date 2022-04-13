@@ -53,6 +53,70 @@ namespace GeographicLib.Tests
             }
         }
 
+        [DataTestMethod]
+        [DynamicData("Sum", typeof(MathExTestData))]
+        public void TestSum(double u, double v, double r)
+        {
+            var r1 = MathEx.Sum(u, v, out _);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("Sind", typeof(MathExTestData))]
+        public void TestSind(double x, double r)
+        {
+            var r1 = MathEx.Sind(x);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("Cosd", typeof(MathExTestData))]
+        public void TestCosd(double x, double r)
+        {
+            var r1 = MathEx.Cosd(x);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("Tand", typeof(MathExTestData))]
+        public void TestTand(double x, double r)
+        {
+            var r1 = MathEx.Tand(x);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("Atan2d", typeof(MathExTestData))]
+        public void TestAtan2d(double y, double x, double r)
+        {
+            var r1 = MathEx.Atan2d(y, x);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("AngRound", typeof(MathExTestData))]
+        public void TestAngRound(double x, double r)
+        {
+            var r1 = MathEx.AngRound(x);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("AngNormalize", typeof(MathExTestData))]
+        public void TestAngNormalize(double x, double r)
+        {
+            var r1 = MathEx.AngNormalize(x);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
+        [DataTestMethod]
+        [DynamicData("AngDiff", typeof(MathExTestData))]
+        public void TestAngDiff(double x, double y, double r)
+        {
+            var r1 = MathEx.AngDiff(x, y);
+            Assert.That.EqualsExactly(r, r1);
+        }
+
         [TestMethod]
         public void TestSinCosd()
         {
@@ -67,6 +131,7 @@ namespace GeographicLib.Tests
             Assert.AreEqual(dsin9, dcos81);
             Assert.AreEqual(dsin9, -dsin123456789);
         }
+
 
         [DataTestMethod]
         [DynamicData("Hypot", typeof(MathExTestData))]

@@ -9,8 +9,197 @@ namespace GeographicLib.Tests
     /// <summary>
     /// Test data generated with Windows Universal CRT (ucrtbase.dll) x64.
     /// </summary>
-    class MathExTestData
+    static class MathExTestData
     {
+        internal const double
+            eps = MathEx.DBL_EPSILON,
+            inf = double.PositiveInfinity,
+            nan = double.NaN;
+
+        private readonly static double ovf = 1 / MathEx.Sq(eps);
+
+        public static IEnumerable<object[]> Sum =>
+            new[]
+            {
+                new object[]{+9.0, -9.0, +0.0},
+                new object[]{-9.0, +9.0, +0.0},
+                new object[]{-0.0, +0.0, +0.0},
+                new object[]{+0.0, -0.0, +0.0},
+                new object[]{-0.0, -0.0, -0.0},
+                new object[]{+0.0, +0.0, +0.0},
+            };
+
+        public static IEnumerable<object[]> Sind =>
+            new[]
+            {
+                new object[]{-inf,nan},
+                new object[]{-720d,-0.0},
+                new object[]{-540d,-0.0},
+                new object[]{-360d,-0.0},
+                new object[]{-180d,-0.0},
+                new object[]{-0d,-0.0},
+                new object[]{+0d,+0.0},
+                new object[]{+180d,+0.0},
+                new object[]{+360d,+0.0},
+                new object[]{+540d,+0.0},
+                new object[]{+720d,+0.0},
+                new object[]{+inf,nan}
+            };
+
+        public static IEnumerable<object[]> Cosd =>
+            new[]
+            {
+                new object[]{-inf,nan},
+                new object[]{-810d, +0.0},
+                new object[]{-630d, +0.0},
+                new object[]{-450d, +0.0},
+                new object[]{-270d, +0.0},
+                new object[]{-90d,  +0.0},
+                new object[]{+90d,  +0.0},
+                new object[]{+270d, +0.0},
+                new object[]{+450d, +0.0},
+                new object[]{+630d, +0.0},
+                new object[]{+810d, +0.0},
+                new object[]{+inf,nan}
+            };
+
+        public static IEnumerable<object[]> Tand =>
+            new[]
+            {
+                new object[]{-inf,nan},
+                new object[]{-810d, -ovf},
+                new object[]{-720d, -0.0},
+                new object[]{-630d, +ovf},
+                new object[]{-540d, +0.0},
+                new object[]{-450d, -ovf},
+                new object[]{-360d, -0.0},
+                new object[]{-270d, +ovf},
+                new object[]{-180d, +0.0},
+                new object[]{-90d,  -ovf},
+                new object[]{-0.0,  -0.0},
+                new object[]{+0.0,  +0.0},
+                new object[]{+90d,  +ovf},
+                new object[]{+180d, -0.0},
+                new object[]{+270d, -ovf},
+                new object[]{+360d, +0.0},
+                new object[]{+450d, +ovf},
+                new object[]{+540d, -0.0},
+                new object[]{+630d, -ovf},
+                new object[]{+720d, +0.0},
+                new object[]{+810d, +ovf},
+                new object[]{+inf,nan}
+            };
+
+        public static IEnumerable<object[]> Atan2d =>
+            new[]
+            {
+                new object[]{+0.0, -0.0, +180d},
+                new object[]{-0.0, -0.0, -180d},
+                new object[]{+0.0, +0.0, +0.0},
+                new object[]{-0.0, +0.0, -0.0},
+                new object[]{+0.0, -1.0, +180d},
+                new object[]{-0.0, -1.0, -180d},
+                new object[]{+0.0, +1.0, +0.0},
+                new object[]{-0.0, +1.0, -0.0},
+                new object[]{-1.0, +0.0, -90d},
+                new object[]{-1.0, -0.0, -90d},
+                new object[]{+1.0, +0.0, +90d},
+                new object[]{+1.0, -0.0, +90d},
+                new object[]{+1.0, -inf, +180d},
+                new object[]{-1.0, -inf, -180d},
+                new object[]{+1.0, +inf, +0.0},
+                new object[]{-1.0, +inf, -0.0},
+                new object[]{+inf, +1.0, +90d},
+                new object[]{+inf, -1.0, +90d},
+                new object[]{-inf, +1.0, -90d},
+                new object[]{-inf, -1.0, -90d},
+                new object[]{+inf, -inf, +135d},
+                new object[]{-inf, -inf, -135d},
+                new object[]{+inf, +inf, +45d},
+                new object[]{-inf, +inf, -45d},
+                new object[]{nan, +1.0, nan},
+                new object[]{+1.0, nan, nan},
+            };
+
+        public static IEnumerable<object[]> AngRound =>
+            new[]
+            {
+                new object[]{-eps/32,-eps/32},
+                new object[]{-eps/64,-0.0},
+                new object[]{-0d,-0.0},
+                new object[]{0d,+0.0},
+                new object[]{eps/64,+0.0},
+                new object[]{eps/32,+eps/32},
+                new object[]{ (1-2*eps)/64, (1-2*eps)/64},
+                new object[]{(1-eps )/64, 1d /64 },
+                new object[]{(1-eps/2)/64, 1d /64 },
+                new object[]{(1-eps/4)/64, 1d /64 },
+                new object[]{1d /64, 1d /64 },
+                new object[]{(1+eps/2)/64, 1d /64 },
+                new object[]{ (1+eps )/64, 1d /64},
+                new object[]{(1+2*eps)/64, (1+2*eps)/64 },
+                new object[]{(1-eps )/32, (1-eps )/32 },
+                new object[]{(1-eps/2)/32, 1d /32 },
+                new object[]{ (1-eps/4)/32, 1d /32},
+                new object[]{ 1d /32, 1d /32},
+                new object[]{(1+eps/2)/32, 1d /32 },
+                new object[]{ (1+eps )/32, (1+eps )/32},
+                new object[]{(1-eps )/16, (1-eps )/16 },
+                new object[]{ (1-eps/2)/16, (1-eps/2)/16},
+                new object[]{(1-eps/4)/16, 1d /16 },
+                new object[]{1d /16, 1d /16 },
+                new object[]{(1+eps/4)/16, 1d /16 },
+                new object[]{ (1+eps/2)/16, 1d /16},
+                new object[]{(1+eps )/16, (1+eps )/16 },
+                new object[]{(1-eps )/ 8, (1-eps )/ 8 },
+                new object[]{ (1-eps/2)/ 8, (1-eps/2)/ 8},
+                new object[]{(1-eps/4)/ 8,1d / 8 },
+                new object[]{(1+eps/2)/ 8, 1d / 8 },
+                new object[]{ (1+eps )/ 8, (1+eps )/ 8},
+                new object[]{ 1-eps , 1-eps},
+                new object[]{ 1-eps/2 , 1-eps/2},
+                new object[]{ 1-eps/4, 1d},
+                new object[]{1d,1d },
+                new object[]{1+eps/4 , 1d },
+                new object[]{1+eps/2 , 1d },
+                new object[]{1+eps , 1+ eps },
+                new object[]{90-64*eps, 90-64*eps },
+                new object[]{ 90-32*eps, 90d},
+                new object[]{ 90d, 90d},
+            };
+
+        public static IEnumerable<object[]> AngNormalize =>
+            new[]
+            {
+                new object[]{-900d, -180d},
+                new object[]{-720d, -0.0},
+                new object[]{-540d, -180d},
+                new object[]{-360d, -0.0},
+                new object[]{-180d, -180d},
+                new object[]{-0.0,  -0.0},
+                new object[]{+0.0,  +0.0},
+                new object[]{+180d, +180d},
+                new object[]{+360d, +0.0},
+                new object[]{+540d, +180d},
+                new object[]{+720d, +0.0},
+                new object[]{+900d, +180d},
+            };
+        public static IEnumerable<object[]> AngDiff =>
+            new[]
+            {
+                new object[]{+0.0, +0.0, +0.0},
+                new object[]{+0.0, -0.0, -0.0},
+                new object[]{-0.0, +0.0, +0.0},
+                new object[]{-0.0, -0.0, +0.0},
+                new object[]{+5.0, +365d, +0.0},
+                new object[]{+365d, +5.0, -0.0},
+                new object[]{+5.0, +185d, +180d},
+                new object[]{+185d, +5.0, -180d},
+                new object[]{+eps, +180d, +180d},
+                new object[]{-eps, +180d, -180d},
+                new object[]{+eps, -180d, +180d},
+                new object[]{-eps, -180d, -180d},
+            };
 
         public static IEnumerable<object[]> Log1p =>
             new[] {

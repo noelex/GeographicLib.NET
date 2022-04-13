@@ -410,6 +410,9 @@ namespace GeographicLib
         /// <item><i>Bz</i>, the vertical (up) component of the magnetic field (nanotesla).</item>
         /// </list>
         /// </returns>
+        /// <remarks>
+        ///  Use <see cref="Utility.FractionalYear(string)"/> to convert a date of the form yyyy-mm or yyyy-mm-dd into a fractional year.
+        /// </remarks>
         public (double Bx, double By, double Bz) Evaluate(double t, double lat, double lon, double h,
                              out double Bxt, out double Byt, out double Bzt)
             => Field(t, lat, lon, h, true, out Bxt, out Byt, out Bzt);
