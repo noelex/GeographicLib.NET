@@ -455,7 +455,7 @@ namespace GeographicLib.Geocodes
             {
                 int
                   // Correct fuzziness in latitude near equator
-                  iband = Abs(lat) > angeps ? LatitudeBand(lat) : (northp ? 0 : -1),
+                  iband = Abs(lat) < angeps ? (northp ? 0 : -1) : LatitudeBand(lat),
                   icol = xh - minutmcol_,
                   irow = UTMRow(iband, icol, yh % utmrowperiod_);
 

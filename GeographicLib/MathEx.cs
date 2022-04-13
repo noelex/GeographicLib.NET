@@ -372,6 +372,10 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">in degrees.</param>
         /// <returns>sin(<i>x</i>)</returns>
+        /// <remarks>
+        /// The result is +0 for <paramref name="x"/> = +0 and positive multiples of 180°. The
+        /// result is -0 for <paramref name="x"/> = -0 and negative multiples of 180°.
+        /// </remarks>
         public static double Sind(double x)
         {
             // See sincosd
@@ -394,6 +398,9 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">in degrees.</param>
         /// <returns>cos(<i>x</i>)</returns>
+        /// <remarks>
+        /// The result is +0 for <paramref name="x"/> an odd multiple of 90°.
+        /// </remarks>
         public static double Cosd(double x)
         {
             // See sincosd
@@ -413,7 +420,7 @@ namespace GeographicLib
         /// <param name="x">in degrees.</param>
         /// <returns>tan(<i>x</i>).</returns>
         /// <remarks>
-        /// If <paramref name="x"/> = ±90°, then a suitably large (but finite) value is returned.
+        /// If <paramref name="x"/> is an odd multiple of 90°, then a suitably large (but finite) value is returned.
         /// </remarks>
         public static double Tand(double x)
         {
@@ -434,9 +441,8 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <returns>atan2(<i>y</i>, <i>x</i>) in degrees.</returns>
         /// <remarks>
-        /// The result is in the range (-180°, 180°].  N.B.,
-        /// atan2d(±0, -1) = +180°; atan2d(-ε,-1) = -180°, for ε positive and tiny;
-        /// atan2d(±0, +1) = ±0°.
+        /// The result is in the range [-180°, 180°].  N.B.,
+        /// atan2d(±0, -1) = ±180°.
         /// </remarks>
         public static double Atan2d(double y, double x)
         {
@@ -580,10 +586,10 @@ namespace GeographicLib
             var s = u + v;
             var up = s - v;
             var vpp = s - up;
-
+            // if s = 0, then t = 0 and give t the same sign as s
             up -= u;
             vpp -= v;
-            t = 0 - (up + vpp); // t = +0 if result is exact
+            t = s != 0 ? 0d - (up + vpp) : s;
 
             // u + v =       s      + t
             //       = round(u + v) + t

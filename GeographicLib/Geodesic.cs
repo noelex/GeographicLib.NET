@@ -1341,7 +1341,7 @@ namespace GeographicLib
             if (cbet1 < -sbet1)
             {
                 if (cbet2 == cbet1)
-                    sbet2 = sbet2 < 0 ? sbet1 : -sbet1;
+                    sbet2 = SignBit(sbet2) ? sbet1 : -sbet1;
             }
             else
             {
