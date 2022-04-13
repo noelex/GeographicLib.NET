@@ -174,9 +174,9 @@ namespace GeographicLib.Projections
                 throw new GeographicException("Polar semi-axis is not positive");
             if (!(IsFinite(k1) && k1 > 0))
                 throw new GeographicException("Scale is not positive");
-            if (!(coslat1 >= 0))
+            if (SignBit(coslat1))
                 throw new GeographicException("Standard latitude 1 not in [-90d, 90d]");
-            if (!(coslat2 >= 0))
+            if (SignBit(coslat2))
                 throw new GeographicException("Standard latitude 2 not in [-90d, 90d]");
             if (!(Abs(sinlat1) <= 1 && coslat1 <= 1) || (coslat1 == 0 && sinlat1 == 0))
                 throw new GeographicException("Bad sine/cosine of standard latitude 1");
@@ -342,7 +342,7 @@ namespace GeographicLib.Projections
                   - Deatanhe(sphi2, sphi1) * Dsn(tphi2, tphi1, sphi2, sphi1);
                 _n = num / den;
 
-                if (_n < 0.25)
+                if (_n < 1/4d)
                     _nc = Sqrt((1 - _n) * (1 + _n));
                 else
                 {

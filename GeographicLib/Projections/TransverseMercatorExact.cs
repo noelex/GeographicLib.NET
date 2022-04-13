@@ -168,9 +168,9 @@ namespace GeographicLib.Projections
             double
               d1 = Sqrt(Sq(cnu) + _mv * Sq(snu * snv)),
               d2 = Sqrt(_mu * Sq(cnu) + _mv * Sq(cnv)),
-              t1 = (d1 != 0 ? snu * dnv / d1 : (snu < 0 ? -overflow : overflow)),
+              t1 = (d1 != 0 ? snu * dnv / d1 : (SignBit(snu) ? -overflow : overflow)),
               t2 = (d2 != 0 ? Sinh(_e * Asinh(_e * snu / d2)) :
-                    (snu < 0 ? -overflow : overflow));
+                    (SignBit(snu) ? -overflow : overflow));
             // psi = asinh(t1) - asinh(t2)
             // taup = sinh(psi)
             taup = t1 * Hypot(1, t2) - t2 * Hypot(1, t1);

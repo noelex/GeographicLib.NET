@@ -197,5 +197,121 @@ namespace GeographicLib.Tests
             Assert.AreEqual(m12, rm12, vertices ? 1e-5 : GeodesicTestData.Tolerance);
             Assert.AreEqual(a12, ra12, GeodesicTestData.Tolerance);
         }
+
+        [DataTestMethod]
+        [DataRow(+0d, -0d, 180d)]
+        [DataRow(-0d, +0d, 0d)]
+        public void TestInverse_AzimuthOfGeodesicLineOnEquatorDeterminedBySignsOfLatitude(double lat1, double lat2, double azi)
+        {
+            Geodesic.WGS84.Inverse(lat1, 0, lat2, 0, out var azi1, out var azi2);
+            Assert.That.EqualsExactly(azi, azi1);
+            Assert.That.EqualsExactly(azi, azi2);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, -0d, 180d)]
+        [DataRow(-0d, +0d, 0d)]
+        public void TestInverse_AzimuthOfGeodesicLineOnEquatorDeterminedBySignsOfLatitude_Exact(double lat1, double lat2, double azi)
+        {
+            GeodesicExact.WGS84.Inverse(lat1, 0, lat2, 0, out var azi1, out var azi2);
+            Assert.That.EqualsExactly(azi, azi1);
+            Assert.That.EqualsExactly(azi, azi2);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, +0d, 56d, 124d)]
+        [DataRow(-0d, -0d, 124d, 56d)]
+        public void TestInverse_DirectionOfAntipodalEquatorialSolution(double lat1, double lat2, double azi1, double azi2)
+        {
+            Geodesic.WGS84.Inverse(lat1, 0, lat2, 179.5, out var azi1a, out var azi2a);
+            Assert.AreEqual(azi1, azi1a, 1);
+            Assert.AreEqual(azi2, azi2a, 1);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, +0d, 56d, 124d)]
+        [DataRow(-0d, -0d, 124d, 56d)]
+        public void TestInverse_DirectionOfNearlyAntipodalEquatorialSolution_Exact(double lat1, double lat2, double azi1, double azi2)
+        {
+            GeodesicExact.WGS84.Inverse(lat1, 0, lat2, 179.5, out var azi1a, out var azi2a);
+            Assert.AreEqual(azi1, azi1a, 1);
+            Assert.AreEqual(azi2, azi2a, 1);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, +0d, +180d, +0d, +180d)]
+        [DataRow(-0d, -0d, +180d, +180d, +0d)]
+        [DataRow(+0d, +0d, -180d, -0d, -180d)]
+        [DataRow(-0d, -0d, -180d, -180d, -0d)]
+        public void TestInverse_DirectionOfExactAntipodalEquatorialSolution(double lat1, double lat2, double lon2, double azi1, double azi2)
+        {
+            Geodesic.WGS84.Inverse(lat1, 0, lat2, lon2, out var azi1a, out var azi2a);
+            Assert.That.EqualsExactly(azi1, azi1a);
+            Assert.That.EqualsExactly(azi2, azi2a);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, +0d, +180d, +0d, +180d)]
+        [DataRow(-0d, -0d, +180d, +180d, +0d)]
+        [DataRow(+0d, +0d, -180d, -0d, -180d)]
+        [DataRow(-0d, -0d, -180d, -180d, -0d)]
+        public void TestInverse_DirectionOfExactAntipodalEquatorialSolution_Exact(double lat1, double lat2, double lon2, double azi1, double azi2)
+        {
+            GeodesicExact.WGS84.Inverse(lat1, 0, lat2, lon2, out var azi1a, out var azi2a);
+            Assert.That.EqualsExactly(azi1, azi1a);
+            Assert.That.EqualsExactly(azi2, azi2a);
+        }
+
+        [DataTestMethod]
+        [DataRow(+180d, +90d)]
+        [DataRow(-180d, -90d)]
+        public void TestInversion_AntipodalPointsOnTheEquatorWithProlateEllipsoid(double lon2, double azi)
+        {
+            new Geodesic(6.4e6, -1/300d).Inverse(0, 0, 0, lon2, out var azi1, out var azi2);
+            Assert.That.EqualsExactly(azi, azi1);
+            Assert.That.EqualsExactly(azi, azi2);
+        }
+
+        [DataTestMethod]
+        [DataRow(+180d, +90d)]
+        [DataRow(-180d, -90d)]
+        public void TestInversion_AntipodalPointsOnTheEquatorWithProlateEllipsoid_Exact(double lon2, double azi)
+        {
+            new GeodesicExact(6.4e6, -1 / 300d).Inverse(0, 0, 0, lon2, out var azi1, out var azi2);
+            Assert.That.EqualsExactly(azi, azi1);
+            Assert.That.EqualsExactly(azi, azi2);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, +180d, +180d)]
+        [DataRow(-0d, -180d, -180d)]
+        [DataRow(+180d, +180d, +0d)]
+        [DataRow(-180d, -180d, -0d)]
+        public void TestDirect_Azimuth_Equals_PlusMinus0_And_PlusMinus180(double azi1, double lon2, double azi2)
+        {
+            Geodesic.WGS84.GenDirect(0, 0, azi1, false, 15e6, 
+                GeodesicFlags.Longitude | GeodesicFlags.Azimuth | GeodesicFlags.LongUnroll,
+                out _, out var lon2a, out var azi2a,
+                out _, out _, out _, out _, out _);
+
+            Assert.That.EqualsExactly(lon2, lon2a);
+            Assert.That.EqualsExactly(azi2, azi2a);
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, +180d, +180d)]
+        [DataRow(-0d, -180d, -180d)]
+        [DataRow(+180d, +180d, +0d)]
+        [DataRow(-180d, -180d, -0d)]
+        public void TestDirect_Azimuth_Equals_PlusMinus0_And_PlusMinus180_Exact(double azi1, double lon2, double azi2)
+        {
+            GeodesicExact.WGS84.GenDirect(0, 0, azi1, false, 15e6,
+                GeodesicFlags.Longitude | GeodesicFlags.Azimuth | GeodesicFlags.LongUnroll,
+                out _, out var lon2a, out var azi2a,
+                out _, out _, out _, out _, out _);
+
+            Assert.That.EqualsExactly(lon2, lon2a);
+            Assert.That.EqualsExactly(azi2, azi2a);
+        }
     }
 }

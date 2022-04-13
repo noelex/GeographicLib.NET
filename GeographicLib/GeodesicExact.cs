@@ -294,12 +294,8 @@ namespace GeographicLib
             {
                 // Scale lam12 and bet2 to x, y coordinate system where antipodal point
                 // is at origin and singular point is at y = 0, x = -1.
-                double y, lamscale, betscale;
-                // Volatile declaration needed to fix inverse case
-                // 56.320923501171 0 -56.320923501171 179.664747671772880215
-                // which otherwise fails with g++ 4.4.4 x86 -O3
-                /*GEOGRAPHICLIB_VOLATILE*/
-                double x;
+                double x, y, lamscale, betscale;
+
                 var lam12x = Atan2(-slam12, -clam12); // lam12 - pi
                 if (_f >= 0)
                 {            // In fact f == 0 does not get here
@@ -575,7 +571,7 @@ namespace GeographicLib
             if (cbet1 < -sbet1)
             {
                 if (cbet2 == cbet1)
-                    sbet2 = sbet2 < 0 ? sbet1 : -sbet1;
+                    sbet2 = SignBit(sbet2) ? sbet1 : -sbet1;
             }
             else
             {

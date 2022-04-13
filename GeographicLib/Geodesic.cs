@@ -1063,13 +1063,7 @@ namespace GeographicLib
             {
                 // Scale lam12 and bet2 to x, y coordinate system where antipodal point
                 // is at origin and singular point is at y = 0, x = -1.
-                double y, lamscale, betscale;
-
-                // Volatile declaration needed to fix inverse case
-                // 56.320923501171 0 -56.320923501171 179.664747671772880215
-                // which otherwise fails with g++ 4.4.4 x86 -O3
-                // TODO: Volatile declaration.
-                double x;
+                double x, y, lamscale, betscale;
                 double lam12x = Atan2(-slam12, -clam12); // lam12 - pi
                 if (_f >= 0)
                 {            // In fact f == 0 does not get here
@@ -1225,11 +1219,11 @@ namespace GeographicLib
             // Math::norm(somg2, comg2); -- don't need to normalize!
 
             // sig12 = sig2 - sig1, limit to [0, pi]
-            sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2),
+            sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2) + 0d,
                                        csig1 * csig2 + ssig1 * ssig2);
 
             // omg12 = omg2 - omg1, limit to [0, pi]
-            somg12 = Max(0, comg1 * somg2 - somg1 * comg2);
+            somg12 = Max(0, comg1 * somg2 - somg1 * comg2) + 0d;
             comg12 = comg1 * comg2 + somg1 * somg2;
             // eta = omg12 - lam120
             var eta = Atan2(somg12 * clam120 - comg12 * slam120,
@@ -1374,7 +1368,7 @@ namespace GeographicLib
                   ssig2 = sbet2, csig2 = calp2 * cbet2;
 
                 // sig12 = sig2 - sig1
-                sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2),
+                sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2) + 0d,
                                            csig1 * csig2 + ssig1 * ssig2);
                 {
                     Lengths(_n, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2, cbet1, cbet2,

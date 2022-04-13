@@ -154,7 +154,7 @@ namespace GeographicLib.Projections
                     azi2 = -90 + da;
                 }
             }
-            if (dlon < 0)
+            if (SignBit(dlon))
             {
                 azi2 = azi1;
                 s12 = -s12;

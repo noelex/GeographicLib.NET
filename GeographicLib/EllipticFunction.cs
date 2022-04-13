@@ -319,7 +319,7 @@ namespace GeographicLib
               fi = cn2 != 0 ? Abs(sn) * RF(cn2, dn2, 1) : K();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 fi = 2 * K() - fi;
 
             return CopySign(fi, sn);
@@ -352,7 +352,7 @@ namespace GeographicLib
                 E();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 ei = 2 * E() - ei;
 
             return CopySign(ei, sn);
@@ -377,7 +377,7 @@ namespace GeographicLib
               Pi();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 pii = 2 * Pi() - pii;
 
             return CopySign(pii, sn);
@@ -399,7 +399,7 @@ namespace GeographicLib
               di = cn2 != 0 ? Abs(sn) * sn2 * RD(cn2, dn2, 1) / 3 : D();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 di = 2 * D() - di;
 
             return CopySign(di, sn);
@@ -422,7 +422,7 @@ namespace GeographicLib
               G();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 gi = 2 * G() - gi;
 
             return CopySign(gi, sn);
@@ -446,7 +446,7 @@ namespace GeographicLib
               H();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 hi = 2 * H() - hi;
 
             return CopySign(hi, sn);
@@ -462,7 +462,7 @@ namespace GeographicLib
         public double DeltaF(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return F(sn, cn, dn) * (PI / 2) / K() - Atan2(sn, cn);
         }
 
@@ -476,7 +476,7 @@ namespace GeographicLib
         public double DeltaE(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return E(sn, cn, dn) * (PI / 2) / E() - Atan2(sn, cn);
         }
 
@@ -489,7 +489,7 @@ namespace GeographicLib
         public double DeltaEinv(double stau, double ctau)
         {
             // Function is periodic with period pi
-            if (ctau < 0) { ctau = -ctau; stau = -stau; }
+            if (SignBit(ctau)) { ctau = -ctau; stau = -stau; }
             var tau = Atan2(stau, ctau);
             return Einv(tau * E() / (PI / 2)) - tau;
         }
@@ -504,7 +504,7 @@ namespace GeographicLib
         public double DeltaPi(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return Pi(sn, cn, dn) * (PI / 2) / Pi() - Atan2(sn, cn);
         }
 
@@ -518,7 +518,7 @@ namespace GeographicLib
         public double DeltaD(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return D(sn, cn, dn) * (PI / 2) / D() - Atan2(sn, cn);
         }
 
@@ -532,7 +532,7 @@ namespace GeographicLib
         public double DeltaG(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return G(sn, cn, dn) * (PI / 2) / G() - Atan2(sn, cn);
         }
 
@@ -546,7 +546,7 @@ namespace GeographicLib
         public double DeltaH(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return H(sn, cn, dn) * (PI / 2) / H() - Atan2(sn, cn);
         }
 
@@ -569,7 +569,7 @@ namespace GeographicLib
             if (_kp2 != 0)
             {
                 double mc = _kp2, d = 0;
-                if (_kp2 < 0)
+                if (SignBit(_kp2))
                 {
                     d = 1 - mc;
                     mc /= -d;
@@ -614,9 +614,9 @@ namespace GeographicLib
                         a = c / b;
                     }
                     a = 1 / Sqrt(c * c + 1);
-                    sn = sn < 0 ? -a : a;
+                    sn = SignBit(sn) ? -a : a;
                     cn = c * sn;
-                    if (_kp2 < 0)
+                    if (SignBit(_kp2))
                     {
                         Swap(ref cn, ref dn);
                         sn /= d;
@@ -974,9 +974,9 @@ namespace GeographicLib
                 throw new GeographicException("Parameter k2 is not in (-inf, 1]");
             if (alpha2 > 1)
                 throw new GeographicException("Parameter alpha2 is not in (-inf, 1]");
-            if (kp2 < 0)
+            if (SignBit(kp2))
                 throw new GeographicException("Parameter kp2 is not in [0, inf)");
-            if (alphap2 < 0)
+            if (SignBit(alphap2))
                 throw new GeographicException("Parameter alphap2 is not in [0, inf)");
 
             _k2 = k2;
