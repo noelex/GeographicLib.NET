@@ -81,5 +81,36 @@ namespace GeographicLib.Tests
             var r1 = DMS.Encode(angle, trailing, prec);
             Assert.AreEqual(r, r1);
         }
+
+        [DataTestMethod]
+        [DataRow(1d, TrailingUnit.Degree, 0, HemisphereIndicator.None, "-1")]
+        [DataRow(1d, TrailingUnit.Degree, 0, HemisphereIndicator.Latitude, "01S")]
+        [DataRow(1d, TrailingUnit.Degree, 0, HemisphereIndicator.Longitude, "001W")]
+        [DataRow(-1d, TrailingUnit.Degree, 0, HemisphereIndicator.Azimuth, "001")]
+        [DataRow(1d, TrailingUnit.Degree, 1, HemisphereIndicator.None, "-1.0")]
+        [DataRow(1d, TrailingUnit.Degree, 1, HemisphereIndicator.Latitude, "01.0S")]
+        [DataRow(1d, TrailingUnit.Degree, 1, HemisphereIndicator.Longitude, "001.0W")]
+        [DataRow(-1d, TrailingUnit.Degree, 1, HemisphereIndicator.Azimuth, "001.0")]
+        [DataRow(1d, TrailingUnit.Minute, 0, HemisphereIndicator.None, "-1d02'")]
+        [DataRow(1d, TrailingUnit.Minute, 0, HemisphereIndicator.Latitude, "01d02'S")]
+        [DataRow(1d, TrailingUnit.Minute, 0, HemisphereIndicator.Longitude, "001d02'W")]
+        [DataRow(-1d, TrailingUnit.Minute, 0, HemisphereIndicator.Azimuth, "001d02'")]
+        [DataRow(1d, TrailingUnit.Minute, 1, HemisphereIndicator.None, "-1d02.0'")]
+        [DataRow(1d, TrailingUnit.Minute, 1, HemisphereIndicator.Latitude, "01d02.0'S")]
+        [DataRow(1d, TrailingUnit.Minute, 1, HemisphereIndicator.Longitude, "001d02.0'W")]
+        [DataRow(-1d, TrailingUnit.Minute, 1, HemisphereIndicator.Azimuth, "001d02.0'")]
+        [DataRow(1d, TrailingUnit.Second, 0, HemisphereIndicator.None, "-1d02'03\"")]
+        [DataRow(1d, TrailingUnit.Second, 0, HemisphereIndicator.Latitude, "01d02'03\"S")]
+        [DataRow(1d, TrailingUnit.Second, 0, HemisphereIndicator.Longitude, "001d02'03\"W")]
+        [DataRow(-1d, TrailingUnit.Second, 0, HemisphereIndicator.Azimuth, "001d02'03\"")]
+        [DataRow(1d, TrailingUnit.Second, 1, HemisphereIndicator.None, "-1d02'03.0\"")]
+        [DataRow(1d, TrailingUnit.Second, 1, HemisphereIndicator.Latitude, "01d02'03.0\"S")]
+        [DataRow(1d, TrailingUnit.Second, 1, HemisphereIndicator.Longitude, "001d02'03.0\"W")]
+        [DataRow(-1d, TrailingUnit.Second, 1, HemisphereIndicator.Azimuth, "001d02'03.0\"")]
+        public void TestEncode_ZeroFill(double sign, TrailingUnit trailing, int prec, HemisphereIndicator hemi, string r)
+        {
+            var t = -(1 + 2 / 60d + 2.99 / 3600) * sign;
+            Assert.AreEqual(r, DMS.Encode(t, trailing, prec, hemi));
+        }
     }
 }
