@@ -94,6 +94,7 @@ For changes adopted from GeographicLib, please refer the its change log [here](h
 - **FIX**
   - String accepting APIs now handle lowercase "nan" correctly.
   - Ensure consistent rounding mode (`MidpointRounding.ToEven`) across different runtimes when converting floating point number to string.
+  - `MGRS.Reverse` now allows lowercase input.
 
 ### Version 1.52.1 (released 2022/04/12)
 - **NEW**

@@ -49,5 +49,37 @@ namespace GeographicLib.Tests
             var (r1, _) = DMS.Decode(input);
             Assert.That.EqualsExactly(r, r1);
         }
+
+        [DataTestMethod]
+        [DataRow(nan, TrailingUnit.Degree, 0, "nan")]
+        [DataRow(-inf, TrailingUnit.Degree, 0, "-inf")]
+        [DataRow(+inf, TrailingUnit.Degree, 0, "inf")]
+        [DataRow(-3.5, TrailingUnit.Degree, 0, "-4")]
+        [DataRow(-2.5, TrailingUnit.Degree, 0, "-2")]
+        [DataRow(-1.5, TrailingUnit.Degree, 0, "-2")]
+        [DataRow(-0.5, TrailingUnit.Degree, 0, "-0")]
+        [DataRow(-0.0, TrailingUnit.Degree, 0, "-0")]
+        [DataRow(+0.0, TrailingUnit.Degree, 0, "0")]
+        [DataRow(+0.5, TrailingUnit.Degree, 0, "0")]
+        [DataRow(+1.5, TrailingUnit.Degree, 0, "2")]
+        [DataRow(+2.5, TrailingUnit.Degree, 0, "2")]
+        [DataRow(+3.5, TrailingUnit.Degree, 0, "4")]
+        [DataRow(-1.75, TrailingUnit.Degree, 1, "-1.8")]
+        [DataRow(-1.25, TrailingUnit.Degree, 1, "-1.2")]
+        [DataRow(-0.75, TrailingUnit.Degree, 1, "-0.8")]
+        [DataRow(-0.25, TrailingUnit.Degree, 1, "-0.2")]
+        [DataRow(-0.0, TrailingUnit.Degree, 1, "-0.0")]
+        [DataRow(+0.0, TrailingUnit.Degree, 1, "0.0")]
+        [DataRow(+0.25, TrailingUnit.Degree, 1, "0.2")]
+        [DataRow(+0.75, TrailingUnit.Degree, 1, "0.8")]
+        [DataRow(+1.25, TrailingUnit.Degree, 1, "1.2")]
+        [DataRow(+1.75, TrailingUnit.Degree, 1, "1.8")]
+        [DataRow(1e20, TrailingUnit.Degree, 0, "100000000000000000000")]
+        [DataRow(1e21, TrailingUnit.Degree, 0, "1000000000000000000000")]
+        public void TestEncode_RoundToEven(double angle, TrailingUnit trailing, int prec, string r)
+        {
+            var r1 = DMS.Encode(angle, trailing, prec);
+            Assert.AreEqual(r, r1);
+        }
     }
 }

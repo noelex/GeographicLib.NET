@@ -571,7 +571,7 @@ namespace GeographicLib.Geocodes
             bool utmp = zone1 != (int)ZoneSpec.UPS;
             int zonem1 = zone1 - 1;
             var band = utmp ? latband_ : upsband_;
-            int iband = band.IndexOf(mgrs[p++]);
+            int iband = band.IndexOf(mgrs[p++], StringComparison.InvariantCultureIgnoreCase);
 
             if (iband < 0)
                 throw new GeographicException($"Band letter {mgrs[p - 1]} not in {(utmp ? "UTM" : "UPS")} set {band}");
@@ -605,13 +605,13 @@ namespace GeographicLib.Geocodes
 
             var col = utmp ? utmcols_[zonem1 % 3] : upscols_[iband];
             var row = utmp ? utmrow_ : upsrows_[northp1 ? 1 : 0];
-            int icol = col.IndexOf(mgrs[p++]);
+            int icol = col.IndexOf(mgrs[p++], StringComparison.InvariantCultureIgnoreCase);
 
             if (icol < 0)
                 throw new GeographicException($"Column letter {mgrs[p - 1]} not in " +
                     $"{(utmp ? "zone " + mgrs.Slice(0, p - 2).ToString() : "UPS band " + mgrs[p - 2])} set {col}");
 
-            int irow = row.IndexOf(mgrs[p++]);
+            int irow = row.IndexOf(mgrs[p++], StringComparison.InvariantCultureIgnoreCase);
             if (irow < 0)
                 throw new GeographicException($"Row letter {mgrs[p - 1]} not in " +
                     $"{(utmp ? "UTM" : ("UPS " + hemispheres_[northp1 ? 1 : 0]))} set {row}");

@@ -12,12 +12,6 @@ namespace GeographicLib.Tests
     [TestClass]
     public class MGRSTests
     {
-        [TestMethod]
-        public void UTMUPSSantityCheck()
-        {
-            MGRS.Check();
-        }
-
         [DataTestMethod]
         [DataRow(33.3, 44.4, "38SMB4414084706")]
         [DataRow(0, 0, "31NAA6602100000")]

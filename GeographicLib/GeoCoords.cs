@@ -352,9 +352,9 @@ namespace GeographicLib
         /// Precision specifies accuracy of representation as follows:
         /// <list type="bullet">
         /// <item><paramref name="prec"/> = −5 (min), 1°</item>
-        /// <item><paramref name="prec"/> = 0, 10−5° (about 1m)</item>
-        /// <item><paramref name="prec"/> = 3, 10−8°</item>
-        /// <item><paramref name="prec"/> = 9 (max), 10−14°</item>
+        /// <item><paramref name="prec"/> = 0, 10^−5° (about 1m)</item>
+        /// <item><paramref name="prec"/> = 3, 10^−8°</item>
+        /// <item><paramref name="prec"/> = 9 (max), 10^−14°</item>
         /// </list>
         /// </remarks>
         public string ToGeoString(int prec = 0, bool longfirst = false)
