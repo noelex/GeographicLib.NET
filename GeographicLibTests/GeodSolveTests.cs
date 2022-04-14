@@ -506,15 +506,20 @@ namespace GeographicLib.Tests
         public void GeodSolve94_CheckFixFor_lat2_eq_NaN_BeingTreatedAs_lat2_eq_Zero()
         {
             var result = Geodesic.WGS84.Inverse(0, 0, double.NaN, 90);
-            var resultExact = GeodesicExact.WGS84.Inverse(0, 0, double.NaN, 90);
 
             Assert.IsTrue(double.IsNaN(result.Azimuth1));
             Assert.IsTrue(double.IsNaN(result.Azimuth2));
             Assert.IsTrue(double.IsNaN(result.Distance));
+        }
 
-            Assert.IsTrue(double.IsNaN(resultExact.Azimuth1));
-            Assert.IsTrue(double.IsNaN(resultExact.Azimuth2));
-            Assert.IsTrue(double.IsNaN(resultExact.Distance));
+        [TestMethod]
+        public void GeodSolve94_CheckFixFor_lat2_eq_NaN_BeingTreatedAs_lat2_eq_Zero_Exact()
+        {
+            var result = GeodesicExact.WGS84.Inverse(0, 0, double.NaN, 90);
+
+            Assert.IsTrue(double.IsNaN(result.Azimuth1));
+            Assert.IsTrue(double.IsNaN(result.Azimuth2));
+            Assert.IsTrue(double.IsNaN(result.Distance));
         }
     }
 }

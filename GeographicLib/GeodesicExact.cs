@@ -505,19 +505,14 @@ namespace GeographicLib
             var lon12 = AngDiff(lon1, lon2, out var lon12s);
             // Make longitude difference positive.
             int lonsign = SignBit(lon12) ? -1 : 1;
-            // If very close to being on the same half-meridian, then make it so.
-            lon12 = lonsign * AngRound(lon12);
-            lon12s = AngRound((180 - lon12) - lonsign * lon12s);
+            lon12 *= lonsign; lon12s *= lonsign;
             double
               lam12 = lon12 * Degree,
               slam12, clam12;
-            if (lon12 > 90)
-            {
-                SinCosd(lon12s, out slam12, out clam12);
-                clam12 = -clam12;
-            }
-            else
-                SinCosd(lon12, out slam12, out clam12);
+
+            // Calculate sincos of lon12 + error (this applies AngRound internally).
+            SinCosde(lon12, lon12s, out slam12, out clam12);
+            lon12s = (180 - lon12) - lon12s; // the supplementary longitude difference
 
             // If really close to the equator, treat as on equator.
             lat1 = AngRound(LatFix(lat1));

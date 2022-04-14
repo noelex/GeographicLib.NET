@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
+using static GeographicLib.Tests.MathExTestData;
 
 namespace GeographicLib.Tests
 {
@@ -104,6 +105,15 @@ namespace GeographicLib.Tests
             var (a, b) = (MathEx.Atan2d(s, -1), 180 - MathEx.Atan2d(s, 1));
 
             Assert.That.EqualsExactly(a, b);
+        }
+
+        [TestMethod]
+        public void TestAngDiff_Accuracy()
+        {
+            double x = 138 + 128 * eps, y = -164;
+            var r = MathEx.AngDiff(x, y);
+
+            Assert.That.EqualsExactly(58 - 128 * eps, r);
         }
 
         [DataTestMethod]

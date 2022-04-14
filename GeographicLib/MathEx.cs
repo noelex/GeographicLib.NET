@@ -132,7 +132,7 @@ namespace GeographicLib
         /// An angle, θ, measured in radians, such that -∞ &lt; θ &lt; -1, or 1 &lt; θ &lt; ∞.
         /// -or- <see cref="double.NaN"/> if <paramref name="x"/> &lt; -1 or <paramref name="x"/> > 1 or <paramref name="x"/> equals <see cref="double.NaN"/>.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Atanh(double x) => CMath.Instance.Atanh(x);
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace GeographicLib
         /// An angle, θ, measured in radians, such that -∞ &lt; θ ≤ -1, or 1 ≤ θ &lt; ∞. -or- <see cref="double.NaN"/>
         /// if <paramref name="x"/> equals <see cref="double.NaN"/>.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Asinh(double x) => CMath.Instance.Asinh(x);
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">The number whose cube root is to be found.</param>
         /// <returns>The cube root of <paramref name="x"/>. -or- <see cref="double.NaN"/> if <paramref name="x"/> equals <see cref="double.NaN"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Cbrt(double x) => CMath.Instance.Cbrt(x);
 #else
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,7 +167,7 @@ namespace GeographicLib
         /// <param name="x">A double-precision floating-point number that specifies the base value.</param>
         /// <param name="n">A 32-bit integer that specifies the power.</param>
         /// <returns>x * 2^n computed efficiently.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double ScaleB(double x, int n) => CMath.Instance.ScaleB(x, n);
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace GeographicLib
         /// <param name="x">A number whose magnitude is used in the result.</param>
         /// <param name="y">A number whose sign is the used in the result.</param>
         /// <returns>A value with the magnitude of <paramref name="x"/> and the sign of <paramref name="y"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double CopySign(double x, double y) => CMath.Instance.CopySign(x, y);
 
         /// <summary>
@@ -368,6 +368,50 @@ namespace GeographicLib
         }
 
         /// <summary>
+        /// Evaluate the sine and cosine with reduced argument plus correction.
+        /// </summary>
+        /// <param name="x">angle in degrees.</param>
+        /// <param name="t">correction in degrees.</param>
+        /// <param name="sinx">sin(<i>x</i>).</param>
+        /// <param name="cosx">cos(<i>x</i>).</param>
+        /// <remarks>
+        /// This is a variant of <see cref="SinCosd(double, out double, out double)"/> 
+        /// allowing a correction to the angle to be supplied.
+        /// <para>
+        /// <paramref name="x"/> must be in [-180°, 180°] and <paramref name="t"/> is
+        /// assumed to be a <i>small</i> correction.
+        /// </para>
+        /// <para>
+        /// <see cref="AngRound(double)"/> is
+        /// applied to the reduced angle to prevent problems with <paramref name="x"/> +
+        /// <paramref name="t"/> being extremely close but not exactly equal to one of
+        /// the cardinal directions.
+        /// </para>
+        /// </remarks>
+        public static void SinCosde(double x, double t, out double sinx, out double cosx)
+        {
+            // In order to minimize round-off errors, this function exactly reduces
+            // the argument to the range [-45, 45] before converting it to radians.
+            // This implementation allows x outside [-180, 180], but implementations in
+            // other languages may not.
+            var r = AngRound(Remquo(x, 90, out var q) + t); // now abs(r) <= 45
+            r *= Degree;
+            // g++ -O turns these two function calls into a call to sincos
+            double s = Sin(r), c = Cos(r);
+            switch ((uint)q & 3U)
+            {
+                case 0U: sinx = s; cosx = c; break;
+                case 1U: sinx = c; cosx = -s; break;
+                case 2U: sinx = -s; cosx = -c; break;
+                default: sinx = -c; cosx = s; break; // case 3U
+            }
+            // http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1950.pdf
+            // mpreal needs T(0) here
+            cosx += 0d;                            // special values from F.10.1.12
+            if (sinx == 0) sinx = CopySign(sinx, x); // special values from F.10.1.13
+        }
+
+        /// <summary>
         /// Evaluate the sine function with the argument in degrees.
         /// </summary>
         /// <param name="x">in degrees.</param>
@@ -464,7 +508,7 @@ namespace GeographicLib
             // and handle mpfr as in AngRound.
             switch (q)
             {
-                case 1: ang = (SignBit(y) ? -180 : 180) - ang; break;
+                case 1: ang = CopySign(180d, y) - ang; break;
                 case 2: ang = 90 - ang; break;
                 case 3: ang = -90 + ang; break;
                 default: break;
@@ -626,11 +670,10 @@ namespace GeographicLib
         {
             // Use remainder instead of AngNormalize, since we treat boundary cases
             // later taking account of the error
-            var d = IEEERemainder(Sum(IEEERemainder(-x, 360),
-                                IEEERemainder(y, 360), out e), 360);
+            var d = Sum(IEEERemainder(-x, 360d), IEEERemainder(y, 360d), out e);
             // This second sum can only change d if abs(d) < 128, so don't need to
             // apply remainder yet again.
-            d = Sum(d, e, out e);
+            d = Sum(IEEERemainder(d, 360d), e, out e);
             // Fix the sign if d = -180, 0, 180.
             if (d == 0 || Abs(d) == 180)
                 // If e == 0, take sign from y - x
