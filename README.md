@@ -85,6 +85,10 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
 
+### Version 2.0.0 (unreleased)
+- **NEW**
+  - Add `IPolygonArea` interface to provide better support for unit testing and dependency injection.
+
 ### Version 1.52.1 (released 2022/04/12)
 - **NEW**
   - Target .NET 6.0 in addition to .NET 5.0, .NET Standard 2.1 and .NET Standard 2.0.

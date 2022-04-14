@@ -43,6 +43,13 @@ namespace GeographicLib
         Distance = 1 << 10 | GeodesicCapability.C1,
 
         /// <summary>
+        /// A combination of the common capabilities:
+        /// <see cref="Latitude"/>, <see cref="Longitude"/>,
+        /// <see cref="Azimuth"/> and <see cref="Distance"/>.
+        /// </summary>
+        Standard = Latitude | Longitude | Azimuth | Distance,
+
+        /// <summary>
         /// Allow distance <i>s12</i> to be used as input in the direct geodesic problem.
         /// </summary>
         DistanceIn = 1 << 11 | GeodesicCapability.C1 | GeodesicCapability.C1p,
