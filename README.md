@@ -88,6 +88,11 @@ For changes adopted from GeographicLib, please refer the its change log [here](h
 ### Version 2.0.0 (unreleased)
 - **NEW**
   - Add `IPolygonArea` interface to provide better support for unit testing and dependency injection.
+  - Add a new method `Utility.FractionalYear` which can parse floating point number and date time string as fractional year.
+
+- **FIX**
+  - String accepting APIs now handle lowercase "nan" correctly.
+  - Ensure consistent rounding mode (`MidpointRounding.ToEven`) across different runtimes when converting floating point number to string.
 
 ### Version 1.52.1 (released 2022/04/12)
 - **NEW**

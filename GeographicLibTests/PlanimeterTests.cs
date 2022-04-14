@@ -108,6 +108,19 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
+        public void Planimeter11r_ReverseAreaOfArcticCircle_Rhumb()
+        {
+            var points = new[] {
+                (DMS.DecodeAngle("66:33:44"), -0d),
+                (DMS.DecodeAngle("66:33:44"), -180),
+                (DMS.DecodeAngle("66:33:44"), -360)
+            };
+            var (_, perimeter, area) = PlanimeterRhumb(points);
+            Assert.AreEqual(15985058, perimeter, 1);
+            Assert.AreEqual(-21208418252300, area, 100);
+        }
+
+        [TestMethod]
         public void Planimeter12_AreaOfArcticCircle()
         {
             var points = new[] { 
@@ -117,7 +130,20 @@ namespace GeographicLib.Tests
             };
             var (_, perimeter, area) = Planimeter(points);
             Assert.AreEqual(10465729, perimeter, 1);
-            Assert.AreEqual(0, area, 1);
+            Assert.AreEqual(0, area);
+        }
+
+        [TestMethod]
+        public void Planimeter12r_ReverseAreaOfArcticCircle()
+        {
+            var points = new[] {
+                (DMS.DecodeAngle("66:33:44"), -0d),
+                (DMS.DecodeAngle("66:33:44"), -180),
+                (DMS.DecodeAngle("66:33:44"), -360)
+            };
+            var (_, perimeter, area) = Planimeter(points);
+            Assert.AreEqual(10465729, perimeter, 1);
+            Assert.AreEqual(0, area);
         }
 
         [TestMethod]
