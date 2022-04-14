@@ -8,6 +8,19 @@ namespace GeographicLib
     public interface IPolygonArea
     {
         /// <summary>
+        /// Report the number of points currently in the polygon or polyline.
+        /// </summary>
+        /// <remarks>
+        /// If no points have been added, then 0 is returned.
+        /// </remarks>
+        int Count { get; }
+
+        /// <summary>
+        /// Report whether the current object is a polygon or a polyline.
+        /// </summary>
+        bool IsPolyline { get; }
+
+        /// <summary>
         /// Gets a value representing the previous vertex added to the polygon or polyline.
         /// </summary>
         /// <remarks>

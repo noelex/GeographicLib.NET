@@ -104,6 +104,12 @@ namespace GeographicLib
             Clear();
         }
 
+        /// <inheritdoc/>
+        public int Count => _num;
+
+        /// <inheritdoc/>
+        public bool IsPolyline => _polyline;
+
         private static int Transit(double lon1, double lon2)
         {
             // Return 1 or -1 if crossing prime meridian in east or west direction.
