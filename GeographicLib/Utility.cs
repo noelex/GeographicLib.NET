@@ -115,7 +115,8 @@ namespace GeographicLib
             }
 
             t = t.Slice(p0);
-            if (t.SequenceEqual("INF".AsSpan()) || t.SequenceEqual("1.#INF".AsSpan()) || t.SequenceEqual("∞".AsSpan()))
+            if (t.SequenceEqual("INF".AsSpan()) || t.SequenceEqual("1.#INF".AsSpan()) ||
+                t.SequenceEqual("∞".AsSpan()) || t.SequenceEqual("INFINITY".AsSpan()))
             {
                 return sign * double.PositiveInfinity;
             }
