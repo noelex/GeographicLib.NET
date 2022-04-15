@@ -122,7 +122,7 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsFinite(double x) => ((ulong)BitConverter.DoubleToInt64Bits(x) & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
+        internal static bool IsFinite(double x) => ((ulong)(Bit64)x & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
 
         /// <summary>
         /// Returns the angle whose hyperbolic tangent is the specified number.
@@ -756,9 +756,7 @@ namespace GeographicLib
         /// </remarks>
         public static double PolyVal(int N, ReadOnlyMemory<double> p, double x) => PolyVal(N, p.Span, x);
 
-        private static readonly long SignMask = BitConverter.DoubleToInt64Bits(-0.0) ^ BitConverter.DoubleToInt64Bits(+0.0);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool SignBit(double v) => (BitConverter.DoubleToInt64Bits(v) & SignMask) == SignMask;
+        internal static bool SignBit(double v) => ((ulong)(Bit64)v & 0x8000000000000000) != 0;
     }
 }
