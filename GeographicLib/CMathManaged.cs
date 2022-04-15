@@ -147,7 +147,7 @@ namespace GeographicLib
             Bit64 ux = x, uy = y;
 
             int ex, ey;
-            double hx, lx, hy, ly, z, ut;
+            double hx, lx, hy, ly, z;
 
             unchecked
             {
