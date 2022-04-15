@@ -158,7 +158,7 @@ namespace GeographicLib
         /// plane and a vector normal to the surface of the ellipsoid.</para>
         /// <para>
         /// The parametric latitude (also called the reduced latitude), β,
-        /// allows the cartesian coordinated of a meridian to be expressed
+        /// allows the cartesian coordinates of a meridian to be expressed
         /// conveniently in parametric form as
         /// </para>
         /// <para>

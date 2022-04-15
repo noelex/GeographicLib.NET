@@ -51,7 +51,7 @@ namespace GeographicLib
     /// <item>Inconsistent rules are used to determine the whether a particular UTM or UPS coordinate is legal. A more systematic approach is taken here.</item>
     /// <item>The underlying projections are not very accurately implemented.</item>
     /// </list>
-    /// The <see cref="EncodeZone"/> encodes the UTM zone and hemisphere to allow UTM/UPS coordinated to be displayed as,
+    /// The <see cref="EncodeZone"/> encodes the UTM zone and hemisphere to allow UTM/UPS coordinates to be displayed as,
     /// for example, "<c>38N 444500 3688500</c>". According to NGA.SIG.0012_2.0.0_UTMUPS the use of "<c>N</c>" to denote "north" in the context is not 
     /// allowed (since a upper case letter in this context denotes the MGRS latitude band).
     /// Consequently, as of version 1.36, <see cref="EncodeZone"/> uses the lower case letters "<c>n</c>" and "<c>s</c>" to denote the hemisphere.
@@ -326,7 +326,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Transfer UTM/UPS coordinated from one zone to another.
+        /// Transfer UTM/UPS coordinates from one zone to another.
         /// </summary>
         /// <param name="zonein">the UTM zone for <paramref name="xin"/> and <paramref name="yin"/> (or zero for UPS).</param>
         /// <param name="northpin">hemisphere for <paramref name="xin"/> and <paramref name="yin"/>
