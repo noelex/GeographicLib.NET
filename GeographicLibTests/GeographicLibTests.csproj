@@ -8,7 +8,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\GeographicLib\SigningKey.snk</AssemblyOriginatorKeyFile>
     <PublicSign>true</PublicSign>
-	<CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
