@@ -345,11 +345,7 @@ namespace GeographicLib
             r *= Degree;
 
 #if NET6_0_OR_GREATER
-            // TODO: Math.SinCos is failing test case PlanimeterTests.TestComputeWithPoints on Windows,
-            // procuding error ranging from 0.0002 to 0.02 meters, which is much greater than expected error 1e-8.
-            // Needs further investigation.
-            // var (s, c) = SinCos(r);
-            var (s, c) = (Sin(r), Cos(r));
+            var (s, c) = SinCos(r);
 #else
             double s = Sin(r), c = Cos(r);
 #endif
@@ -396,8 +392,13 @@ namespace GeographicLib
             // other languages may not.
             var r = AngRound(Remquo(x, 90, out var q) + t); // now abs(r) <= 45
             r *= Degree;
+
             // g++ -O turns these two function calls into a call to sincos
+#if NET6_0_OR_GREATER
+            var (s, c) = SinCos(r);
+#else
             double s = Sin(r), c = Cos(r);
+#endif
             switch ((uint)q & 3U)
             {
                 case 0U: sinx = s; cosx = c; break;
