@@ -319,8 +319,8 @@ namespace GeographicLib.Tests
             Assert.AreEqual(lat2, lat2a, 1e-13 * f);
             Assert.AreEqual(lon2, lon2a, 1e-13 * f);
             Assert.AreEqual(azi2, azi2a, 1e-13 * f);
-            Assert.AreEqual(s12, s12a, 1e-8 * f); // TODO: delta should be 0 here
-            Assert.AreEqual(a12, a12a, 1e-13 * f);
+            Assert.AreEqual(s12, s12a, 1e-8 * f);
+            Assert.AreEqual(a12, a12a, 0 * f);
             Assert.AreEqual(m12, m12a, 1e-8 * f);
             Assert.AreEqual(M12, M12a, 1e-15 * f);
             Assert.AreEqual(M21, M21a, 1e-15 * f);

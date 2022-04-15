@@ -974,8 +974,6 @@ namespace GeographicLib
                 throw new GeographicException("Parameter k2 is not in (-inf, 1]");
             if (alpha2 > 1)
                 throw new GeographicException("Parameter alpha2 is not in (-inf, 1]");
-
-            // TODO: NaNs are allowed below as SignBit alone is failing GeodSolve94_CheckFixFor_lat2_eq_NaN_BeingTreatedAs_lat2_eq_Zero_Exact.
             if (kp2 < 0) 
                 throw new GeographicException("Parameter kp2 is not in [0, inf)");
             if (alphap2 < 0)

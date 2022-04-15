@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using static System.Math;
 using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
+using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace GeographicLib
 {
@@ -264,17 +266,28 @@ namespace GeographicLib
                 if (maxval != pixel_max_)
                     throw new GeographicException("Incorrect value of maxval: " + _filename);
 
-                // HACK: Get start position of binary data.
                 sr.BaseStream.Seek(0, SeekOrigin.Begin);
                 sr.DiscardBufferedData();
-                var buff = new char[1024];
-                var sp = buff.AsSpan();
-                sr.ReadBlock(buff, 0, buff.Length);
-                var end = sp.IndexOf((s + '\n').AsSpan()) + s.Length + 1;
 
-                // Add 1 for whitespace after maxval
-                _datastart = Encoding.UTF8.GetByteCount(sp.Slice(0, end).ToArray()); // +1 ?
-                _swidth = _width;
+#if NETSTANDARD2_0
+                using (var buffOwner = MemoryPool<char>.Shared.Rent(1024))
+                {
+                    var buff = buffOwner.Memory.Slice(0, 1024);
+                    var sp = buff.Span;
+
+                    MemoryMarshal.TryGetArray<char>(buff, out var buffArray);
+                    sr.ReadBlock(buffArray.Array, buffArray.Offset, buffArray.Count);               
+#else
+                {
+                    Span<char> sp = stackalloc char[1024];
+                    sr.ReadBlock(sp);
+#endif
+                    var end = sp.IndexOf((s + '\n').AsSpan()) + s.Length + 1;
+
+                    // Add 1 for whitespace after maxval
+                    _datastart = Encoding.UTF8.GetByteCount(sp.Slice(0, end).ToArray()); // +1 ?
+                    _swidth = _width;
+                }
             }
 
             if (_offset == double.MaxValue)
