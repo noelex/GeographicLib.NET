@@ -27,6 +27,11 @@ Copyright (c) 2021-2022, GeographicLib.NET contributors]]></Copyright>
 		<PublicSign>True</PublicSign>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0'">
+		<IsTrimmable>true</IsTrimmable>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+	</PropertyGroup>
+
 	<PropertyGroup>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>

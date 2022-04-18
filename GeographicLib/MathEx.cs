@@ -713,7 +713,7 @@ namespace GeographicLib
         /// in degrees.  (This is about 2000 times more resolution than we get with
         /// angles around 90°.)  We use this to avoid having to deal with near
         /// singular cases when <i>x</i> is non-zero but tiny (e.g.,
-        /// 10^-200.  The sign of ±0 is preserved.
+        /// 10^-200).  The sign of ±0 is preserved.
         /// </remarks>
         public static double AngRound(double x)
         {
