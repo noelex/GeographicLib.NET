@@ -86,7 +86,7 @@ Intel Xeon CPU E5-2689 0 2.60GHz, 1 CPU, 16 logical and 8 physical cores
   .NET Core 2.1 : .NET Core 2.1.30 (CoreCLR 4.6.30411.01, CoreFX 4.6.30411.02), X64 RyuJIT
   .NET Core 3.1 : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
 ```
-|  Method |           Job |       Runtime | UseMangedCMath |       Mean |    Error |   StdDev | Ratio | RatioSD |
+|  Method |           Job |       Runtime | UseManagedCMath |       Mean |    Error |   StdDev | Ratio | RatioSD |
 |-------- |-------------- |-------------- |--------------- |-----------:|---------:|---------:|------:|--------:|
 |  **Direct** |      **.NET 5.0** |      **.NET 5.0** |          **False** |   **953.1 ns** | **14.94 ns** | **13.98 ns** |  **0.82** |    **0.01** |
 |  Direct |      .NET 6.0 |      .NET 6.0 |          False |   975.3 ns |  6.42 ns |  6.00 ns |  0.84 |    0.01 |

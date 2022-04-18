@@ -13,7 +13,7 @@ namespace GeographicLib.Benchmarks
     public class GeodesicBenchmark
     {
         [Params(true, false)]
-        public bool UseMangedCMath { get => MathEx.UseManagedCMath; set => MathEx.UseManagedCMath = value; }
+        public bool UseManagedCMath { get => MathEx.UseManagedCMath; set => MathEx.UseManagedCMath = value; }
 
 
         [Benchmark]
