@@ -208,6 +208,11 @@ namespace GeographicLib
         public static double Log2(double x) => CMath.Instance.Log2(x);
 #endif
 
+#if !NET6_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static (double Sin, double Cos) SinCos(double x) => (Sin(x), Cos(x));
+#endif
+
         /// <summary>
         /// Compute exp(x) - 1 without loss of precision for small values of x.
         /// </summary>
@@ -344,11 +349,7 @@ namespace GeographicLib
             var r = Remquo(x, 90, out var q);
             r *= Degree;
 
-#if NET6_0_OR_GREATER
             var (s, c) = SinCos(r);
-#else
-            double s = Sin(r), c = Cos(r);
-#endif
 
             switch ((uint)q & 3U)
             {
@@ -394,11 +395,8 @@ namespace GeographicLib
             r *= Degree;
 
             // g++ -O turns these two function calls into a call to sincos
-#if NET6_0_OR_GREATER
             var (s, c) = SinCos(r);
-#else
-            double s = Sin(r), c = Cos(r);
-#endif
+
             switch ((uint)q & 3U)
             {
                 case 0U: sinx = s; cosx = c; break;
