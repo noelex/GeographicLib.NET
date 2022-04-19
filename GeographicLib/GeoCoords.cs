@@ -234,9 +234,7 @@ namespace GeographicLib
         {
             (_zone, _northp, _easting, _northing) = UTMUPS.Forward(latitude, longitude, out _gamma, out _k, zone);
             _lat = latitude;
-            _long = longitude;
-            if (_long >= 180) _long -= 360;
-            else if (_long < -180) _long += 360;
+            _long = AngNormalize(longitude);
             CopyToAlt();
         }
 

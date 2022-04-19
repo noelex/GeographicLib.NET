@@ -198,7 +198,8 @@ namespace GeographicLib
         /// <returns><i>E</i>(π <i>ang</i>/180, <i>k</i>).</returns>
         public double Ed(double ang)
         {
-            double n = Ceiling(ang / 360 - 0.5);
+            // ang - Math::AngNormalize(ang) is (nearly) an exact multiple of 360
+            double n = Round((ang - AngNormalize(ang)) / td);
             ang -= 360 * n;
             SinCosd(ang, out var sn, out var cn);
             return E(sn, cn, Delta(sn, cn)) + 4 * E() * n;

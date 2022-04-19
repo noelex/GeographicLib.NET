@@ -13,8 +13,37 @@ namespace GeographicLib
         /// <summary>
         /// The number of radians in a degree
         /// </summary>
-        public const double Degree = PI / 180;
+        public const double Degree = PI / hd;
 
+        /// <summary>
+        /// degrees per quarter turn
+        /// </summary>
+        internal const int qd = 90;
+
+        /// <summary>
+        /// minutes per degree
+        /// </summary>
+        internal const int dm = 60;
+
+        /// <summary>
+        /// seconds per minute
+        /// </summary>
+        internal const int ms = 60;
+
+        /// <summary>
+        /// degrees per half turn
+        /// </summary>
+        internal const int hd = 2 * qd;
+
+        /// <summary>
+        /// degrees per turn
+        /// </summary>
+        internal const int td = 2 * hd;
+
+        /// <summary>
+        /// seconds per degree
+        /// </summary>
+        internal const int ds = dm * ms;
         /// <summary>
         /// 
         /// </summary>
@@ -346,7 +375,7 @@ namespace GeographicLib
         {
             // In order to minimize round-off errors, this function exactly reduces
             // the argument to the range [-45, 45] before converting it to radians.
-            var r = Remquo(x, 90, out var q);
+            var r = Remquo(x, qd, out var q);
             r *= Degree;
 
             var (s, c) = SinCos(r);
@@ -391,7 +420,7 @@ namespace GeographicLib
             // the argument to the range [-45, 45] before converting it to radians.
             // This implementation allows x outside [-180, 180], but implementations in
             // other languages may not.
-            var r = AngRound(Remquo(x, 90, out var q) + t); // now abs(r) <= 45
+            var r = AngRound(Remquo(x, qd, out var q) + t); // now abs(r) <= 45
             r *= Degree;
 
             // g++ -O turns these two function calls into a call to sincos
@@ -423,7 +452,7 @@ namespace GeographicLib
         {
             // See sincosd
             double r;
-            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
+            r = Remquo(x, qd, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)q;
@@ -448,7 +477,7 @@ namespace GeographicLib
         {
             // See sincosd
             double r;
-            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
+            r = Remquo(x, qd, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)(q + 1);
@@ -507,9 +536,9 @@ namespace GeographicLib
             // and handle mpfr as in AngRound.
             switch (q)
             {
-                case 1: ang = CopySign(180d, y) - ang; break;
-                case 2: ang = 90 - ang; break;
-                case 3: ang = -90 + ang; break;
+                case 1: ang = CopySign(hd, y) - ang; break;
+                case 2: ang = qd - ang; break;
+                case 3: ang = -qd + ang; break;
                 default: break;
             }
 
@@ -646,8 +675,8 @@ namespace GeographicLib
         /// <returns>The angle reduced to the range [-180°, 180°]</returns>
         public static double AngNormalize(double x)
         {
-            var y = IEEERemainder(x, 360d);
-            return Abs(y) == 180 ? CopySign(180, x) : y;
+            var y = IEEERemainder(x, td);
+            return Abs(y) == hd ? CopySign(hd, x) : y;
         }
 
         /// <summary>
@@ -669,12 +698,12 @@ namespace GeographicLib
         {
             // Use remainder instead of AngNormalize, since we treat boundary cases
             // later taking account of the error
-            var d = Sum(IEEERemainder(-x, 360d), IEEERemainder(y, 360d), out e);
+            var d = Sum(IEEERemainder(-x, td), IEEERemainder(y, td), out e);
             // This second sum can only change d if abs(d) < 128, so don't need to
             // apply remainder yet again.
-            d = Sum(IEEERemainder(d, 360d), e, out e);
+            d = Sum(IEEERemainder(d, td), e, out e);
             // Fix the sign if d = -180, 0, 180.
-            if (d == 0 || Abs(d) == 180)
+            if (d == 0 || Abs(d) == hd)
                 // If e == 0, take sign from y - x
                 // else (e != 0, implies d = +/-180), d and e must have opposite signs
                 d = CopySign(d, e == 0 ? y - x : -e);
@@ -698,7 +727,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">The angle in degrees.</param>
         /// <returns><paramref name="x"/> if it is in the range [-90°, 90°], otherwise <see cref="double.NaN"/>.</returns>
-        public static double LatFix(double x) => Abs(x) > 90 ? double.NaN : x;
+        public static double LatFix(double x) => Abs(x) > qd ? double.NaN : x;
 
         /// <summary>
         /// Coarsen a value close to zero.

@@ -166,7 +166,7 @@ namespace GeographicLib
 
             _ell = ellipsoid;
             _exact = exact;
-            _c2 = _ell.Area / 720;
+            _c2 = _ell.Area / (2 * td);
 
             var d = 1.0;
             int o = 0;
@@ -649,7 +649,7 @@ namespace GeographicLib
             if (outmask.HasFlag(GeodesicFlags.Distance))
             {
                 var dmudpsi = DIsometricToRectifying(psi2, psi1);
-                s12 = h * dmudpsi * _ell.QuarterMeridian / 90;
+                s12 = h * dmudpsi * _ell.QuarterMeridian / qd;
             }
             if (outmask.HasFlag(GeodesicFlags.Area))
                 S12 = _c2 * lon12 *

@@ -150,7 +150,7 @@ namespace GeographicLib
             if (setzone == (int)ZoneSpec.UTM || (lat >= -80 && lat < 84))
             {
                 int ilon = (int)Floor(AngNormalize(lon));
-                if (ilon == 180) ilon = -180; // ilon now in [-180,180)
+                if (ilon == hd) ilon = -hd; // ilon now in [-180,180)
                 int zone = (ilon + 186) / 6;
                 int band = MGRS.LatitudeBand(lat);
                 if (band == 7 && zone == 31 && ilon >= 3) // The Norway exception
@@ -280,8 +280,8 @@ namespace GeographicLib
         public static (int zone, bool northp, double x, double y) Forward(
             double lat, double lon, out double gamma, out double k, int setzone = (int)ZoneSpec.Standard, bool mgrslimits = false)
         {
-            if (Abs(lat) > 90)
-                throw new GeographicException($"Latitude {lat}d not in [-90d, 90d]");
+            if (Abs(lat) > qd)
+                throw new GeographicException($"Latitude {lat}d not in [-{qd}d, {qd}d]");
             bool northp1 = !SignBit(lat);
             int zone1 = StandardZone(lat, lon, setzone);
             if (zone1 == (int)ZoneSpec.Invalid)

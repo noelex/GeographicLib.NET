@@ -30,8 +30,8 @@ namespace GeographicLib.Geocodes
         private const string ucdigits_ = "0123456789BCDEFGHJKMNPQRSTUVWXYZ";
 
         private static readonly double shift = Ldexp(1, 45),
-                                       loneps = 180 / shift,
-                                       lateps = 90 / shift;
+                                       loneps = hd / shift,
+                                       lateps = qd / shift;
 
         /// <summary>
         /// Convert from geographic coordinates to a geohash.
@@ -48,17 +48,17 @@ namespace GeographicLib.Geocodes
         /// </remarks>
         public static string Forward(double lat, double lon, int len)
         {
-            if (Abs(lat) > 90)
-                throw new GeographicException($"Latitude {lat}d not in [-90d, 90d]");
+            if (Abs(lat) > qd)
+                throw new GeographicException($"Latitude {lat}d not in [-{qd}d, {qd}d]");
 
             if (double.IsNaN(lat) || double.IsNaN(lon))
             {
                 return "invalid";
             }
 
-            if (lat == 90) lat -= lateps / 2;
+            if (lat == qd) lat -= lateps / 2;
             lon = AngNormalize(lon);
-            if (lon == 180) lon = -180; // lon now in [-180,180)
+            if (lon == hd) lon = -hd; // lon now in [-180,180)
                                         // lon/loneps in [-2^45,2^45); lon/loneps + shift in [0,2^46)
                                         // similarly for lat
             len = Max(0, Min(maxlen_, len));
@@ -143,7 +143,7 @@ namespace GeographicLib.Geocodes
             ulon <<= (s / 2);
             ulat <<= s - (s / 2);
 
-            return (ulat * lateps - 90, ulon * loneps - 180, len1);
+            return (ulat * lateps - qd, ulon * loneps - hd, len1);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace GeographicLib.Geocodes
         public static double LatitudeResolution(int len)
         {
             len = Max(0, Min(maxlen_, len));
-            return Ldexp(180d, -(5 * len / 2));
+            return Ldexp(hd, -(5 * len / 2));
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace GeographicLib.Geocodes
         public static double LongitudeResolution(int len)
         {
             len = Max(0, Min(maxlen_, len));
-            return Ldexp(360d, -(5 * len - 5 * len / 2));
+            return Ldexp(td, -(5 * len - 5 * len / 2));
         }
 
         /// <summary>

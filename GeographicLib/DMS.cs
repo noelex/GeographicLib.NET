@@ -188,14 +188,14 @@ namespace GeographicLib
                     break;
                 }
                 // Note that we accept 59.999999... even though it rounds to 60.
-                if (ipieces[1] >= 60 || fpieces[1] > 60)
+                if (ipieces[1] >= dm || fpieces[1] > dm)
                 {
-                    errormsg = $"Minutes {fpieces[1]} not in range [0, 60)";
+                    errormsg = $"Minutes {fpieces[1]} not in range [0, {dm})";
                     break;
                 }
-                if (ipieces[2] >= 60 || fpieces[2] > 60)
+                if (ipieces[2] >= ms || fpieces[2] > ms)
                 {
-                    errormsg = $"Seconds {fpieces[2]} not in range [0, 60)";
+                    errormsg = $"Seconds {fpieces[2]} not in range [0, {ms})";
                     break;
                 }
                 // Assume check on range of result is made by calling routine (which
@@ -203,9 +203,9 @@ namespace GeographicLib
                 ind = ind1;
                 return (sign *
                   (fpieces[2] != 0 ?
-                    (60 * (60 * fpieces[0] + fpieces[1]) + fpieces[2]) / 3600 :
+                    (ms * (dm * fpieces[0] + fpieces[1]) + fpieces[2]) / ds :
                     (fpieces[1] != 0 ?
-                      (60 * fpieces[0] + fpieces[1]) / 60 : fpieces[0])), ind);
+                      (dm * fpieces[0] + fpieces[1]) / dm : fpieces[0])), ind);
             } while (false);
             var val = dmsa.NumMatch();
             if (val == 0)
@@ -437,7 +437,7 @@ namespace GeographicLib
         /// <c>-DMS.Decode(3.0, 20.0)</c> or <c>DMS.Decode(-3.0, -20.0)</c>.
         /// </remarks>
         public static double Decode(double d, double m = 0, double s = 0)
-            => d + (m + s / 60) / 60;
+            => d + (m + s / ms) / dm;
 
         /// <summary>
         /// Convert a pair of strings to latitude and longitude.
@@ -474,8 +474,8 @@ namespace GeographicLib
             double
               lat1 = ia == HemisphereIndicator.Latitude ? a : b,
               lon1 = ia == HemisphereIndicator.Latitude ? b : a;
-            if (Abs(lat1) > 90)
-                throw new GeographicException($"Latitude {lat1}d not in [-90d, 90d]");
+            if (Abs(lat1) > qd)
+                throw new GeographicException($"Latitude {lat1}d not in [-{qd}d, {qd}d]");
 
             return (lat1, lon1);
         }
@@ -571,15 +571,16 @@ namespace GeographicLib
             // 15 - 2 * trailing = ceiling(log10(2^53/90/60^trailing)).
             // This suffices to give full real precision for numbers in [-90,90]
             prec = Min(15 + 0 - 2 * (int)trailing, prec);
-            var scale = 1d;
-            for (var i = 0; i < (int)trailing; ++i)
-                scale *= 60;
+            double scale = 
+                trailing == TrailingUnit.Minute ? dm :
+                (trailing == TrailingUnit.Second ? ds : 1);
+
             if (ind == HemisphereIndicator.Azimuth)
             {
                 angle = AngNormalize(angle);
                 // Only angles strictly less than 0 can become 360; convert -0 to +0.
                 if (angle < 0)
-                    angle += 360;
+                    angle += td;
                 else
                     angle = 0 + angle;
             }
@@ -615,16 +616,16 @@ namespace GeographicLib
                             s = s.Substring(p);
                         }
                     }
-                    // Now i in [0,60] or [0,3600] for MINUTE/DEGREE
+                    // Now i in [0,Math::dm] or [0,Math::ds] for MINUTE/DEGREE
                     switch (trailing)
                     {
                         case TrailingUnit.Minute:
-                            minute = string.Format("{0}{1}", i % 60, s); i /= 60;
+                            minute = string.Format("{0}{1}", i % dm, s); i /= dm;
                             degree = Utility.ToFixedString(i + idegree, 0); // no overflow since i in [0,1]
                             break;
                         default: // case SECOND:
-                            second = string.Format("{0}{1}", i % 60, s); i /= 60;
-                            minute = (i % 60).ToString(); i /= 60;
+                            second = string.Format("{0}{1}", i % ms, s); i /= ms;
+                            minute = (i % dm).ToString(); i /= dm;
                             degree = Utility.ToFixedString(i + idegree, 0); // no overflow since i in [0,1]
                             break;
                     }
@@ -690,7 +691,7 @@ namespace GeographicLib
         public static (double degrees, double minutes) EncodeDM(double ang)
         {
             var d = (int)ang;
-            return (d, 60 * (ang - d));
+            return (d, dm * (ang - d));
         }
 
         /// <summary>
@@ -701,10 +702,10 @@ namespace GeographicLib
         public static (double degrees, double minutes, double seconds) Encode(double ang)
         {
             var d = (int)ang;
-            ang = 60 * (ang - d);
+            ang = dm * (ang - d);
             var m = (int)ang;
 
-            return (d, m, 60 * (ang - m));
+            return (d, m, ms * (ang - m));
         }
     }
 }
