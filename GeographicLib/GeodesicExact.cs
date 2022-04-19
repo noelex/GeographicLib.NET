@@ -525,14 +525,14 @@ namespace GeographicLib
                 lonsign *= -1;
                 Swap(ref lat1, ref lat2);
             }
-            // Make lat1 <= 0
+            // Make lat1 <= -0
             int latsign = SignBit(lat1) ? 1 : -1;
             lat1 *= latsign;
             lat2 *= latsign;
             // Now we have
             //
             //     0 <= lon12 <= 180
-            //     -90 <= lat1 <= 0
+            //     -90 <= lat1 <= -0
             //     lat1 <= lat2 <= -lat1
             //
             // longsign, swapp, latsign register the transformation to bring the
@@ -629,7 +629,7 @@ namespace GeographicLib
                     meridian = false;
             }
 
-            // somg12 > 1 marks that it needs to be calculated
+            // somg12 == 2 marks that it needs to be calculated
             double omg12 = 0, somg12 = 2, comg12 = 0;
             if (!meridian &&
                 sbet1 == 0 &&   // and sbet2 == 0
@@ -811,12 +811,9 @@ namespace GeographicLib
                     // Avoid problems with indeterminate sig1, sig2 on equator
                     S12 = 0;
 
-                if (!meridian)
+                if (!meridian && somg12 == 2)
                 {
-                    if (somg12 > 1)
-                    {
-                        somg12 = Sin(omg12); comg12 = Cos(omg12);
-                    }
+                    somg12 = Sin(omg12); comg12 = Cos(omg12);
                 }
 
                 if (!meridian &&

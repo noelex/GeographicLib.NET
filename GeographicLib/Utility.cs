@@ -149,15 +149,18 @@ namespace GeographicLib
             }
         }
 
-        internal static bool ParseLine(ReadOnlySpan<char> line, out string key, out string value, char delim = '\0')
+        internal static bool ParseLine(
+            ReadOnlySpan<char> line, out string key, out string value, 
+            char equals = '\0', char comment = '#')
         {
             key = value = null;
 
-            var n = line.IndexOf('#');
+            var n = line.IndexOf(comment);
             var linea = n==-1?line: line.Slice(0, n).Trim();
             if (linea.IsEmpty) return false;
 
-            n = delim != 0 ? linea.IndexOf(delim) : linea.IndexOfAny(" \t\n\v\f\r".AsSpan());
+            n = equals != 0 ? linea.IndexOf(equals)
+                : linea.IndexOfAny(" \t\n\v\f\r".AsSpan());
             key = linea.Slice(0, n).Trim().ToString();
             if (string.IsNullOrEmpty(key)) return false;
 

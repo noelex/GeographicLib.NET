@@ -521,5 +521,23 @@ namespace GeographicLib.Tests
             Assert.IsTrue(double.IsNaN(result.Azimuth2));
             Assert.IsTrue(double.IsNaN(result.Distance));
         }
+
+        /// <summary>
+        /// Failure with long doubles found with test case from Nowak + Nowak Da
+        /// Costa (2022). Problem was using somg12 > 1 as a test that it needed
+        /// to be set when roundoff could result in somg12 slightly bigger that 1.
+        /// Found + fixed 2022-03-30.
+        /// </summary>
+        [TestMethod]
+        public void GeodSolve96_97()
+        {
+            IGeodesic g = new Geodesic(6378137, 1 / 298.257222101);
+            var result = g.Inverse(0, 0, 60.0832522871723, 89.8492185074635);
+            Assert.AreEqual("42426932221845", result.Area.ToFixedString(0));
+
+            g = new GeodesicExact(6378137, 1 / 298.257222101);
+            result = g.Inverse(0, 0, 60.0832522871723, 89.8492185074635);
+            Assert.AreEqual("42426932221845", result.Area.ToFixedString(0));
+        }
     }
 }

@@ -717,10 +717,12 @@ namespace GeographicLib
         {
             const double z = 1 / 16d;
 
-            var y = Abs(x);
+            double 
+                y = Abs(x),
+                w = z - y;
 
             // The compiler mustn't "simplify" z - (z - y) to y
-            y = y < z ? z - (z - y) : y;
+            y = w > 0 ? z - w : y;
             return CopySign(y, x);
         }
 
