@@ -34,9 +34,7 @@ namespace GeographicLib.Tests
 
             Assert.AreEqual(n, c);
             Assert.AreEqual(perimeter, peri, 1e-8);
-
-            // The maximum error in the area as specified in https://geographiclib.sourceforge.io/html/Planimeter.1.html#ACCURACY
-            Assert.AreEqual(area, a, 0.11);
+            Assert.AreEqual(area, a, 1e-8);
         }
 
         [DataTestMethod]

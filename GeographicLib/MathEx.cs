@@ -237,10 +237,9 @@ namespace GeographicLib
         public static double Log2(double x) => CMath.Instance.Log2(x);
 #endif
 
-#if !NET6_0_OR_GREATER
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static (double Sin, double Cos) SinCos(double x) => (Sin(x), Cos(x));
-#endif
 
         /// <summary>
         /// Compute exp(x) - 1 without loss of precision for small values of x.
