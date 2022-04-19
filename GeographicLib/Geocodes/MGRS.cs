@@ -192,7 +192,7 @@ namespace GeographicLib.Geocodes
 
             // Estimate center row number for latitude band
             // 90 deg = 100 tiles; 1 band = 8 deg = 100*8/90 tiles
-            var c = 100 * (8 * iband + 4) / (double)qd;
+            var c = 100 * (8 * iband + 4) / (double)QD;
             bool northp = iband >= 0;
             // These are safe bounds on the rows
             //  iband minrow maxrow
@@ -580,7 +580,7 @@ namespace GeographicLib.Geocodes
             if (p == len)
             {             // Grid zone only (ignore centerp)
                           // Approx length of a degree of meridian arc in units of tile.
-                var deg = (double)utmNshift_ / (qd * tile_);
+                var deg = (double)utmNshift_ / (QD * tile_);
 
                 if (utmp)
                 {

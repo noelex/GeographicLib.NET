@@ -241,7 +241,7 @@ namespace GeographicLib
         /// µ lies in [-90°, 90°].
         /// </para>
         /// </remarks>
-        public double RectifyingLatitude(double phi) => Abs(phi) == qd ? phi : qd * MeridianDistance(phi) / QuarterMeridian;
+        public double RectifyingLatitude(double phi) => Abs(phi) == QD ? phi : QD * MeridianDistance(phi) / QuarterMeridian;
 
         /// <summary>
         /// Inverse of <see cref="RectifyingLatitude(double)"/>.
@@ -254,8 +254,8 @@ namespace GeographicLib
         /// φ lies in [-90°, 90°].
         /// </remarks>
         public double InverseRectifyingLatitude(double mu)
-            => Abs(mu) == qd ? mu
-                : InverseParametricLatitude(_ell.Einv(mu * _ell.E() / qd) / Degree);
+            => Abs(mu) == QD ? mu
+                : InverseParametricLatitude(_ell.Einv(mu * _ell.E() / QD) / Degree);
 
         /// <summary>
         /// Authalic latitude conversion.
@@ -367,7 +367,7 @@ namespace GeographicLib
         /// φ must lie in the range [-90°, 90°]; the result is undefined if this condition does not hold.
         /// </remarks>
         public double CircleRadius(double phi) =>
-            Abs(phi) == qd ? 0 :
+            Abs(phi) == QD ? 0 :
               // a * cos(beta)
               _a / Hypot(1d, _f1 * Tand(LatFix(phi)));
 

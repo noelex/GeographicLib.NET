@@ -27,8 +27,8 @@ namespace GeographicLib.Geocodes
         private const string letters_ = "ABCDEFGHJKLMNPQRSTUVWXYZ";
 
         private const int
-              lonorig_ = -hd,          // Origin for longitude
-              latorig_ = -qd,           // Origin for latitude
+              lonorig_ = -HD,          // Origin for longitude
+              latorig_ = -QD,           // Origin for latitude
               baselon_ = 10,            // Base for longitude tiles
               baselat_ = 24,            // Base for latitude tiles
               lonlen_ = 3,
@@ -61,16 +61,16 @@ namespace GeographicLib.Geocodes
         /// </remarks>
         public static string Forward(double lat, double lon, int prec)
         {
-            if (Abs(lat) > qd)
-                throw new GeographicException($"Latitude {lat}d not in [-{qd}d, {qd}d]");
+            if (Abs(lat) > QD)
+                throw new GeographicException($"Latitude {lat}d not in [-{QD}d, {QD}d]");
             if (double.IsNaN(lat) || double.IsNaN(lon))
             {
                 return "INVALID";
             }
 
             lon = AngNormalize(lon);
-            if (lon == hd) lon = -hd; // lon now in [-180,180)
-            if (lat == qd) lat *= (1 - DBL_EPSILON / 2);
+            if (lon == HD) lon = -HD; // lon now in [-180,180)
+            if (lat == QD) lat *= (1 - DBL_EPSILON / 2);
 
             prec = Max(0, Min(maxprec_, prec));
             int
@@ -146,7 +146,7 @@ namespace GeographicLib.Geocodes
                 ilon = ilon * baselon_ + k;
             }
 
-            if (!(ilon >= 1 && ilon <= 2 * td))
+            if (!(ilon >= 1 && ilon <= 2 * TD))
                 throw new GeographicException("Initial digits in GARS must lie in [1, 720]: " + gars.ToString());
 
             --ilon;
@@ -158,7 +158,7 @@ namespace GeographicLib.Geocodes
                     throw new GeographicException("Illegal letters in GARS " + gars.Slice(3, 2).ToString());
                 ilat = ilat * baselat_ + k;
             }
-            if (!(ilat < td))
+            if (!(ilat < TD))
                 throw new GeographicException("GARS letters must lie in [AA, QZ] " + gars.ToString());
             double
               unit = mult1_,

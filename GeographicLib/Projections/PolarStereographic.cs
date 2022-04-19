@@ -113,9 +113,9 @@ namespace GeographicLib.Projections
               secphi = Hypot(1, tau),
               taup = Taupf(tau, _es),
               rho = Hypot(1, taup) + Abs(taup);
-            rho = taup >= 0 ? (lat != qd ? 1 / rho : 0) : rho;
+            rho = taup >= 0 ? (lat != QD ? 1 / rho : 0) : rho;
             rho *= 2 * _k0 * _a / _c;
-            k = lat != qd ?
+            k = lat != QD ?
                 (rho / _a) * secphi * Sqrt(_e2m + _e2 / Sq(secphi)) :
               _k0;
             SinCosd(lon, out x, out y);
@@ -189,8 +189,8 @@ namespace GeographicLib.Projections
                 throw new GeographicException("Projection is frozen");
             if (!(IsFinite(k) && k > 0))
                 throw new GeographicException("Scale is not positive");
-            if (!(-qd < lat && lat <= qd))
-                throw new GeographicException($"Latitude must be in (-{qd}d, {qd}d]");
+            if (!(-QD < lat && lat <= QD))
+                throw new GeographicException($"Latitude must be in (-{QD}d, {QD}d]");
 
             _k0 = 1;
             Forward(true, lat, 0, out _, out var kold);

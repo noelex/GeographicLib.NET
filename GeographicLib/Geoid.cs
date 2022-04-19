@@ -311,8 +311,8 @@ namespace GeographicLib
                 // Possibly this test should be "<" because the file contains, e.g., a
                 // second image.  However, for now we are more strict.
                 throw new GeographicException("File has the wrong length " + _filename);
-            _rlonres = _width / (double)td;
-            _rlatres = (_height - 1) / (double)hd;
+            _rlonres = _width / (double)TD;
+            _rlatres = (_height - 1) / (double)HD;
             _cache = false;
             _ix = _width;
             _iy = _height;
@@ -353,7 +353,7 @@ namespace GeographicLib
             west = AngNormalize(west); // west in [-180, 180)
             east = AngNormalize(east);
             if (east <= west)
-                east += td;              // east - west in (0, 360]
+                east += TD;              // east - west in (0, 360]
             int
               iw = (int)Floor(west * _rlonres),
               ie = (int)Floor(east * _rlonres),
@@ -437,7 +437,7 @@ namespace GeographicLib
         /// For a 1' grid, the required RAM is 450MB; a 2.5' grid needs 72MB; and a 5' grid needs 18MB.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CacheAll() => CacheArea(-qd, 0, qd, td);
+        public void CacheAll() => CacheArea(-QD, 0, QD, TD);
 
         /// <summary>
         /// Clear the cache. This never throws an error. (This does nothing with a thread safe <see cref="Geoid"/>.)
@@ -583,13 +583,13 @@ namespace GeographicLib
         /// Gets a value representing north edge of the cached area; the cache includes this edge.
         /// </summary>
         public double CacheNorth
-            => _cache ? qd - (_yoffset + (_cubic ? 1 : 0)) / _rlatres : 0;
+            => _cache ? QD - (_yoffset + (_cubic ? 1 : 0)) / _rlatres : 0;
 
         /// <summary>
         /// Gets a value representing south edge of the cached area; the cache excludes this edge unless it's the south pole.
         /// </summary>
         public double CacheSouth
-            => _cache ? qd - (_yoffset + _ysize - 1 - (_cubic ? 1 : 0)) / _rlatres : 0;
+            => _cache ? QD - (_yoffset + _ysize - 1 - (_cubic ? 1 : 0)) / _rlatres : 0;
 
         /// <inheritdoc/>
         public double EquatorialRadius => Constants.WGS84_a;

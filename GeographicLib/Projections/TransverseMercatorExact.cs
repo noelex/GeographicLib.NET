@@ -468,12 +468,12 @@ namespace GeographicLib.Projections
               lonsign = (!_extendp && SignBit(lon)) ? -1 : 1;
             lon *= lonsign;
             lat *= latsign;
-            bool backside = !_extendp && lon > qd;
+            bool backside = !_extendp && lon > QD;
             if (backside)
             {
                 if (lat == 0)
                     latsign = -1;
-                lon = hd - lon;
+                lon = HD - lon;
             }
             double
               lam = lon * Degree,
@@ -481,12 +481,12 @@ namespace GeographicLib.Projections
 
             // u,v = coordinates for the Thompson TM, Lee 54
             double u, v;
-            if (lat == qd)
+            if (lat == QD)
             {
                 u = _Eu.K();
                 v = 0;
             }
-            else if (lat == 0 && lon == qd * (1 - _e))
+            else if (lat == 0 && lon == QD * (1 - _e))
             {
                 u = 0;
                 v = _Ev.K();
@@ -505,7 +505,7 @@ namespace GeographicLib.Projections
 
             var (y, x) = (xi * _a * _k0 * latsign, eta * _a * _k0 * lonsign);
 
-            if (lat == qd)
+            if (lat == QD)
             {
                 gamma = lon;
                 k = 1;
@@ -519,7 +519,7 @@ namespace GeographicLib.Projections
                 gamma /= Degree;
             }
             if (backside)
-                gamma = hd - gamma;
+                gamma = HD - gamma;
             gamma *= latsign * lonsign;
             k *= _k0;
 
@@ -580,18 +580,18 @@ namespace GeographicLib.Projections
             }
             else
             {
-                lat = qd;
+                lat = QD;
                 lon = lam = gamma = 0;
                 k = 1;
             }
 
             if (backside)
-                lon = hd - lon;
+                lon = HD - lon;
             lon *= etasign;
             lon = AngNormalize(lon + AngNormalize(lon0));
             lat *= xisign;
             if (backside)
-                gamma = hd - gamma;
+                gamma = HD - gamma;
             gamma *= xisign * etasign;
             k *= _k0;
 

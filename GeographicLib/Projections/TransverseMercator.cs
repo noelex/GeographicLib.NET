@@ -341,12 +341,12 @@ namespace GeographicLib.Projections
               lonsign = SignBit(lon) ? -1 : 1;
             lon *= lonsign;
             lat *= latsign;
-            bool backside = lon > qd;
+            bool backside = lon > QD;
             if (backside)
             {
                 if (lat == 0)
                     latsign = -1;
-                lon = hd - lon;
+                lon = HD - lon;
             }
 
             SinCosd(lat, out var sphi, out var cphi);
@@ -369,7 +369,7 @@ namespace GeographicLib.Projections
             //   cosh(etap) = 1/denom                  = 1/denom
             //   sinh(etap) = cos(phi')*sin(lam)/denom = sech(psi)*sin(lam)/denom
             double etap, xip;
-            if (lat != qd)
+            if (lat != QD)
             {
                 double
                   tau = sphi / cphi,
@@ -501,7 +501,7 @@ namespace GeographicLib.Projections
             double xi = y1.Real, eta = y1.Imaginary;
 
             if (backside)
-                gamma = hd - gamma;
+                gamma = HD - gamma;
             gamma *= latsign * lonsign;
             gamma = AngNormalize(gamma);
             k *= _k0;
@@ -599,17 +599,17 @@ namespace GeographicLib.Projections
             }
             else
             {
-                lat = qd;
+                lat = QD;
                 lon = 0;
                 k *= _c;
             }
             lat *= xisign;
             if (backside)
-                lon = hd - lon;
+                lon = HD - lon;
             lon *= etasign;
             lon = AngNormalize(lon + lon0);
             if (backside)
-                gamma = hd - gamma;
+                gamma = HD - gamma;
             gamma *= xisign * etasign;
             gamma = AngNormalize(gamma);
             k *= _k0;

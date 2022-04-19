@@ -199,7 +199,7 @@ namespace GeographicLib
         public double Ed(double ang)
         {
             // ang - Math::AngNormalize(ang) is (nearly) an exact multiple of 360
-            double n = Round((ang - AngNormalize(ang)) / td);
+            double n = Round((ang - AngNormalize(ang)) / TD);
             ang -= 360 * n;
             SinCosd(ang, out var sn, out var cn);
             return E(sn, cn, Delta(sn, cn)) + 4 * E() * n;

@@ -152,10 +152,10 @@ namespace GeographicLib
             // [0, 360) -> 0; [-360, 0) or 360 -> 1
             // If mod function gives result in (-720, 720)
             // [0, 360) or [-inf, -360) -> 0; [-360, 0) or [360, inf) -> 1
-            lon1 = IEEERemainder(lon1, 2 * td);
-            lon2 = IEEERemainder(lon2, 2 * td);
-            return ((lon2 >= 0 && lon2 < td ? 0 : 1) -
-                     (lon1 >= 0 && lon1 < td ? 0 : 1));
+            lon1 = IEEERemainder(lon1, 2 * TD);
+            lon2 = IEEERemainder(lon2, 2 * TD);
+            return ((lon2 >= 0 && lon2 < TD ? 0 : 1) -
+                     (lon1 >= 0 && lon1 < TD ? 0 : 1));
         }
 
         private void Remainder(ref Accumulator a) => a.Remainder(_area0);

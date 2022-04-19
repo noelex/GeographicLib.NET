@@ -101,8 +101,8 @@ namespace GeographicLib.Projections
                 throw new GeographicException("Polar semi-axis is not positive");
             if (!(IsFinite(k0) && k0 > 0))
                 throw new GeographicException("Scale is not positive");
-            if (!(Abs(stdlat) <= qd))
-                throw new GeographicException($"Standard latitude not in [-{qd}d, {qd}d]");
+            if (!(Abs(stdlat) <= QD))
+                throw new GeographicException($"Standard latitude not in [-{QD}d, {QD}d]");
 
             SinCosd(stdlat, out var sphi, out var cphi);
             Init(sphi, cphi, sphi, cphi, k0,
@@ -132,10 +132,10 @@ namespace GeographicLib.Projections
                 throw new GeographicException("Polar semi-axis is not positive");
             if (!(IsFinite(k1) && k1 > 0))
                 throw new GeographicException("Scale is not positive");
-            if (!(Abs(stdlat1) <= qd))
-                throw new GeographicException($"Standard latitude 1 not in [-{qd}d, {qd}d]");
-            if (!(Abs(stdlat2) <= qd))
-                throw new GeographicException($"Standard latitude 2 not in [-{qd}d, {qd}d]");
+            if (!(Abs(stdlat1) <= QD))
+                throw new GeographicException($"Standard latitude 1 not in [-{QD}d, {QD}d]");
+            if (!(Abs(stdlat2) <= QD))
+                throw new GeographicException($"Standard latitude 2 not in [-{QD}d, {QD}d]");
 
             SinCosd(stdlat1, out var sphi1, out var cphi1);
             SinCosd(stdlat2, out var sphi2, out var cphi2);
@@ -175,9 +175,9 @@ namespace GeographicLib.Projections
             if (!(IsFinite(k1) && k1 > 0))
                 throw new GeographicException("Scale is not positive");
             if (SignBit(coslat1))
-                throw new GeographicException($"Standard latitude 1 not in [-{qd}d, {qd}d]");
+                throw new GeographicException($"Standard latitude 1 not in [-{QD}d, {QD}d]");
             if (SignBit(coslat2))
-                throw new GeographicException($"Standard latitude 2 not in [-{qd}d, {qd}d]");
+                throw new GeographicException($"Standard latitude 2 not in [-{QD}d, {QD}d]");
             if (!(Abs(sinlat1) <= 1 && coslat1 <= 1) || (coslat1 == 0 && sinlat1 == 0))
                 throw new GeographicException("Bad sine/cosine of standard latitude 1");
             if (!(Abs(sinlat2) <= 1 && coslat2 <= 1) || (coslat2 == 0 && sinlat2 == 0))
@@ -561,9 +561,9 @@ namespace GeographicLib.Projections
                 throw new GeographicException("Projection is frozen");
             if (!(IsFinite(k) && k > 0))
                 throw new GeographicException("Scale is not positive");
-            if (!(Abs(lat) <= qd))
-                throw new GeographicException($"Latitude for SetScale not in [-{qd}d, {qd}d]");
-            if (Abs(lat) == qd && !(_nc == 0 && lat * _n > 0))
+            if (!(Abs(lat) <= QD))
+                throw new GeographicException($"Latitude for SetScale not in [-{QD}d, {QD}d]");
+            if (Abs(lat) == QD && !(_nc == 0 && lat * _n > 0))
                 throw new GeographicException("Incompatible polar latitude in SetScale");
 
             Forward(0, lat, 0, out _, out var kold);
