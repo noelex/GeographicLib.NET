@@ -3251,7 +3251,7 @@ namespace GeographicLib
       (1L<<53),Reale(88602,0xec373d36a45dfL),
 };// count = 5425
 
-        private static double Reale(long hi, long lo) => Ldexp(hi, 52) + lo;
+        private static double Reale(long y, long z) => Ldexp(y, 52) + z;
             
         private void C4coeff()
         {

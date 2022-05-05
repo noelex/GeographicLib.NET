@@ -503,7 +503,7 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the name used to load the geoid data (from the first argument of the constructor).
         /// </summary>
-        public string GeoidNmae => _name;
+        public string GeoidName => _name;
 
         /// <summary>
         /// Gets a value representing the full file name used to load the geoid data.

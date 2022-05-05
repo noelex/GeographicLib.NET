@@ -262,7 +262,7 @@ namespace GeographicLib
         /// the initial sign). Examples of legal and illegal combinations are
         /// <list type="bullet">
         /// <item>
-        /// <i>LEGAL</i> (these are all equivalent): <c>070:00:45, 70:01:15W+0:0.5, 70:01:15W-0:0:30W, W70:01:15+0:0:30E</c>
+        /// <i>LEGAL</i> (these are all equivalent): <c>-070:00:45, 70:01:15W+0:0.5, 70:01:15W-0:0:30W, W70:01:15+0:0:30E</c>
         /// </item>
         /// <item>
         /// <i>ILLEGAL</i> (the exception thrown explains the problem): <c>70:01:15W+0:0:15N, W70:01:15+W0:0:15</c>

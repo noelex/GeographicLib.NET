@@ -36,7 +36,7 @@ namespace GeographicLib
         internal readonly EllipticFunction _ell;
 
         /// <summary>
-        /// Constructor for a ellipsoid with equatorial radius and flattening.
+        /// Constructor for an ellipsoid with equatorial radius and flattening.
         /// </summary>
         /// <param name="a">Equatorial radius (meters).</param>
         /// <param name="f">Flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
@@ -72,7 +72,7 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the polar semi-axis (meters).
         /// </summary>
-        public double MinorRadius => _b;
+        public double PolarRadius => _b;
 
         /// <summary>
         /// Gets a value representing the distance between the equator and a pole along a

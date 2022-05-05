@@ -13,7 +13,7 @@ namespace GeographicLib
     /// Implements geodesic calculations.
     /// </summary>
     /// <remarks>
-    /// The shortest path between two points on a ellipsoid at (<i>lat1</i>, <i>lon1</i>)
+    /// The shortest path between two points on an ellipsoid at (<i>lat1</i>, <i>lon1</i>)
     /// and (<i>lat2</i>, <i>lon2</i>) is called the geodesic.Its length is <i>s12</i> and
     /// the geodesic from point 1 to point 2 has azimuths <i>azi1</i> and <i>azi2</i> at
     /// the two end points.  (The azimuth is the heading measured clockwise from
@@ -187,7 +187,7 @@ namespace GeographicLib
         public override double EllipsoidArea => 4 * PI * _c2;
 
         /// <summary>
-        /// Constructor for a ellipsoid with equatorial radius and its flattening.
+        /// Constructor for an ellipsoid with equatorial radius and its flattening.
         /// </summary>
         /// <param name="a">equatorial radius (meters).</param>
         /// <param name="f">flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
@@ -244,7 +244,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Constructor for a ellipsoid with equatorial radius and its flattening copied from another <see cref="IEllipsoid"/> object.
+        /// Constructor for an ellipsoid with equatorial radius and its flattening copied from another <see cref="IEllipsoid"/> object.
         /// </summary>
         /// <param name="ellipsoid">Source <see cref="IEllipsoid"/> object.</param>
         public Geodesic(IEllipsoid ellipsoid)

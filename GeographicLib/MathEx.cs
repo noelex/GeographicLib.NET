@@ -670,6 +670,10 @@ namespace GeographicLib
         /// <summary>
         /// Normalize an angle.
         /// </summary>
+        /// <remarks>
+        /// The range of <paramref name="x"/> is unrestricted. If the result is ±0° or
+        /// ±180° then the sign is the sign of <paramref name="x"/>.
+        /// </remarks>
         /// <param name="x">The angle in degrees.</param>
         /// <returns>The angle reduced to the range [-180°, 180°]</returns>
         public static double AngNormalize(double x)

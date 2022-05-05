@@ -21,7 +21,7 @@ namespace GeographicLib
     /// <a href="https://doi.org/10.1007/s00190-012-0578-z">Algorithms for geodesics</a>,
     /// J. Geodesy 87, 43–55 (2013);
     /// DOI: 10.1007/s00190-012-0578-z;
-    /// addenda: geod-addenda.html.
+    /// addenda: <a href="https://geographiclib.sourceforge.io/geod-addenda.html">geod-addenda.html</a>.
     /// </item>
     /// </list>
     /// Arbitrarily complex polygons are allowed.
