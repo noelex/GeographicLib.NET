@@ -108,7 +108,7 @@ you can also refer the its documentation [here](https://geographiclib.sourceforg
 GeographicLib.NET adopts changes made in GeographicLib and aligns its version number with GeographicLib releases.
 
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
-For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
+For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
 ### Version 2.0.0 (unreleased)
 - **NEW**
