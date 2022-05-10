@@ -21,12 +21,12 @@ namespace GeographicLib
         /// <summary>
         /// The number of radians in an arcminute.
         /// </summary>
-        public const double Arcminute = Degree / 60;
+        public const double Arcminute = Degree / MathEx.DM;
 
         /// <summary>
         /// The number of radians in an arcsecond.
         /// </summary>
-        public const double Arcsecond = Degree / 3600;
+        public const double Arcsecond = Degree / MathEx.DS;
 
         #region Ellipoid parameters
 

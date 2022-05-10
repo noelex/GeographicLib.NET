@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 using static System.Math;
 
@@ -31,23 +26,20 @@ namespace GeographicLib
         /// If the value of <paramref name="y"/> is 0.0, this method returns a quiet <see cref="double.NaN"/>.</returns>
         public override double Remquo(double x, double y, out int quo)
         {
-            Span<double>
-                u_f = stackalloc[] { x, y };
+            Bit64 ux = x, uy = y;
 
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
-
-            int ex = (int)(u_i[0] >> 52 & 0x7ff);
-            int ey = (int)(u_i[1] >> 52 & 0x7ff);
-            int sx = (int)(u_i[0] >> 63);
-            int sy = (int)(u_i[1] >> 63);
+            int ex = (int)(ux.UInt64 >> 52 & 0x7ff);
+            int ey = (int)(uy.UInt64 >> 52 & 0x7ff);
+            int sx = (int)(ux.UInt64 >> 63);
+            int sy = (int)(uy.UInt64 >> 63);
             uint q;
             ulong i;
-            ulong uxi = u_i[0];
+            ulong uxi = ux.UInt64;
 
             quo = 0;
-            if (u_i[1] << 1 == 0 || double.IsNaN(y) || ex == 0x7ff)
+            if (uy.UInt64 << 1 == 0 || double.IsNaN(y) || ex == 0x7ff)
                 return (x * y) / (x * y);
-            if (u_i[0] << 1 == 0)
+            if (ux.UInt64 << 1 == 0)
                 return x;
 
             /* normalize x and y */
@@ -66,15 +58,15 @@ namespace GeographicLib
             }
             if (ey == 0)
             {
-                for (i = u_i[1] << 12; i >> 63 == 0; ey--, i <<= 1) ;
-                u_i[1] <<= -ey + 1;
+                for (i = uy.UInt64 << 12; i >> 63 == 0; ey--, i <<= 1) ;
+                uy.UInt64 <<= -ey + 1;
             }
             else
             {
                 unchecked
                 {
-                    u_i[1] &= (ulong)-1L >> 12;
-                    u_i[1] |= 1L << 52;
+                    uy.UInt64 &= (ulong)-1L >> 12;
+                    uy.UInt64 |= 1L << 52;
                 }
             }
 
@@ -89,7 +81,7 @@ namespace GeographicLib
             /* x mod y */
             for (; ex > ey; ex--)
             {
-                i = uxi - u_i[1];
+                i = uxi - uy.UInt64;
                 if (i >> 63 == 0)
                 {
                     uxi = i;
@@ -98,7 +90,7 @@ namespace GeographicLib
                 uxi <<= 1;
                 q <<= 1;
             }
-            i = uxi - u_i[1];
+            i = uxi - uy.UInt64;
             if (i >> 63 == 0)
             {
                 uxi = i;
@@ -119,8 +111,8 @@ namespace GeographicLib
             {
                 uxi >>= -ex + 1;
             }
-            u_i[0] = uxi;
-            x = u_f[0];
+            ux.UInt64 = uxi;
+            x = ux.Double;
             if (sy != 0)
                 y = -y;
             if (ex == ey || (ex + 1 == ey && (2 * x > y || (2 * x == y && (q % 2) != 0))))
@@ -152,37 +144,32 @@ namespace GeographicLib
                 lo = xh * xh - hi + 2 * xh * xl + xl * xl;
             }
 
-            Span<double>
-                u_f = stackalloc[] { x, y };
-
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 ux = x, uy = y;
 
             int ex, ey;
-            double hx, lx, hy, ly, z, ut;
+            double hx, lx, hy, ly, z;
 
             unchecked
             {
                 /* arrange |x| >= |y| */
-                u_i[0] &= (ulong)-1L >> 1;
-                u_i[1] &= (ulong)-1L >> 1;
+                ux.UInt64 &= (ulong)-1L >> 1;
+                uy.UInt64 &= (ulong)-1L >> 1;
             }
 
-            if (u_i[0] < u_i[1])
+            if (ux.UInt64 < uy.UInt64)
             {
-                ut = u_f[0];
-                u_f[0] = u_f[1];
-                u_f[1] = ut;
+                MathEx.Swap(ref ux, ref uy);
             }
 
             /* special cases */
-            ex = (int)(u_i[0] >> 52);
-            ey = (int)(u_i[1] >> 52);
-            x = u_f[0];
-            y = u_f[1];
+            ex = (int)(ux.UInt64 >> 52);
+            ey = (int)(uy.UInt64 >> 52);
+            x = ux.Double;
+            y = uy.Double;
             /* note: hypot(inf,nan) == inf */
             if (ey == 0x7ff)
                 return y;
-            if (ex == 0x7ff || u_i[1] == 0)
+            if (ex == 0x7ff || uy.UInt64 == 0)
                 return x;
             /* note: hypot(x,y) ~= x + y*y/x/2 with inexact for small y/x */
             /* 64 difference is enough for ld80 double_t */
@@ -227,14 +214,13 @@ namespace GeographicLib
                 Lg6 = 1.531383769920937332e-01,  /* 3FC39A09 D078C69F */
                 Lg7 = 1.479819860511658591e-01;  /* 3FC2F112 DF3E5244 */
 
-            Span<double> u_f = stackalloc[] { x };
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 u = x;
 
             double hfsq, f = 0, c = 0, s, z, R, w, t1, t2, dk;
             uint hx, hu;
             int k;
 
-            hx = (uint)(u_i[0] >> 32);
+            hx = (uint)(u.UInt64 >> 32);
             k = 1;
             if (hx < 0x3fda827a || (hx >> 31) != 0)
             {  /* 1+x < sqrt(2)+ */
@@ -262,22 +248,22 @@ namespace GeographicLib
                 return x;
             if (k != 0)
             {
-                u_f[0] = 1 + x;
-                hu = (uint)(u_i[0] >> 32);
+                u.Double = 1 + x;
+                hu = (uint)(u.UInt64 >> 32);
                 hu += 0x3ff00000 - 0x3fe6a09e;
                 k = (int)(hu >> 20) - 0x3ff;
                 /* correction term ~ log(1+x)-log(u), avoid underflow in c/u */
                 if (k < 54)
                 {
-                    c = k >= 2 ? 1 - (u_f[0] - x) : x - (u_f[0] - 1);
-                    c /= u_f[0];
+                    c = k >= 2 ? 1 - (u.Double- x) : x - (u.Double - 1);
+                    c /= u.Double;
                 }
                 else
                     c = 0;
                 /* reduce u into [sqrt(2)/2, sqrt(2)] */
                 hu = (hu & 0x000fffff) + 0x3fe6a09e;
-                u_i[0] = (ulong)hu << 32 | (u_i[0] & 0xffffffff);
-                f = u_f[0] - 1;
+                u.UInt64 = (ulong)hu << 32 | (u.UInt64 & 0xffffffff);
+                f = u.Double - 1;
             }
             hfsq = 0.5 * f * f;
             s = f / (2.0 + f);
@@ -310,11 +296,10 @@ namespace GeographicLib
                 Q5 = -2.01099218183624371326e-07; /* BE8AFDB7 6E09C32D */
 
             double y, hi, lo, c = 0, t, e, hxs, hfx, r1, twopk;
-            Span<double> u_f = stackalloc[] { x };
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 u = x;
 
-            uint hx = (uint)(u_i[0] >> 32 & 0x7fffffff);
-            int k, sign = (int)(u_i[0] >> 63);
+            uint hx = (uint)(u.UInt64 >> 32 & 0x7fffffff);
+            int k, sign = (int)(u.UInt64 >> 63);
 
             /* filter out huge and non-finite argument */
             if (hx >= 0x4043687A)
@@ -386,8 +371,8 @@ namespace GeographicLib
                     return -2.0 * (e - (x + 0.5));
                 return 1.0 + 2.0 * (x - e);
             }
-            u_i[0] = (ulong)(0x3ff + k) << 52;  /* 2^k */
-            twopk = u_f[0];
+            u.UInt64 = (ulong)(0x3ff + k) << 52;  /* 2^k */
+            twopk = u.Double;
             if (k < 0 || k > 56)
             {  /* suffice to return exp(x)-1 */
                 y = x - e + 1.0;
@@ -397,22 +382,20 @@ namespace GeographicLib
                     y = y * twopk;
                 return y - 1.0;
             }
-            u_i[0] = (ulong)(0x3ff - k) << 52;  /* 2^-k */
+            u.UInt64 = (ulong)(0x3ff - k) << 52;  /* 2^-k */
             if (k < 20)
-                y = (x - e + (1 - u_f[0])) * twopk;
+                y = (x - e + (1 - u.Double)) * twopk;
             else
-                y = (x - (e + u_f[0]) + 1) * twopk;
+                y = (x - (e + u.Double) + 1) * twopk;
             return y;
         }
 
         public override double Frexp(double x, out int e)
         {
-            Span<double>
-                y_d = stackalloc[] { x };
-            var y_i = MemoryMarshal.Cast<double, ulong>(y_d);
+            Bit64 y = x;
 
             e = 0;
-            int ee = (int)(y_i[0] >> 52 & 0x7ff);
+            int ee = (int)(y.UInt64 >> 52 & 0x7ff);
 
             if (ee == 0)
             {
@@ -430,9 +413,9 @@ namespace GeographicLib
             }
 
             e = ee - 0x3fe;
-            y_i[0] &= 0x800ffffffffffffful;
-            y_i[0] |= 0x3fe0000000000000ul;
-            return y_d[0];
+            y.UInt64 &= 0x800ffffffffffffful;
+            y.UInt64 |= 0x3fe0000000000000ul;
+            return y.Double;
         }
 
 #if !NET5_0_OR_GREATER
@@ -449,169 +432,169 @@ namespace GeographicLib
             _0x1p63 = 9.2233720368547758E+18;
 
         private static readonly double
-            _0x0_ffffff8p_63 = BitConverter.Int64BitsToDouble(4323455642007240704L);
+            _0x0_ffffff8p_63 = (double)(Bit64)(4323455642007240704L);
 
         private static readonly log2_data __log2_data = new log2_data
         {
-            invln2hi = BitConverter.Int64BitsToDouble(4609176140020449280L),
-            invln2lo = BitConverter.Int64BitsToDouble(4460540536611119616L),
+            invln2hi = (double)(Bit64)(4609176140020449280L),
+            invln2lo = (double)(Bit64)(4460540536611119616L),
             poly = new[]
             {
-                BitConverter.Int64BitsToDouble(-4618699496460942535L),
-                BitConverter.Int64BitsToDouble(4602334714382648510L),
-                BitConverter.Int64BitsToDouble(-4623203096100589573L),
-                BitConverter.Int64BitsToDouble(4598869476581264456L),
-                BitConverter.Int64BitsToDouble(-4625540194963385668L),
-                BitConverter.Int64BitsToDouble(4596594284514769198L),
+                (double)(Bit64)(-4618699496460942535L),
+                (double)(Bit64)(4602334714382648510L),
+                (double)(Bit64)(-4623203096100589573L),
+                (double)(Bit64)(4598869476581264456L),
+                (double)(Bit64)(-4625540194963385668L),
+                (double)(Bit64)(4596594284514769198L),
             },
             poly1 = new[]
             {
-                BitConverter.Int64BitsToDouble(-4618699496460942594L),
-                BitConverter.Int64BitsToDouble(4602334714382648311L),
-                BitConverter.Int64BitsToDouble(-4623203096088314817L),
-                BitConverter.Int64BitsToDouble(4598869476596800484L),
-                BitConverter.Int64BitsToDouble(-4625540922078752795L),
-                BitConverter.Int64BitsToDouble(4596593529635268406L),
-                BitConverter.Int64BitsToDouble(-4627706728612059237L),
-                BitConverter.Int64BitsToDouble(4594943554432801610L),
-                BitConverter.Int64BitsToDouble(-4628985851833206724L),
-                BitConverter.Int64BitsToDouble(4593868635039788646L),
+                (double)(Bit64)(-4618699496460942594L),
+                (double)(Bit64)(4602334714382648311L),
+                (double)(Bit64)(-4623203096088314817L),
+                (double)(Bit64)(4598869476596800484L),
+                (double)(Bit64)(-4625540922078752795L),
+                (double)(Bit64)(4596593529635268406L),
+                (double)(Bit64)(-4627706728612059237L),
+                (double)(Bit64)(4594943554432801610L),
+                (double)(Bit64)(-4628985851833206724L),
+                (double)(Bit64)(4593868635039788646L),
             },
             tab = new[]
             {
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4609192499661090040L),logc=BitConverter.Int64BitsToDouble(-4620401435072417792L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4609119721358544033L),logc=BitConverter.Int64BitsToDouble(-4620547443313422336L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4609048552263439498L),logc=BitConverter.Int64BitsToDouble(-4620691827473188864L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608978935752977541L),logc=BitConverter.Int64BitsToDouble(-4620976044666830848L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608910827810035960L),logc=BitConverter.Int64BitsToDouble(-4621258533714272256L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608844174476640876L),logc=BitConverter.Int64BitsToDouble(-4621537994585174016L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608778932670517176L),logc=BitConverter.Int64BitsToDouble(-4621814478722457600L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608715056657886750L),logc=BitConverter.Int64BitsToDouble(-4622088054713425920L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608652505995016245L),logc=BitConverter.Int64BitsToDouble(-4622358774421803008L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608591236480216541L),logc=BitConverter.Int64BitsToDouble(-4622626711648313344L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608531212716768208L),logc=BitConverter.Int64BitsToDouble(-4622891907264966656L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608472393775796206L),logc=BitConverter.Int64BitsToDouble(-4623154431617540096L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608414747454330217L),logc=BitConverter.Int64BitsToDouble(-4623414321238929408L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608358236140386643L),logc=BitConverter.Int64BitsToDouble(-4623671641629847552L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608302825730857126L),logc=BitConverter.Int64BitsToDouble(-4623926447329796096L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608248488588498998L),logc=BitConverter.Int64BitsToDouble(-4624178767387516928L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608195190521789770L),logc=BitConverter.Int64BitsToDouble(-4624428665301803008L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608142902552467893L),logc=BitConverter.Int64BitsToDouble(-4624676184581849088L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608091596839446450L),logc=BitConverter.Int64BitsToDouble(-4624921367194574848L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4608041245183688113L),logc=BitConverter.Int64BitsToDouble(-4625164260603383808L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607991821672542679L),logc=BitConverter.Int64BitsToDouble(-4625612992611196928L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607943301500489090L),logc=BitConverter.Int64BitsToDouble(-4626089859604447232L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607895658995436368L),logc=BitConverter.Int64BitsToDouble(-4626562396589875200L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607848870546001381L),logc=BitConverter.Int64BitsToDouble(-4627030681651781632L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607802913757468081L),logc=BitConverter.Int64BitsToDouble(-4627494786956263424L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607757767841591096L),logc=BitConverter.Int64BitsToDouble(-4627954774287458304L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607713409864934365L),logc=BitConverter.Int64BitsToDouble(-4628410733127335936L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607669821755832624L),logc=BitConverter.Int64BitsToDouble(-4628862708716888064L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607626980202848768L),logc=BitConverter.Int64BitsToDouble(-4629310806041968640L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607584869060826940L),logc=BitConverter.Int64BitsToDouble(-4629809704699330560L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607543467839055042L),logc=BitConverter.Int64BitsToDouble(-4630690701708247040L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607502757543314897L),logc=BitConverter.Int64BitsToDouble(-4631564337986371584L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607462725802730023L),logc=BitConverter.Int64BitsToDouble(-4632430631954546688L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607423351295589007L),logc=BitConverter.Int64BitsToDouble(-4633289804019056640L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607384620866568409L),logc=BitConverter.Int64BitsToDouble(-4634141906601590784L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607346516590018701L),logc=BitConverter.Int64BitsToDouble(-4635770193422516224L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607309024952925059L),logc=BitConverter.Int64BitsToDouble(-4637446934582853632L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607272131607993180L),logc=BitConverter.Int64BitsToDouble(-4639512833354366976L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607235821368544930L),logc=BitConverter.Int64BitsToDouble(-4642813028705239040L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607200080338058785L),logc=BitConverter.Int64BitsToDouble(-4650211837073686528L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4607112595412526955L),logc=BitConverter.Int64BitsToDouble(4577625706679238656L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606976147961868676L),logc=BitConverter.Int64BitsToDouble(4584977561914671104L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606843801959665791L),logc=BitConverter.Int64BitsToDouble(4588127867468742656L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606715378043149032L),logc=BitConverter.Int64BitsToDouble(4590199577454788608L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606590705194581478L),logc=BitConverter.Int64BitsToDouble(4591728374053568512L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606469619618625715L),logc=BitConverter.Int64BitsToDouble(4593235018675142656L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606351967316207939L),logc=BitConverter.Int64BitsToDouble(4594195890746384384L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606237606996243811L),logc=BitConverter.Int64BitsToDouble(4594927996701155328L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606126401917471569L),logc=BitConverter.Int64BitsToDouble(4595649931110391808L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4606018221995330636L),logc=BitConverter.Int64BitsToDouble(4596361981185310720L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605912946732701130L),logc=BitConverter.Int64BitsToDouble(4597064405355782144L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605810462065308559L),logc=BitConverter.Int64BitsToDouble(4597757451025965056L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605710654407004217L),logc=BitConverter.Int64BitsToDouble(4598308306428592128L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605613423158833629L),logc=BitConverter.Int64BitsToDouble(4598645833741746176L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605518667591971211L),logc=BitConverter.Int64BitsToDouble(4598979039133097984L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605426298098548397L),logc=BitConverter.Int64BitsToDouble(4599308018491162624L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605336222619703554L),logc=BitConverter.Int64BitsToDouble(4599632888650723328L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605248357336792306L),logc=BitConverter.Int64BitsToDouble(4599953748864847872L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605162622515894769L),logc=BitConverter.Int64BitsToDouble(4600270694594048000L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4605078941046797933L),logc=BitConverter.Int64BitsToDouble(4600583822264602624L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4604997241283328404L),logc=BitConverter.Int64BitsToDouble(4600893218024939520L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4604917450612805666L),logc=BitConverter.Int64BitsToDouble(4601198981460250624L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4604839505954084298L),logc=BitConverter.Int64BitsToDouble(4601501185019535360L)},
-                new log2_data.tabitem{invc=BitConverter.Int64BitsToDouble(4604763342788034444L),logc=BitConverter.Int64BitsToDouble(4601799915281006592L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4609192499661090040L),logc=(double)(Bit64)(-4620401435072417792L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4609119721358544033L),logc=(double)(Bit64)(-4620547443313422336L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4609048552263439498L),logc=(double)(Bit64)(-4620691827473188864L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608978935752977541L),logc=(double)(Bit64)(-4620976044666830848L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608910827810035960L),logc=(double)(Bit64)(-4621258533714272256L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608844174476640876L),logc=(double)(Bit64)(-4621537994585174016L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608778932670517176L),logc=(double)(Bit64)(-4621814478722457600L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608715056657886750L),logc=(double)(Bit64)(-4622088054713425920L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608652505995016245L),logc=(double)(Bit64)(-4622358774421803008L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608591236480216541L),logc=(double)(Bit64)(-4622626711648313344L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608531212716768208L),logc=(double)(Bit64)(-4622891907264966656L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608472393775796206L),logc=(double)(Bit64)(-4623154431617540096L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608414747454330217L),logc=(double)(Bit64)(-4623414321238929408L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608358236140386643L),logc=(double)(Bit64)(-4623671641629847552L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608302825730857126L),logc=(double)(Bit64)(-4623926447329796096L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608248488588498998L),logc=(double)(Bit64)(-4624178767387516928L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608195190521789770L),logc=(double)(Bit64)(-4624428665301803008L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608142902552467893L),logc=(double)(Bit64)(-4624676184581849088L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608091596839446450L),logc=(double)(Bit64)(-4624921367194574848L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4608041245183688113L),logc=(double)(Bit64)(-4625164260603383808L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607991821672542679L),logc=(double)(Bit64)(-4625612992611196928L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607943301500489090L),logc=(double)(Bit64)(-4626089859604447232L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607895658995436368L),logc=(double)(Bit64)(-4626562396589875200L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607848870546001381L),logc=(double)(Bit64)(-4627030681651781632L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607802913757468081L),logc=(double)(Bit64)(-4627494786956263424L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607757767841591096L),logc=(double)(Bit64)(-4627954774287458304L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607713409864934365L),logc=(double)(Bit64)(-4628410733127335936L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607669821755832624L),logc=(double)(Bit64)(-4628862708716888064L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607626980202848768L),logc=(double)(Bit64)(-4629310806041968640L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607584869060826940L),logc=(double)(Bit64)(-4629809704699330560L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607543467839055042L),logc=(double)(Bit64)(-4630690701708247040L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607502757543314897L),logc=(double)(Bit64)(-4631564337986371584L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607462725802730023L),logc=(double)(Bit64)(-4632430631954546688L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607423351295589007L),logc=(double)(Bit64)(-4633289804019056640L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607384620866568409L),logc=(double)(Bit64)(-4634141906601590784L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607346516590018701L),logc=(double)(Bit64)(-4635770193422516224L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607309024952925059L),logc=(double)(Bit64)(-4637446934582853632L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607272131607993180L),logc=(double)(Bit64)(-4639512833354366976L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607235821368544930L),logc=(double)(Bit64)(-4642813028705239040L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607200080338058785L),logc=(double)(Bit64)(-4650211837073686528L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4607112595412526955L),logc=(double)(Bit64)(4577625706679238656L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606976147961868676L),logc=(double)(Bit64)(4584977561914671104L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606843801959665791L),logc=(double)(Bit64)(4588127867468742656L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606715378043149032L),logc=(double)(Bit64)(4590199577454788608L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606590705194581478L),logc=(double)(Bit64)(4591728374053568512L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606469619618625715L),logc=(double)(Bit64)(4593235018675142656L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606351967316207939L),logc=(double)(Bit64)(4594195890746384384L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606237606996243811L),logc=(double)(Bit64)(4594927996701155328L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606126401917471569L),logc=(double)(Bit64)(4595649931110391808L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4606018221995330636L),logc=(double)(Bit64)(4596361981185310720L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605912946732701130L),logc=(double)(Bit64)(4597064405355782144L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605810462065308559L),logc=(double)(Bit64)(4597757451025965056L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605710654407004217L),logc=(double)(Bit64)(4598308306428592128L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605613423158833629L),logc=(double)(Bit64)(4598645833741746176L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605518667591971211L),logc=(double)(Bit64)(4598979039133097984L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605426298098548397L),logc=(double)(Bit64)(4599308018491162624L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605336222619703554L),logc=(double)(Bit64)(4599632888650723328L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605248357336792306L),logc=(double)(Bit64)(4599953748864847872L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605162622515894769L),logc=(double)(Bit64)(4600270694594048000L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4605078941046797933L),logc=(double)(Bit64)(4600583822264602624L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4604997241283328404L),logc=(double)(Bit64)(4600893218024939520L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4604917450612805666L),logc=(double)(Bit64)(4601198981460250624L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4604839505954084298L),logc=(double)(Bit64)(4601501185019535360L)},
+                new log2_data.tabitem{invc=(double)(Bit64)(4604763342788034444L),logc=(double)(Bit64)(4601799915281006592L)},
 
             },
 #if !__FP_FAST_FMA
             tab2 = new[]
             {
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604402853719116430L),clo=BitConverter.Int64BitsToDouble(4362022846676121093L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604473222222001318L),clo=BitConverter.Int64BitsToDouble(4351039760133978025L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604543589872431813L),clo=BitConverter.Int64BitsToDouble(4360186820181135546L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604613960589203972L),clo=BitConverter.Int64BitsToDouble(4362017200139375398L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604684327854904547L),clo=BitConverter.Int64BitsToDouble(4362577641042051761L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604754697484045840L),clo=BitConverter.Int64BitsToDouble(-4867549565258857663L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604825066178698197L),clo=BitConverter.Int64BitsToDouble(4357242425499200374L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604895435458996646L),clo=BitConverter.Int64BitsToDouble(-4872322070862224713L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4604965803051496146L),clo=BitConverter.Int64BitsToDouble(-4862759197468145361L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605036172874022083L),clo=BitConverter.Int64BitsToDouble(4354409044815026719L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605106540704983888L),clo=BitConverter.Int64BitsToDouble(-4859942193201572355L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605176910554010982L),clo=BitConverter.Int64BitsToDouble(-4861067402868720827L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605247277844338501L),clo=BitConverter.Int64BitsToDouble(-4866145770030620612L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605317646212964305L),clo=BitConverter.Int64BitsToDouble(-4866421422011946659L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605388016825550695L),clo=BitConverter.Int64BitsToDouble(4355254363668381187L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605458384160370085L),clo=BitConverter.Int64BitsToDouble(4363565660153595394L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605528752627056047L),clo=BitConverter.Int64BitsToDouble(-4870066486530691458L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605599121485922197L),clo=BitConverter.Int64BitsToDouble(4361311456321974891L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605669489900424491L),clo=BitConverter.Int64BitsToDouble(-4863178645741759522L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605739858968511466L),clo=BitConverter.Int64BitsToDouble(4348246094361144892L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605810228037762381L),clo=BitConverter.Int64BitsToDouble(-4859671117886424932L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605880596196038234L),clo=BitConverter.Int64BitsToDouble(4347041365419758135L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4605950965127898740L),clo=BitConverter.Int64BitsToDouble(4356097777077636608L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606021334850119855L),clo=BitConverter.Int64BitsToDouble(4356400052040473536L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606091704796635033L),clo=BitConverter.Int64BitsToDouble(4353835862923526601L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606162073095370670L),clo=BitConverter.Int64BitsToDouble(-4865005117326593834L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606232442403421578L),clo=BitConverter.Int64BitsToDouble(-4865564075919651809L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606302808848468317L),clo=BitConverter.Int64BitsToDouble(4362010240734639575L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606373178132256463L),clo=BitConverter.Int64BitsToDouble(-4875098182039641666L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606443545414737043L),clo=BitConverter.Int64BitsToDouble(-4865290399984216589L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606513914071649036L),clo=BitConverter.Int64BitsToDouble(4361457311920661046L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606584286181359126L),clo=BitConverter.Int64BitsToDouble(-4866982593563404276L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606654653268379537L),clo=BitConverter.Int64BitsToDouble(4362158653603537632L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606725023436613336L),clo=BitConverter.Int64BitsToDouble(-4864437948897232902L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606795391376932876L),clo=BitConverter.Int64BitsToDouble(-4860364199508469743L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606865761279265660L),clo=BitConverter.Int64BitsToDouble(-4859524565416184076L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4606936130211511756L),clo=BitConverter.Int64BitsToDouble(-4859522701981363313L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607006497577911562L),clo=BitConverter.Int64BitsToDouble(-4881777750598746148L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607076865290327347L),clo=BitConverter.Int64BitsToDouble(-4875115961130309456L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607147233707525769L),clo=BitConverter.Int64BitsToDouble(4361728657611394670L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607217603241911143L),clo=BitConverter.Int64BitsToDouble(4367224947017401985L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607287971444676200L),clo=BitConverter.Int64BitsToDouble(4361448205140792699L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607358340836992855L),clo=BitConverter.Int64BitsToDouble(-4875178626333279343L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607428709847089100L),clo=BitConverter.Int64BitsToDouble(-4858959367304253420L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607499078026115829L),clo=BitConverter.Int64BitsToDouble(-4860515690030777662L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607569446445093293L),clo=BitConverter.Int64BitsToDouble(-4855585107559847953L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607639815933671137L),clo=BitConverter.Int64BitsToDouble(4367365781677602303L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607710184813904456L),clo=BitConverter.Int64BitsToDouble(-4859239979544846944L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607780553393856110L),clo=BitConverter.Int64BitsToDouble(-4861356726666069181L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607850922517715089L),clo=BitConverter.Int64BitsToDouble(4363141597397045634L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607921291312686810L),clo=BitConverter.Int64BitsToDouble(-4868388502340990011L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4607991658823892537L),clo=BitConverter.Int64BitsToDouble(4367220851589949177L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608062027965722754L),clo=BitConverter.Int64BitsToDouble(4358905217570067028L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608132396583914336L),clo=BitConverter.Int64BitsToDouble(-4855439679068229141L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608202766363307724L),clo=BitConverter.Int64BitsToDouble(4356653090751095927L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608273134405792310L),clo=BitConverter.Int64BitsToDouble(4367504049820239923L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608343503126235135L),clo=BitConverter.Int64BitsToDouble(4358931040529366312L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608413872044932273L),clo=BitConverter.Int64BitsToDouble(4360056423802313126L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608484240640089993L),clo=BitConverter.Int64BitsToDouble(-4861079047304659758L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608554609382081523L),clo=BitConverter.Int64BitsToDouble(-4866120542784629975L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608624977183407887L),clo=BitConverter.Int64BitsToDouble(4366384804694283484L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608695346758398831L),clo=BitConverter.Int64BitsToDouble(-4861906384145340409L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608765715311097786L),clo=BitConverter.Int64BitsToDouble(4361727028155808514L)},
-                new log2_data.tab2item{chi=BitConverter.Int64BitsToDouble(4608836083952399489L),clo=BitConverter.Int64BitsToDouble(-4858961166217451202L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604402853719116430L),clo=(double)(Bit64)(4362022846676121093L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604473222222001318L),clo=(double)(Bit64)(4351039760133978025L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604543589872431813L),clo=(double)(Bit64)(4360186820181135546L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604613960589203972L),clo=(double)(Bit64)(4362017200139375398L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604684327854904547L),clo=(double)(Bit64)(4362577641042051761L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604754697484045840L),clo=(double)(Bit64)(-4867549565258857663L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604825066178698197L),clo=(double)(Bit64)(4357242425499200374L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604895435458996646L),clo=(double)(Bit64)(-4872322070862224713L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4604965803051496146L),clo=(double)(Bit64)(-4862759197468145361L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605036172874022083L),clo=(double)(Bit64)(4354409044815026719L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605106540704983888L),clo=(double)(Bit64)(-4859942193201572355L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605176910554010982L),clo=(double)(Bit64)(-4861067402868720827L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605247277844338501L),clo=(double)(Bit64)(-4866145770030620612L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605317646212964305L),clo=(double)(Bit64)(-4866421422011946659L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605388016825550695L),clo=(double)(Bit64)(4355254363668381187L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605458384160370085L),clo=(double)(Bit64)(4363565660153595394L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605528752627056047L),clo=(double)(Bit64)(-4870066486530691458L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605599121485922197L),clo=(double)(Bit64)(4361311456321974891L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605669489900424491L),clo=(double)(Bit64)(-4863178645741759522L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605739858968511466L),clo=(double)(Bit64)(4348246094361144892L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605810228037762381L),clo=(double)(Bit64)(-4859671117886424932L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605880596196038234L),clo=(double)(Bit64)(4347041365419758135L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4605950965127898740L),clo=(double)(Bit64)(4356097777077636608L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606021334850119855L),clo=(double)(Bit64)(4356400052040473536L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606091704796635033L),clo=(double)(Bit64)(4353835862923526601L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606162073095370670L),clo=(double)(Bit64)(-4865005117326593834L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606232442403421578L),clo=(double)(Bit64)(-4865564075919651809L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606302808848468317L),clo=(double)(Bit64)(4362010240734639575L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606373178132256463L),clo=(double)(Bit64)(-4875098182039641666L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606443545414737043L),clo=(double)(Bit64)(-4865290399984216589L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606513914071649036L),clo=(double)(Bit64)(4361457311920661046L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606584286181359126L),clo=(double)(Bit64)(-4866982593563404276L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606654653268379537L),clo=(double)(Bit64)(4362158653603537632L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606725023436613336L),clo=(double)(Bit64)(-4864437948897232902L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606795391376932876L),clo=(double)(Bit64)(-4860364199508469743L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606865761279265660L),clo=(double)(Bit64)(-4859524565416184076L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4606936130211511756L),clo=(double)(Bit64)(-4859522701981363313L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607006497577911562L),clo=(double)(Bit64)(-4881777750598746148L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607076865290327347L),clo=(double)(Bit64)(-4875115961130309456L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607147233707525769L),clo=(double)(Bit64)(4361728657611394670L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607217603241911143L),clo=(double)(Bit64)(4367224947017401985L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607287971444676200L),clo=(double)(Bit64)(4361448205140792699L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607358340836992855L),clo=(double)(Bit64)(-4875178626333279343L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607428709847089100L),clo=(double)(Bit64)(-4858959367304253420L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607499078026115829L),clo=(double)(Bit64)(-4860515690030777662L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607569446445093293L),clo=(double)(Bit64)(-4855585107559847953L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607639815933671137L),clo=(double)(Bit64)(4367365781677602303L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607710184813904456L),clo=(double)(Bit64)(-4859239979544846944L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607780553393856110L),clo=(double)(Bit64)(-4861356726666069181L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607850922517715089L),clo=(double)(Bit64)(4363141597397045634L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607921291312686810L),clo=(double)(Bit64)(-4868388502340990011L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4607991658823892537L),clo=(double)(Bit64)(4367220851589949177L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608062027965722754L),clo=(double)(Bit64)(4358905217570067028L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608132396583914336L),clo=(double)(Bit64)(-4855439679068229141L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608202766363307724L),clo=(double)(Bit64)(4356653090751095927L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608273134405792310L),clo=(double)(Bit64)(4367504049820239923L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608343503126235135L),clo=(double)(Bit64)(4358931040529366312L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608413872044932273L),clo=(double)(Bit64)(4360056423802313126L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608484240640089993L),clo=(double)(Bit64)(-4861079047304659758L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608554609382081523L),clo=(double)(Bit64)(-4866120542784629975L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608624977183407887L),clo=(double)(Bit64)(4366384804694283484L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608695346758398831L),clo=(double)(Bit64)(-4861906384145340409L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608765715311097786L),clo=(double)(Bit64)(4361727028155808514L)},
+                new log2_data.tab2item{chi=(double)(Bit64)(4608836083952399489L),clo=(double)(Bit64)(-4858961166217451202L)},
             }
 #endif
         };
@@ -650,10 +633,7 @@ namespace GeographicLib
         /// <returns>x * 2^n computed efficiently.</returns>
         public override double ScaleB(double x, int n)
         {
-            Span<double>
-                u_f = stackalloc[] { x };
-
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 u = x;
 
             double y = x;
 
@@ -683,8 +663,8 @@ namespace GeographicLib
                         n = -1022;
                 }
             }
-            u_i[0] = (ulong)(0x3ff + n) << 52;
-            x = y * u_f[0];
+            u.UInt64 = (ulong)(0x3ff + n) << 52;
+            x = y * u.Double;
             return x;
         }
 
@@ -696,17 +676,14 @@ namespace GeographicLib
         /// <returns>A value with the magnitude of <paramref name="x"/> and the sign of <paramref name="y"/>.</returns>
         public override double CopySign(double x, double y)
         {
-            Span<double>
-                u_f = stackalloc[] { x, y };
-
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 ux = x, uy = y;
 
             unchecked
             {
-                u_i[0] &= (ulong)-1L / 2;
-                u_i[0] |= u_i[1] & 1UL << 63;
+                ux.UInt64 &= (ulong)-1L / 2;
+                ux.UInt64 |= uy.UInt64 & 1UL << 63;
             }
-            return u_f[0];
+            return ux.Double;
         }
 
         public override double FusedMultiplyAdd(double x, double y, double z)
@@ -715,13 +692,13 @@ namespace GeographicLib
 
             num normalize(double x_)
             {
-                var ix = (ulong)BitConverter.DoubleToInt64Bits(x_);
+                var ix = (ulong)(Bit64)x_;
                 int e_ = (int)(ix >> 52);
                 int sign_ = e_ & 0x800;
                 e_ &= 0x7ff;
                 if (e_ == 0)
                 {
-                    ix = (ulong)BitConverter.DoubleToInt64Bits(x_ * _0x1p63);
+                    ix = (ulong)(Bit64)(x_ * _0x1p63);
                     e_ = (int)(ix >> 52 & 0x7ff);
                     e_ = e_ != 0 ? e_ - 63 : 0x800;
                 }
@@ -943,9 +920,9 @@ namespace GeographicLib
             uint top;
             int k, i;
 
-            ulong asuint64(double x_) => (ulong)BitConverter.DoubleToInt64Bits(x_);
+            ulong asuint64(Bit64 x_) =>  (ulong)x_;
 
-            double asdouble(ulong x_) => BitConverter.Int64BitsToDouble((long)x_);
+            double asdouble(Bit64 x_) => (double)x_;
 
             uint top16(double x_) => (uint)(asuint64(x_) >> 48);
 
@@ -1065,16 +1042,15 @@ namespace GeographicLib
         /// </returns>
         public override double Atanh(double x)
         {
-            Span<double> u_f = stackalloc[] { x };
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 u = x;
 
-            uint e = (uint)(u_i[0] >> 52 & 0x7ff);
-            uint s = (uint)(u_i[0] >> 63);
+            uint e = (uint)(u.UInt64 >> 52 & 0x7ff);
+            uint s = (uint)(u.UInt64 >> 63);
             double y;
 
             /* |x| */
-            u_i[0] &= unchecked((ulong)-1L / 2);
-            y = u_f[0];
+            u.UInt64 &= unchecked((ulong)-1L / 2);
+            y = u.Double;
 
             if (e < 0x3ff - 1)
             {
@@ -1110,15 +1086,14 @@ namespace GeographicLib
         /// </returns>
         public override double Asinh(double x)
         {
-            Span<double> u_f = stackalloc[] { x };
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 u = x;
 
-            uint e = (uint)(u_i[0] >> 52 & 0x7ff);
-            uint s = (uint)(u_i[0] >> 63);
+            uint e = (uint)(u.UInt64 >> 52 & 0x7ff);
+            uint s = (uint)(u.UInt64 >> 63);
 
             /* |x| */
-            u_i[0] &= unchecked((ulong)-1L / 2);
-            x = u_f[0];
+            u.UInt64 &= unchecked((ulong)-1L / 2);
+            x = u.Double;
 
             if (e >= 0x3ff + 26)
             {
@@ -1164,10 +1139,9 @@ namespace GeographicLib
 
             const double _0x1p54 = 18014398509481984d;
 
-            Span<double> u_f = stackalloc[] { x };
-            var u_i = MemoryMarshal.Cast<double, ulong>(u_f);
+            Bit64 u = x;
             double r, s, t, w;
-            uint hx = (uint)(u_i[0] >> 32 & 0x7fffffff);
+            uint hx = (uint)(u.UInt64 >> 32 & 0x7fffffff);
 
             if (hx >= 0x7ff00000)  /* cbrt(NaN,INF) is itself */
                 return x + x;
@@ -1189,17 +1163,17 @@ namespace GeographicLib
              */
             if (hx < 0x00100000)
             { /* zero or subnormal? */
-                u_f[0] = x * _0x1p54;
-                hx = (uint)(u_i[0] >> 32 & 0x7fffffff);
+                u.Double = x * _0x1p54;
+                hx = (uint)(u.UInt64 >> 32 & 0x7fffffff);
                 if (hx == 0)
                     return x;  /* cbrt(0) is itself */
                 hx = hx / 3 + B2;
             }
             else
                 hx = hx / 3 + B1;
-            u_i[0] &= 1UL << 63;
-            u_i[0] |= (ulong)hx << 32;
-            t = u_f[0];
+            u.UInt64 &= 1UL << 63;
+            u.UInt64 |= (ulong)hx << 32;
+            t = u.Double;
 
             /*
              * New cbrt to 23 bits:
@@ -1224,9 +1198,9 @@ namespace GeographicLib
              * 0.667; the error in the rounded t can be up to about 3 23-bit ulps
              * before the final error is larger than 0.667 ulps.
              */
-            u_f[0] = t;
-            u_i[0] = (u_i[0] + 0x80000000) & 0xffffffffc0000000UL;
-            t = u_f[0];
+            u.Double = t;
+            u.UInt64 = (u.UInt64 + 0x80000000) & 0xffffffffc0000000UL;
+            t = u.Double;
 
             /* one step Newton iteration to 53 bits with error < 0.667 ulps */
             s = t * t;         /* t*t is exact */

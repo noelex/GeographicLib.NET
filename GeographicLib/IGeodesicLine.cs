@@ -42,7 +42,7 @@
         /// Gets a value representing the arc length (degrees) between the northward equatorial crossing and point 1.
         /// </summary>
         /// <remarks>
-        /// The result lies in (−180°, 180°].
+        /// The result lies in [−180°, 180°].
         /// </remarks>
         double EquatorialArc { get; }
 

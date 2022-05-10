@@ -29,8 +29,8 @@ namespace GeographicLib.Geocodes
         private const string degrees_ = "ABCDEFGHJKLMNPQ";
 
         private const int tile_ = 15,               // The size of tile in degrees
-                          lonorig_ = -180,          // Origin for longitude
-                          latorig_ = -90,           // Origin for latitude
+                          lonorig_ = -HD,          // Origin for longitude
+                          latorig_ = -QD,           // Origin for latitude
                           base_ = 10,               // Base for minutes
                           baselen_ = 4,
                           maxprec_ = 11,            // approximately equivalent to MGRS class
@@ -61,15 +61,15 @@ namespace GeographicLib.Geocodes
         /// </remarks>
         public static string Forward(double lat, double lon, int prec)
         {
-            if (Abs(lat) > 90)
-                throw new GeographicException($"Latitude {lat}d not in [-90d, 90d]");
+            if (Abs(lat) > QD)
+                throw new GeographicException($"Latitude {lat}d not in [-{QD}d, {QD}d]");
             if (double.IsNaN(lat) || double.IsNaN(lon))
             {
                 return "INVALID";
             }
 
             lon = AngNormalize(lon); // lon in [-180,180)
-            if (lat == 90) lat *= (1 - DBL_EPSILON / 2);
+            if (lat == QD) lat *= (1 - DBL_EPSILON / 2);
             prec = Max(-1, Min(maxprec_, prec));
 
             if (prec == 1) ++prec;      // Disallow prec = 1

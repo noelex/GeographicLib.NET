@@ -36,7 +36,7 @@ namespace GeographicLib
         internal readonly EllipticFunction _ell;
 
         /// <summary>
-        /// Constructor for a ellipsoid with equatorial radius and flattening.
+        /// Constructor for an ellipsoid with equatorial radius and flattening.
         /// </summary>
         /// <param name="a">Equatorial radius (meters).</param>
         /// <param name="f">Flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
@@ -72,7 +72,7 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the polar semi-axis (meters).
         /// </summary>
-        public double MinorRadius => _b;
+        public double PolarRadius => _b;
 
         /// <summary>
         /// Gets a value representing the distance between the equator and a pole along a
@@ -158,7 +158,7 @@ namespace GeographicLib
         /// plane and a vector normal to the surface of the ellipsoid.</para>
         /// <para>
         /// The parametric latitude (also called the reduced latitude), β,
-        /// allows the cartesian coordinated of a meridian to be expressed
+        /// allows the cartesian coordinates of a meridian to be expressed
         /// conveniently in parametric form as
         /// </para>
         /// <para>
@@ -241,7 +241,7 @@ namespace GeographicLib
         /// µ lies in [-90°, 90°].
         /// </para>
         /// </remarks>
-        public double RectifyingLatitude(double phi) => Abs(phi) == 90 ? phi : 90 * MeridianDistance(phi) / QuarterMeridian;
+        public double RectifyingLatitude(double phi) => Abs(phi) == QD ? phi : QD * MeridianDistance(phi) / QuarterMeridian;
 
         /// <summary>
         /// Inverse of <see cref="RectifyingLatitude(double)"/>.
@@ -254,8 +254,8 @@ namespace GeographicLib
         /// φ lies in [-90°, 90°].
         /// </remarks>
         public double InverseRectifyingLatitude(double mu)
-            => Abs(mu) == 90 ? mu
-                : InverseParametricLatitude(_ell.Einv(mu * _ell.E() / 90) / Degree);
+            => Abs(mu) == QD ? mu
+                : InverseParametricLatitude(_ell.Einv(mu * _ell.E() / QD) / Degree);
 
         /// <summary>
         /// Authalic latitude conversion.
@@ -367,7 +367,7 @@ namespace GeographicLib
         /// φ must lie in the range [-90°, 90°]; the result is undefined if this condition does not hold.
         /// </remarks>
         public double CircleRadius(double phi) =>
-            Abs(phi) == 90 ? 0 :
+            Abs(phi) == QD ? 0 :
               // a * cos(beta)
               _a / Hypot(1d, _f1 * Tand(LatFix(phi)));
 

@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using static System.Math;
 using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
+using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace GeographicLib
 {
@@ -264,17 +266,28 @@ namespace GeographicLib
                 if (maxval != pixel_max_)
                     throw new GeographicException("Incorrect value of maxval: " + _filename);
 
-                // HACK: Get start position of binary data.
                 sr.BaseStream.Seek(0, SeekOrigin.Begin);
                 sr.DiscardBufferedData();
-                var buff = new char[1024];
-                var sp = buff.AsSpan();
-                sr.ReadBlock(buff, 0, buff.Length);
-                var end = sp.IndexOf((s + '\n').AsSpan()) + s.Length + 1;
 
-                // Add 1 for whitespace after maxval
-                _datastart = Encoding.UTF8.GetByteCount(sp.Slice(0, end).ToArray()); // +1 ?
-                _swidth = _width;
+#if NETSTANDARD2_0
+                using (var buffOwner = MemoryPool<char>.Shared.Rent(1024))
+                {
+                    var buff = buffOwner.Memory.Slice(0, 1024);
+                    var sp = buff.Span;
+
+                    MemoryMarshal.TryGetArray<char>(buff, out var buffArray);
+                    sr.ReadBlock(buffArray.Array, buffArray.Offset, buffArray.Count);               
+#else
+                {
+                    Span<char> sp = stackalloc char[1024];
+                    sr.ReadBlock(sp);
+#endif
+                    var end = sp.IndexOf((s + '\n').AsSpan()) + s.Length + 1;
+
+                    // Add 1 for whitespace after maxval
+                    _datastart = Encoding.UTF8.GetByteCount(sp.Slice(0, end).ToArray()); // +1 ?
+                    _swidth = _width;
+                }
             }
 
             if (_offset == double.MaxValue)
@@ -298,8 +311,8 @@ namespace GeographicLib
                 // Possibly this test should be "<" because the file contains, e.g., a
                 // second image.  However, for now we are more strict.
                 throw new GeographicException("File has the wrong length " + _filename);
-            _rlonres = _width / 360.0;
-            _rlatres = (_height - 1) / 180.0;
+            _rlonres = _width / (double)TD;
+            _rlatres = (_height - 1) / (double)HD;
             _cache = false;
             _ix = _width;
             _iy = _height;
@@ -340,7 +353,7 @@ namespace GeographicLib
             west = AngNormalize(west); // west in [-180, 180)
             east = AngNormalize(east);
             if (east <= west)
-                east += 360;              // east - west in (0, 360]
+                east += TD;              // east - west in (0, 360]
             int
               iw = (int)Floor(west * _rlonres),
               ie = (int)Floor(east * _rlonres),
@@ -424,7 +437,7 @@ namespace GeographicLib
         /// For a 1' grid, the required RAM is 450MB; a 2.5' grid needs 72MB; and a 5' grid needs 18MB.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CacheAll() => CacheArea(-90, 0, 90, 360);
+        public void CacheAll() => CacheArea(-QD, 0, QD, TD);
 
         /// <summary>
         /// Clear the cache. This never throws an error. (This does nothing with a thread safe <see cref="Geoid"/>.)
@@ -490,7 +503,7 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the name used to load the geoid data (from the first argument of the constructor).
         /// </summary>
-        public string GeoidNmae => _name;
+        public string GeoidName => _name;
 
         /// <summary>
         /// Gets a value representing the full file name used to load the geoid data.
@@ -570,13 +583,13 @@ namespace GeographicLib
         /// Gets a value representing north edge of the cached area; the cache includes this edge.
         /// </summary>
         public double CacheNorth
-            => _cache ? 90 - (_yoffset + (_cubic ? 1 : 0)) / _rlatres : 0;
+            => _cache ? QD - (_yoffset + (_cubic ? 1 : 0)) / _rlatres : 0;
 
         /// <summary>
         /// Gets a value representing south edge of the cached area; the cache excludes this edge unless it's the south pole.
         /// </summary>
         public double CacheSouth
-            => _cache ? 90 - (_yoffset + _ysize - 1 - (_cubic ? 1 : 0)) / _rlatres : 0;
+            => _cache ? QD - (_yoffset + _ysize - 1 - (_cubic ? 1 : 0)) / _rlatres : 0;
 
         /// <inheritdoc/>
         public double EquatorialRadius => Constants.WGS84_a;

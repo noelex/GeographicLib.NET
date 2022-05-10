@@ -15,7 +15,7 @@ namespace GeographicLib
     /// Solve of the direct and inverse rhumb problems.
     /// </summary>
     /// <remarks>
-    /// The path of constant azimuth between two points on a ellipsoid at (<i>lat1</i>, <i>lon1</i>) and (<i>lat2</i>, <i>lon2</i>)
+    /// The path of constant azimuth between two points on an ellipsoid at (<i>lat1</i>, <i>lon1</i>) and (<i>lat2</i>, <i>lon2</i>)
     /// is called the rhumb line (also called the loxodrome). Its length is <i>s12</i> and its azimuth is <i>azi12</i>.
     /// (The azimuth is the heading measured clockwise from north.)
     /// <para>
@@ -166,7 +166,7 @@ namespace GeographicLib
 
             _ell = ellipsoid;
             _exact = exact;
-            _c2 = _ell.Area / 720;
+            _c2 = _ell.Area / (2 * TD);
 
             var d = 1.0;
             int o = 0;
@@ -649,7 +649,7 @@ namespace GeographicLib
             if (outmask.HasFlag(GeodesicFlags.Distance))
             {
                 var dmudpsi = DIsometricToRectifying(psi2, psi1);
-                s12 = h * dmudpsi * _ell.QuarterMeridian / 90;
+                s12 = h * dmudpsi * _ell.QuarterMeridian / QD;
             }
             if (outmask.HasFlag(GeodesicFlags.Area))
                 S12 = _c2 * lon12 *

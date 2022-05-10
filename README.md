@@ -72,8 +72,33 @@ GeographicLib.NET provides managed implementations of these functions (ported fr
 
 You can also force `GeographicLib.MathEx` to fallback to platform dependent implementations provided by system C runtime libraries,
 rather than managed implementations, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
-These functions provide better performance, but may produce inconsistent results on different platforms in some edge cases.
+Native C math implemenation may provide slightly better performance, but also produce inconsistent results on different platforms in some edge cases.
 
+In fact, the performance of different C math implementations are very close, managed implementation performs even better on newer runtimes. The following table shows the benchmark result of `Geodesic.WGS84.GenDirect` executed with/without manged C math:
+
+``` ini
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+Intel Xeon CPU E5-2689 0 2.60GHz, 1 CPU, 16 logical and 8 physical cores
+.NET SDK=6.0.300-preview.22204.3
+  [Host]        : .NET 6.0.4 (6.0.422.16404), X64 RyuJIT
+  .NET 5.0      : .NET 5.0.16 (5.0.1622.16705), X64 RyuJIT
+  .NET 6.0      : .NET 6.0.4 (6.0.422.16404), X64 RyuJIT
+  .NET Core 2.1 : .NET Core 2.1.30 (CoreCLR 4.6.30411.01, CoreFX 4.6.30411.02), X64 RyuJIT
+  .NET Core 3.1 : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
+```
+|  Method |           Job |       Runtime | UseManagedCMath |       Mean |    Error |   StdDev | Ratio | RatioSD |
+|-------- |-------------- |-------------- |--------------- |-----------:|---------:|---------:|------:|--------:|
+|  **Direct** |      **.NET 5.0** |      **.NET 5.0** |          **False** |   **953.1 ns** | **14.94 ns** | **13.98 ns** |  **0.82** |    **0.01** |
+|  Direct |      .NET 6.0 |      .NET 6.0 |          False |   975.3 ns |  6.42 ns |  6.00 ns |  0.84 |    0.01 |
+|  Direct | .NET Core 2.1 | .NET Core 2.1 |          False | 1,206.1 ns |  9.08 ns |  8.49 ns |  1.03 |    0.01 |
+|  Direct | .NET Core 3.1 | .NET Core 3.1 |          False | 1,166.3 ns | 15.07 ns | 14.10 ns |  1.00 |    0.00 |
+|         |               |               |                |            |          |          |       |         |
+|  **Direct** |      **.NET 5.0** |      **.NET 5.0** |           **True** |   **927.6 ns** | **13.46 ns** | **12.59 ns** |  **0.78** |    **0.01** |
+|  Direct |      .NET 6.0 |      .NET 6.0 |           True |   974.9 ns | 16.03 ns | 14.99 ns |  0.82 |    0.01 |
+|  Direct | .NET Core 2.1 | .NET Core 2.1 |           True | 1,242.1 ns | 10.02 ns |  8.88 ns |  1.04 |    0.01 |
+|  Direct | .NET Core 3.1 | .NET Core 3.1 |           True | 1,195.6 ns |  8.08 ns |  7.56 ns |  1.00 |    0.00 |
+
+Thus it's recommended to stick with managed C math until it becomes a performance bottleneck of your application, as it's more consistent as compared to native C math on different platforms.
 ## Documentation
 GeographicLib.NET includes a detailed XML documentation for all public APIs.
 Since the API surface of GeographicLib.NET is highly compatible with GeographicLib,
@@ -83,7 +108,17 @@ you can also refer the its documentation [here](https://geographiclib.sourceforg
 GeographicLib.NET adopts changes made in GeographicLib and aligns its version number with GeographicLib releases.
 
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
-For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/html/changes.html).
+For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
+
+### Version 2.0.0 (unreleased)
+- **NEW**
+  - Add `IPolygonArea` interface to provide better support for unit testing and dependency injection.
+  - Add `Count` and `IsPolyline` properties (corresponding to `NumPoints` and `Polyline` methods in GeographicLib) to `PolygonArea`.
+  - Add a new method `Utility.FractionalYear` which can parse floating point number and date time string as fractional year.
+- **FIX**
+  - String accepting APIs now handle lowercase "nan" correctly.
+  - Ensure consistent rounding mode (`MidpointRounding.ToEven`) across different runtimes when converting floating point number to string.
+  - `MGRS.Reverse` now allows lowercase input.
 
 ### Version 1.52.1 (released 2022/04/12)
 - **NEW**

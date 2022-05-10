@@ -14,9 +14,9 @@ namespace GeographicLib.Geocodes
     /// The class implements the coordinate system used by the Ordnance Survey for maps of Great Britain and conversions to the grid reference system.
     /// <para>
     /// <list type="bullet">
-    /// <item><a href="http://www.ordnancesurvey.co.uk/docs/support/guide-coordinate-systems-great-britain.pdf">
+    /// <item><a href="https://www.ordnancesurvey.co.uk/documents/resources/guide-coordinate-systems-great-britain.pdf">
     /// A guide to coordinate systems in Great Britain</a></item>
-    /// <item><a href="http://www.ordnancesurvey.co.uk/docs/support/national-grid.pdf">Guide to the National Grid</a></item>
+    /// <item><a href="https://www.ordnancesurvey.co.uk/documents/resources/guide-to-nationalgrid.pdf">Using the National Grid</a></item>
     /// </list>
     /// </para>
     /// <para>
@@ -109,7 +109,7 @@ namespace GeographicLib.Geocodes
         }
 
         /// <summary>
-        /// Convert <see cref="OSGB"/> coordinates to a grid reference.
+        /// Convert <see cref="OSGB"/> grid reference to coordinates.
         /// </summary>
         /// <param name="x">easting of point (meters).</param>
         /// <param name="y">northing of point (meters).</param>
@@ -287,7 +287,7 @@ namespace GeographicLib.Geocodes
         /// This is <c>20923713</c> ft converted to meters using the rule <c>1</c> ft = <c>10^(9.48401603−10)</c> m.
         /// The Airy 1830 value is returned because the <see cref="OSGB"/> projection is based on this ellipsoid.
         /// The conversion factor from feet to meters is the one used for the 1936 retriangulation of Britain;
-        /// see Section A.1 (p. 37) of <i>A guide to coordinate systems in Great Britain</i>, v2.2 (Dec. 2013).
+        /// see Section A.1 (footnote 10 on p. 44) of <i>A guide to coordinate systems in Great Britain</i>, v3.6 (2020).
         /// </remarks>
         public static double EquatorialRadius { get; } = Pow(10, (48401603d - 100000000) / 100000000) * 20923713;
 

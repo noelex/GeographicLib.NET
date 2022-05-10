@@ -177,10 +177,7 @@ namespace GeographicLib
             {
                 // Interpret s12_a12 as spherical arc length
                 sig12 = s12_a12 * Degree;
-                var s12a = Abs(s12_a12);
-                s12a -= 180 * Floor(s12a / 180);
-                ssig12 = s12a == 0 ? 0 : Sin(sig12);
-                csig12 = s12a == 90 ? 0 : Cos(sig12);
+                SinCosd(s12_a12, out ssig12, out csig12);
             }
             else
             {

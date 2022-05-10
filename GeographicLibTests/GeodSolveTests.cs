@@ -506,15 +506,38 @@ namespace GeographicLib.Tests
         public void GeodSolve94_CheckFixFor_lat2_eq_NaN_BeingTreatedAs_lat2_eq_Zero()
         {
             var result = Geodesic.WGS84.Inverse(0, 0, double.NaN, 90);
-            var resultExact = GeodesicExact.WGS84.Inverse(0, 0, double.NaN, 90);
 
             Assert.IsTrue(double.IsNaN(result.Azimuth1));
             Assert.IsTrue(double.IsNaN(result.Azimuth2));
             Assert.IsTrue(double.IsNaN(result.Distance));
+        }
 
-            Assert.IsTrue(double.IsNaN(resultExact.Azimuth1));
-            Assert.IsTrue(double.IsNaN(resultExact.Azimuth2));
-            Assert.IsTrue(double.IsNaN(resultExact.Distance));
+        [TestMethod]
+        public void GeodSolve94_CheckFixFor_lat2_eq_NaN_BeingTreatedAs_lat2_eq_Zero_Exact()
+        {
+            var result = GeodesicExact.WGS84.Inverse(0, 0, double.NaN, 90);
+
+            Assert.IsTrue(double.IsNaN(result.Azimuth1));
+            Assert.IsTrue(double.IsNaN(result.Azimuth2));
+            Assert.IsTrue(double.IsNaN(result.Distance));
+        }
+
+        /// <summary>
+        /// Failure with long doubles found with test case from Nowak + Nowak Da
+        /// Costa (2022). Problem was using somg12 > 1 as a test that it needed
+        /// to be set when roundoff could result in somg12 slightly bigger that 1.
+        /// Found + fixed 2022-03-30.
+        /// </summary>
+        [TestMethod]
+        public void GeodSolve96_97()
+        {
+            IGeodesic g = new Geodesic(6378137, 1 / 298.257222101);
+            var result = g.Inverse(0, 0, 60.0832522871723, 89.8492185074635);
+            Assert.AreEqual("42426932221845", result.Area.ToFixedString(0));
+
+            g = new GeodesicExact(6378137, 1 / 298.257222101);
+            result = g.Inverse(0, 0, 60.0832522871723, 89.8492185074635);
+            Assert.AreEqual("42426932221845", result.Area.ToFixedString(0));
         }
     }
 }

@@ -337,16 +337,16 @@ namespace GeographicLib.Projections
             lon = AngDiff(lon0, lon);
             // Explicitly enforce the parity
             int
-              latsign = (lat < 0) ? -1 : 1,
-              lonsign = (lon < 0) ? -1 : 1;
+              latsign = SignBit(lat) ? -1 : 1,
+              lonsign = SignBit(lon) ? -1 : 1;
             lon *= lonsign;
             lat *= latsign;
-            bool backside = lon > 90;
+            bool backside = lon > QD;
             if (backside)
             {
                 if (lat == 0)
                     latsign = -1;
-                lon = 180 - lon;
+                lon = HD - lon;
             }
 
             SinCosd(lat, out var sphi, out var cphi);
@@ -369,7 +369,7 @@ namespace GeographicLib.Projections
             //   cosh(etap) = 1/denom                  = 1/denom
             //   sinh(etap) = cos(phi')*sin(lam)/denom = sech(psi)*sin(lam)/denom
             double etap, xip;
-            if (lat != 90)
+            if (lat != QD)
             {
                 double
                   tau = sphi / cphi,
@@ -501,7 +501,7 @@ namespace GeographicLib.Projections
             double xi = y1.Real, eta = y1.Imaginary;
 
             if (backside)
-                gamma = 180 - gamma;
+                gamma = HD - gamma;
             gamma *= latsign * lonsign;
             gamma = AngNormalize(gamma);
             k *= _k0;
@@ -533,8 +533,8 @@ namespace GeographicLib.Projections
 
             // Explicitly enforce the parity
             int
-              xisign = (xi < 0) ? -1 : 1,
-              etasign = (eta < 0) ? -1 : 1;
+              xisign = SignBit(xi) ? -1 : 1,
+              etasign = SignBit(eta) ? -1 : 1;
 
             xi *= xisign;
             eta *= etasign;
@@ -599,17 +599,17 @@ namespace GeographicLib.Projections
             }
             else
             {
-                lat = 90;
+                lat = QD;
                 lon = 0;
                 k *= _c;
             }
             lat *= xisign;
             if (backside)
-                lon = 180 - lon;
+                lon = HD - lon;
             lon *= etasign;
             lon = AngNormalize(lon + lon0);
             if (backside)
-                gamma = 180 - gamma;
+                gamma = HD - gamma;
             gamma *= xisign * etasign;
             gamma = AngNormalize(gamma);
             k *= _k0;
