@@ -51,7 +51,7 @@ namespace GeographicLib
     /// <item>Inconsistent rules are used to determine the whether a particular UTM or UPS coordinate is legal. A more systematic approach is taken here.</item>
     /// <item>The underlying projections are not very accurately implemented.</item>
     /// </list>
-    /// The <see cref="EncodeZone"/> encodes the UTM zone and hemisphere to allow UTM/UPS coordinated to be displayed as,
+    /// The <see cref="EncodeZone"/> encodes the UTM zone and hemisphere to allow UTM/UPS coordinates to be displayed as,
     /// for example, "<c>38N 444500 3688500</c>". According to NGA.SIG.0012_2.0.0_UTMUPS the use of "<c>N</c>" to denote "north" in the context is not 
     /// allowed (since a upper case letter in this context denotes the MGRS latitude band).
     /// Consequently, as of version 1.36, <see cref="EncodeZone"/> uses the lower case letters "<c>n</c>" and "<c>s</c>" to denote the hemisphere.
@@ -150,7 +150,7 @@ namespace GeographicLib
             if (setzone == (int)ZoneSpec.UTM || (lat >= -80 && lat < 84))
             {
                 int ilon = (int)Floor(AngNormalize(lon));
-                if (ilon == 180) ilon = -180; // ilon now in [-180,180)
+                if (ilon == HD) ilon = -HD; // ilon now in [-180,180)
                 int zone = (ilon + 186) / 6;
                 int band = MGRS.LatitudeBand(lat);
                 if (band == 7 && zone == 31 && ilon >= 3) // The Norway exception
@@ -280,9 +280,9 @@ namespace GeographicLib
         public static (int zone, bool northp, double x, double y) Forward(
             double lat, double lon, out double gamma, out double k, int setzone = (int)ZoneSpec.Standard, bool mgrslimits = false)
         {
-            if (Abs(lat) > 90)
-                throw new GeographicException($"Latitude {lat}d not in [-90d, 90d]");
-            bool northp1 = lat >= 0;
+            if (Abs(lat) > QD)
+                throw new GeographicException($"Latitude {lat}d not in [-{QD}d, {QD}d]");
+            bool northp1 = !SignBit(lat);
             int zone1 = StandardZone(lat, lon, setzone);
             if (zone1 == (int)ZoneSpec.Invalid)
             {
@@ -297,8 +297,7 @@ namespace GeographicLib
             {
                 double
                   lon0 = CentralMeridian(zone1),
-                  dlon = lon - lon0;
-                dlon = Abs(dlon - 360 * Floor((dlon + 180) / 360));
+                  dlon = AngDiff(lon0, lon);
                 if (!(dlon <= 60))
                     // Check isn't really necessary because CheckCoords catches this case.
                     // But this allows a more meaningful error message to be given.
@@ -327,7 +326,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Transfer UTM/UPS coordinated from one zone to another.
+        /// Transfer UTM/UPS coordinates from one zone to another.
         /// </summary>
         /// <param name="zonein">the UTM zone for <paramref name="xin"/> and <paramref name="yin"/> (or zero for UPS).</param>
         /// <param name="northpin">hemisphere for <paramref name="xin"/> and <paramref name="yin"/>

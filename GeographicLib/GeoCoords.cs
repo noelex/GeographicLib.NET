@@ -234,9 +234,7 @@ namespace GeographicLib
         {
             (_zone, _northp, _easting, _northing) = UTMUPS.Forward(latitude, longitude, out _gamma, out _k, zone);
             _lat = latitude;
-            _long = longitude;
-            if (_long >= 180) _long -= 360;
-            else if (_long < -180) _long += 360;
+            _long = AngNormalize(longitude);
             CopyToAlt();
         }
 
@@ -352,29 +350,18 @@ namespace GeographicLib
         /// Precision specifies accuracy of representation as follows:
         /// <list type="bullet">
         /// <item><paramref name="prec"/> = −5 (min), 1°</item>
-        /// <item><paramref name="prec"/> = 0, 10−5° (about 1m)</item>
-        /// <item><paramref name="prec"/> = 3, 10−8°</item>
-        /// <item><paramref name="prec"/> = 9 (max), 10−14°</item>
+        /// <item><paramref name="prec"/> = 0, 10^−5° (about 1m)</item>
+        /// <item><paramref name="prec"/> = 3, 10^−8°</item>
+        /// <item><paramref name="prec"/> = 9 (max), 10^−14°</item>
         /// </list>
         /// </remarks>
         public string ToGeoString(int prec = 0, bool longfirst = false)
         {
             prec = Max(0, Min(9 + 0 /*Math::extra_digits()*/, prec) + 5);
-            var os = new StringBuilder();
-            var format = $"F{prec}";//os << fixed << setprecision(prec);
 
-            double a = longfirst ? _long : _lat;
-            double b = longfirst ? _lat : _long;
-            if (!double.IsNaN(a))
-                os.AppendFormat(format, a);
-            else
-                os.Append("nan");
-            os.Append(" ");
-            if (!double.IsNaN(b))
-                os.AppendFormat(format, b);
-            else
-                os.Append("nan");
-            return os.ToString();
+            return Utility.ToFixedString(longfirst ? _long : _lat, prec)
+                + " " + Utility.ToFixedString(longfirst ? _lat : _long, prec);
+
         }
 
         /// <summary>

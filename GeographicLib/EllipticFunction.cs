@@ -37,7 +37,8 @@ namespace GeographicLib
     /// The computation of the elliptic integrals uses the algorithms given in
     /// - B.C.Carlson,
     ///   <a href = "https://doi.org/10.1007/BF02198293" > Computation of real or
-    /// complex elliptic integrals</a>, Numerical Algorithms 10, 13--26 (1995).
+    /// complex elliptic integrals</a>, Numerical Algorithms 10, 13--26 (1995);
+    /// <a href="https://arxiv.org/abs/math/9409227">preprint</a>.
     /// with the additional optimizations given in https://dlmf.nist.gov/19.36.i.
     /// The computation of the Jacobi elliptic functions uses the algorithm given
     /// in
@@ -197,7 +198,8 @@ namespace GeographicLib
         /// <returns><i>E</i>(π <i>ang</i>/180, <i>k</i>).</returns>
         public double Ed(double ang)
         {
-            double n = Ceiling(ang / 360 - 0.5);
+            // ang - Math::AngNormalize(ang) is (nearly) an exact multiple of 360
+            double n = Round((ang - AngNormalize(ang)) / TD);
             ang -= 360 * n;
             SinCosd(ang, out var sn, out var cn);
             return E(sn, cn, Delta(sn, cn)) + 4 * E() * n;
@@ -318,7 +320,7 @@ namespace GeographicLib
               fi = cn2 != 0 ? Abs(sn) * RF(cn2, dn2, 1) : K();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 fi = 2 * K() - fi;
 
             return CopySign(fi, sn);
@@ -351,7 +353,7 @@ namespace GeographicLib
                 E();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 ei = 2 * E() - ei;
 
             return CopySign(ei, sn);
@@ -376,7 +378,7 @@ namespace GeographicLib
               Pi();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 pii = 2 * Pi() - pii;
 
             return CopySign(pii, sn);
@@ -398,7 +400,7 @@ namespace GeographicLib
               di = cn2 != 0 ? Abs(sn) * sn2 * RD(cn2, dn2, 1) / 3 : D();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 di = 2 * D() - di;
 
             return CopySign(di, sn);
@@ -421,7 +423,7 @@ namespace GeographicLib
               G();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 gi = 2 * G() - gi;
 
             return CopySign(gi, sn);
@@ -445,7 +447,7 @@ namespace GeographicLib
               H();
 
             // Enforce usual trig-like symmetries
-            if (cn < 0)
+            if (SignBit(cn))
                 hi = 2 * H() - hi;
 
             return CopySign(hi, sn);
@@ -461,7 +463,7 @@ namespace GeographicLib
         public double DeltaF(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return F(sn, cn, dn) * (PI / 2) / K() - Atan2(sn, cn);
         }
 
@@ -475,7 +477,7 @@ namespace GeographicLib
         public double DeltaE(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return E(sn, cn, dn) * (PI / 2) / E() - Atan2(sn, cn);
         }
 
@@ -488,7 +490,7 @@ namespace GeographicLib
         public double DeltaEinv(double stau, double ctau)
         {
             // Function is periodic with period pi
-            if (ctau < 0) { ctau = -ctau; stau = -stau; }
+            if (SignBit(ctau)) { ctau = -ctau; stau = -stau; }
             var tau = Atan2(stau, ctau);
             return Einv(tau * E() / (PI / 2)) - tau;
         }
@@ -503,7 +505,7 @@ namespace GeographicLib
         public double DeltaPi(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return Pi(sn, cn, dn) * (PI / 2) / Pi() - Atan2(sn, cn);
         }
 
@@ -517,7 +519,7 @@ namespace GeographicLib
         public double DeltaD(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return D(sn, cn, dn) * (PI / 2) / D() - Atan2(sn, cn);
         }
 
@@ -531,7 +533,7 @@ namespace GeographicLib
         public double DeltaG(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return G(sn, cn, dn) * (PI / 2) / G() - Atan2(sn, cn);
         }
 
@@ -545,7 +547,7 @@ namespace GeographicLib
         public double DeltaH(double sn, double cn, double dn)
         {
             // Function is periodic with period pi
-            if (cn < 0) { cn = -cn; sn = -sn; }
+            if (SignBit(cn)) { cn = -cn; sn = -sn; }
             return H(sn, cn, dn) * (PI / 2) / H() - Atan2(sn, cn);
         }
 
@@ -568,7 +570,7 @@ namespace GeographicLib
             if (_kp2 != 0)
             {
                 double mc = _kp2, d = 0;
-                if (_kp2 < 0)
+                if (SignBit(_kp2))
                 {
                     d = 1 - mc;
                     mc /= -d;
@@ -613,9 +615,9 @@ namespace GeographicLib
                         a = c / b;
                     }
                     a = 1 / Sqrt(c * c + 1);
-                    sn = sn < 0 ? -a : a;
+                    sn = SignBit(sn) ? -a : a;
                     cn = c * sn;
-                    if (_kp2 < 0)
+                    if (SignBit(_kp2))
                     {
                         Swap(ref cn, ref dn);
                         sn /= d;
@@ -650,7 +652,15 @@ namespace GeographicLib
         /// <returns><i>Rf</i>(<i>x</i>, <i>y</i>, <i>z</i>).</returns>
         /// <remarks>
         /// <i>Rf</i> is defined in <a href="https://dlmf.nist.gov/19.16.E1"/>.
-        /// If one of the arguments is zero, it is more efficient to call the two-argument version of this function with the non-zero arguments.
+        /// <para>
+        /// At most one of arguments, <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>, can be zero and those
+        /// arguments that are nonzero must be positive. 
+        /// </para>
+        /// <para>
+        /// If one of the arguments is
+        /// zero, it is more efficient to call the two-argument version of this
+        /// function with the non-zero arguments.
+        /// </para>
         /// </remarks>
         public static double RF(double x, double y, double z)
         {
@@ -698,6 +708,9 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns><i>Rf</i>(<i>x</i>, <i>y</i>, 0).</returns>
+        /// <remarks>
+        /// The arguments <paramref name="x"/> and <paramref name="y"/> must be positive.
+        /// </remarks>
         public static double RF(double x, double y)
         {
             // Carlson, eqs 2.36 - 2.38
@@ -724,6 +737,9 @@ namespace GeographicLib
         /// <returns><i>Rc</i>(x, y) = <i>Rf</i>(<i>x</i>, <i>y</i>, <i>y</i>).</returns>
         /// <remarks>
         /// <i>Rc</i> is defined in <a href="https://dlmf.nist.gov/19.16.E17"/>.
+        /// <para>
+        /// Requires <paramref name="x"/> >= 0 and <paramref name="y"/> &gt; 0.
+        /// </para>
         /// </remarks>
         public static double RC(double x, double y) =>
             // Defined only for y != 0 and x >= 0.
@@ -747,7 +763,11 @@ namespace GeographicLib
         /// <param name="z"></param>
         /// <returns><i>Rg</i>(<i>x</i>, <i>y</i>, <i>z</i>).</returns>
         /// <remarks>
-        /// <i>Rg</i> is defined in Carlson, eq 1.5. See also <a href="https://dlmf.nist.gov/19.16.E3"/>.
+        /// <i>Rg</i> is defined in Carlson, eq 1.5. See also <a href="https://dlmf.nist.gov/19.23.E6_5"/>.
+        /// <para>
+        /// At most one of arguments, <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>, can be zero and those
+        /// arguments that are nonzero must be positive.
+        /// </para>
         /// If one of the arguments is zero, it is more efficient to call the
         /// two-argument version of this function with the non-zero arguments.
         /// </remarks>
@@ -767,6 +787,9 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns><i>Rg</i>(<i>x</i>, <i>y</i>, 0).</returns>
+        /// <remarks>
+        /// The arguments <paramref name="x"/> and <paramref name="y"/> must be positive.
+        /// </remarks>
         public static double RG(double x, double y)
         {
             // Carlson, eqs 2.36 - 2.39
@@ -802,6 +825,10 @@ namespace GeographicLib
         /// <returns><i>Rj</i>(<i>x</i>, <i>y</i>, <i>z</i>, <i>p</i>).</returns>
         /// <remarks>
         /// <i>Rd</i> is defined in <a href="https://dlmf.nist.gov/19.16.E2"/>.
+        /// <para>
+        /// Requires <paramref name="p"/> &gt; 0, and <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>
+        /// are nonnegative with at most one of them being 0.
+        /// </para>
         /// </remarks>
         public static double RJ(double x, double y, double z, double p)
         {
@@ -868,6 +895,10 @@ namespace GeographicLib
         /// <returns><i>Rd</i>(<i>x</i>, <i>y</i>, <i>z</i>) = <i>Rj(<i>x</i>, <i>y</i>, <i>z</i>)</i>.</returns>
         /// <remarks>
         /// <i>Rd</i> is defined in <a href="https://dlmf.nist.gov/19.16.E5"/>.
+        /// <para>
+        /// Requires <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/> to be positive
+        /// except that at most one of <paramref name="x"/> and <paramref name="y"/> can be 0.
+        /// </para>
         /// </remarks>
         public static double RD(double x, double y, double z)
         {
@@ -944,7 +975,7 @@ namespace GeographicLib
                 throw new GeographicException("Parameter k2 is not in (-inf, 1]");
             if (alpha2 > 1)
                 throw new GeographicException("Parameter alpha2 is not in (-inf, 1]");
-            if (kp2 < 0)
+            if (kp2 < 0) 
                 throw new GeographicException("Parameter kp2 is not in [0, inf)");
             if (alphap2 < 0)
                 throw new GeographicException("Parameter alphap2 is not in [0, inf)");

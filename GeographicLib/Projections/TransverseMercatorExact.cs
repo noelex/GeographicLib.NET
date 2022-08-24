@@ -168,9 +168,9 @@ namespace GeographicLib.Projections
             double
               d1 = Sqrt(Sq(cnu) + _mv * Sq(snu * snv)),
               d2 = Sqrt(_mu * Sq(cnu) + _mv * Sq(cnv)),
-              t1 = (d1 != 0 ? snu * dnv / d1 : (snu < 0 ? -overflow : overflow)),
+              t1 = (d1 != 0 ? snu * dnv / d1 : (SignBit(snu) ? -overflow : overflow)),
               t2 = (d2 != 0 ? Sinh(_e * Asinh(_e * snu / d2)) :
-                    (snu < 0 ? -overflow : overflow));
+                    (SignBit(snu) ? -overflow : overflow));
             // psi = asinh(t1) - asinh(t2)
             // taup = sinh(psi)
             taup = t1 * Hypot(1, t2) - t2 * Hypot(1, t1);
@@ -464,16 +464,16 @@ namespace GeographicLib.Projections
             lon = AngDiff(lon0, lon);
             // Explicitly enforce the parity
             int
-              latsign = (!_extendp && lat < 0) ? -1 : 1,
-              lonsign = (!_extendp && lon < 0) ? -1 : 1;
+              latsign = (!_extendp && SignBit(lat)) ? -1 : 1,
+              lonsign = (!_extendp && SignBit(lon)) ? -1 : 1;
             lon *= lonsign;
             lat *= latsign;
-            bool backside = !_extendp && lon > 90;
+            bool backside = !_extendp && lon > QD;
             if (backside)
             {
                 if (lat == 0)
                     latsign = -1;
-                lon = 180 - lon;
+                lon = HD - lon;
             }
             double
               lam = lon * Degree,
@@ -481,12 +481,12 @@ namespace GeographicLib.Projections
 
             // u,v = coordinates for the Thompson TM, Lee 54
             double u, v;
-            if (lat == 90)
+            if (lat == QD)
             {
                 u = _Eu.K();
                 v = 0;
             }
-            else if (lat == 0 && lon == 90 * (1 - _e))
+            else if (lat == 0 && lon == QD * (1 - _e))
             {
                 u = 0;
                 v = _Ev.K();
@@ -505,7 +505,7 @@ namespace GeographicLib.Projections
 
             var (y, x) = (xi * _a * _k0 * latsign, eta * _a * _k0 * lonsign);
 
-            if (lat == 90)
+            if (lat == QD)
             {
                 gamma = lon;
                 k = 1;
@@ -519,7 +519,7 @@ namespace GeographicLib.Projections
                 gamma /= Degree;
             }
             if (backside)
-                gamma = 180 - gamma;
+                gamma = HD - gamma;
             gamma *= latsign * lonsign;
             k *= _k0;
 
@@ -546,10 +546,10 @@ namespace GeographicLib.Projections
               eta = x / (_a * _k0);
             // Explicitly enforce the parity
             int
-              latsign = !_extendp && y < 0 ? -1 : 1,
-              lonsign = !_extendp && x < 0 ? -1 : 1;
-            xi *= latsign;
-            eta *= lonsign;
+              xisign = (!_extendp && SignBit(xi)) ? -1 : 1,
+              etasign = (!_extendp && SignBit(eta)) ? -1 : 1;
+            xi *= xisign;
+            eta *= etasign;
             bool backside = !_extendp && xi > _Eu.E();
             if (backside)
                 xi = 2 * _Eu.E() - xi;
@@ -580,19 +580,19 @@ namespace GeographicLib.Projections
             }
             else
             {
-                lat = 90;
+                lat = QD;
                 lon = lam = gamma = 0;
                 k = 1;
             }
 
             if (backside)
-                lon = 180 - lon;
-            lon *= lonsign;
+                lon = HD - lon;
+            lon *= etasign;
             lon = AngNormalize(lon + AngNormalize(lon0));
-            lat *= latsign;
+            lat *= xisign;
             if (backside)
-                gamma = 180 - gamma;
-            gamma *= latsign * lonsign;
+                gamma = HD - gamma;
+            gamma *= xisign * etasign;
             k *= _k0;
 
             return (lat, lon);

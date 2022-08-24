@@ -13,7 +13,7 @@ namespace GeographicLib
     /// Implements geodesic calculations.
     /// </summary>
     /// <remarks>
-    /// The shortest path between two points on a ellipsoid at (<i>lat1</i>, <i>lon1</i>)
+    /// The shortest path between two points on an ellipsoid at (<i>lat1</i>, <i>lon1</i>)
     /// and (<i>lat2</i>, <i>lon2</i>) is called the geodesic.Its length is <i>s12</i> and
     /// the geodesic from point 1 to point 2 has azimuths <i>azi1</i> and <i>azi2</i> at
     /// the two end points.  (The azimuth is the heading measured clockwise from
@@ -187,7 +187,7 @@ namespace GeographicLib
         public override double EllipsoidArea => 4 * PI * _c2;
 
         /// <summary>
-        /// Constructor for a ellipsoid with equatorial radius and its flattening.
+        /// Constructor for an ellipsoid with equatorial radius and its flattening.
         /// </summary>
         /// <param name="a">equatorial radius (meters).</param>
         /// <param name="f">flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
@@ -244,7 +244,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Constructor for a ellipsoid with equatorial radius and its flattening copied from another <see cref="IEllipsoid"/> object.
+        /// Constructor for an ellipsoid with equatorial radius and its flattening copied from another <see cref="IEllipsoid"/> object.
         /// </summary>
         /// <param name="ellipsoid">Source <see cref="IEllipsoid"/> object.</param>
         public Geodesic(IEllipsoid ellipsoid)
@@ -1063,13 +1063,7 @@ namespace GeographicLib
             {
                 // Scale lam12 and bet2 to x, y coordinate system where antipodal point
                 // is at origin and singular point is at y = 0, x = -1.
-                double y, lamscale, betscale;
-
-                // Volatile declaration needed to fix inverse case
-                // 56.320923501171 0 -56.320923501171 179.664747671772880215
-                // which otherwise fails with g++ 4.4.4 x86 -O3
-                // TODO: Volatile declaration.
-                double x;
+                double x, y, lamscale, betscale;
                 double lam12x = Atan2(-slam12, -clam12); // lam12 - pi
                 if (_f >= 0)
                 {            // In fact f == 0 does not get here
@@ -1225,11 +1219,11 @@ namespace GeographicLib
             // Math::norm(somg2, comg2); -- don't need to normalize!
 
             // sig12 = sig2 - sig1, limit to [0, pi]
-            sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2),
+            sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2) + 0d,
                                        csig1 * csig2 + ssig1 * ssig2);
 
             // omg12 = omg2 - omg1, limit to [0, pi]
-            somg12 = Max(0, comg1 * somg2 - somg1 * comg2);
+            somg12 = Max(0, comg1 * somg2 - somg1 * comg2) + 0d;
             comg12 = comg1 * comg2 + somg1 * somg2;
             // eta = omg12 - lam120
             var eta = Atan2(somg12 * clam120 - comg12 * slam120,
@@ -1267,27 +1261,20 @@ namespace GeographicLib
             salp1 = salp2 = calp1 = calp2 = double.NaN;
             s12 = S12 = m12 = M12 = M21 = double.NaN;
 
-            // Compute longitude difference (AngDiff does this carefully).  Result is
-            // in [-180, 180] but -180 is only for west-going geodesics.  180 is for
-            // east-going and meridional geodesics.
+            // Compute longitude difference (AngDiff does this carefully).
             var lon12 = AngDiff(lon1, lon2, out var lon12s);
 
             // Make longitude difference positive.
-            int lonsign = lon12 >= 0 ? 1 : -1;
-            // If very close to being on the same half-meridian, then make it so.
-            lon12 = lonsign * AngRound(lon12);
-            lon12s = AngRound((180 - lon12) - lonsign * lon12s);
+            int lonsign = SignBit(lon12) ? -1 : 1;
+            lon12 *= lonsign; lon12s *= lonsign;
             double
               lam12 = lon12 * Degree,
               slam12, clam12;
 
-            if (lon12 > 90)
-            {
-                SinCosd(lon12s, out slam12, out clam12);
-                clam12 = -clam12;
-            }
-            else
-                SinCosd(lon12, out slam12, out clam12);
+            // Calculate sincos of lon12 + error (this applies AngRound internally).
+            SinCosde(lon12, lon12s, out slam12, out clam12);
+            // the supplementary longitude difference
+            lon12s = (HD - lon12) - lon12s; 
 
             // If really close to the equator, treat as on equator.
             lat1 = AngRound(LatFix(lat1));
@@ -1302,15 +1289,15 @@ namespace GeographicLib
                 Swap(ref lat1, ref lat2);
             }
 
-            // Make lat1 <= 0
-            int latsign = lat1 < 0 ? 1 : -1;
+            // Make lat1 <= -0
+            int latsign = SignBit(lat1) ? 1 : -1;
             lat1 *= latsign;
             lat2 *= latsign;
 
             // Now we have
             //
             //     0 <= lon12 <= 180
-            //     -90 <= lat1 <= 0
+            //     -90 <= lat1 <= -0
             //     lat1 <= lat2 <= -lat1
             //
             // longsign, swapp, latsign register the transformation to bring the
@@ -1341,7 +1328,7 @@ namespace GeographicLib
             if (cbet1 < -sbet1)
             {
                 if (cbet2 == cbet1)
-                    sbet2 = sbet2 < 0 ? sbet1 : -sbet1;
+                    sbet2 = CopySign(sbet1, sbet2);
             }
             else
             {
@@ -1357,7 +1344,7 @@ namespace GeographicLib
             // index zero element of this array is unused
             Span<double> Ca = stackalloc double[nC_];
 
-            bool meridian = lat1 == -90 || slam12 == 0;
+            bool meridian = lat1 == -QD || slam12 == 0;
 
             if (meridian)
             {
@@ -1374,7 +1361,7 @@ namespace GeographicLib
                   ssig2 = sbet2, csig2 = calp2 * cbet2;
 
                 // sig12 = sig2 - sig1
-                sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2),
+                sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2) + 0d,
                                            csig1 * csig2 + ssig1 * ssig2);
                 {
                     Lengths(_n, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2, cbet1, cbet2,
@@ -1410,11 +1397,11 @@ namespace GeographicLib
                     meridian = false;
             }
 
-            // somg12 > 1 marks that it needs to be calculated
+            // somg12 == 2 marks that it needs to be calculated
             double omg12 = 0, somg12 = 2, comg12 = 0;
             if (!meridian &&
                 sbet1 == 0 &&   // and sbet2 == 0
-                (_f <= 0 || lon12s >= _f * 180))
+                (_f <= 0 || lon12s >= _f * HD))
             {
 
                 // Geodesic runs along equator
@@ -1545,10 +1532,10 @@ namespace GeographicLib
             }
 
             if (outmask.Flags().HasAny(GeodesicFlags.Distance))
-                s12 = 0 + s12x;           // Convert -0 to 0
+                s12 = 0d + s12x;           // Convert -0 to 0
 
             if (outmask.Flags().HasAny(GeodesicFlags.ReducedLength))
-                m12 = 0 + m12x;           // Convert -0 to 0
+                m12 = 0d + m12x;           // Convert -0 to 0
 
             if (outmask.Flags().HasAny(GeodesicFlags.Area))
             {
@@ -1579,7 +1566,7 @@ namespace GeographicLib
                     // Avoid problems with indeterminate sig1, sig2 on equator
                     S12 = 0;
 
-                if (!meridian && somg12 > 1)
+                if (!meridian && somg12 == 2)
                 {
                     somg12 = Sin(omg12); comg12 = Cos(omg12);
                 }

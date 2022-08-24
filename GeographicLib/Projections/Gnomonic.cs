@@ -13,7 +13,85 @@ namespace GeographicLib.Projections
     /// Gnomonic projection.
     /// </summary>
     /// <remarks>
-    /// 
+    /// Gnomonic projection centered at an arbitrary position C on the ellipsoid.
+    /// This projection is derived in Section 8 of
+    /// <list type="bullet">
+    /// <item>C. F. F. Karney, <a href="https://doi.org/10.1007/s00190-012-0578-z">
+    /// Algorithms for geodesics</a>, J. Geodesy 87, 43–55 (2013);
+    /// DOI: <a href="https://doi.org/10.1007/s00190-012-0578-z">10.1007/s00190-012-0578-z</a>;
+    /// addenda: <a href="https://geographiclib.sourceforge.io/geod-addenda.html">geod-addenda.html</a>.</item>
+    /// </list>
+    /// The projection of <i>P</i> is defined as follows:
+    /// compute the geodesic line from <i>C</i> to <i>P</i>; compute the reduced length <i>m12</i>,
+    /// geodesic scale <i>M12</i>, and ρ = <i>m12</i>/<i>M12</i>; finally <i>x</i> = ρ sin <i>azi1</i>;
+    /// <i>y</i> = ρ cos <i>azi1</i>, where <i>azi1</i> is the azimuth of the geodesic at <i>C</i>.
+    /// The <see cref="Forward(double, double, double, double)"/> and 
+    /// <see cref="Reverse(double, double, double, double)"/> methods also return the azimuth <i>azi</i>
+    /// of the geodesic at <i>P</i> and reciprocal scale <i>rk</i> in the azimuthal direction.
+    /// The scale in the radial direction if 1/<i>rk</i>^2.
+    /// <para>
+    /// For a sphere, ρ is reduces to a tan(<i>s12</i>/<i>a</i>),
+    /// where <i>s12</i> is the length of the geodesic from <i>C</i> to <i>P</i>,
+    /// and the gnomonic projection has the property that all geodesics appear as straight lines.
+    /// For an ellipsoid, this property holds only for geodesics interesting the centers.
+    /// However geodesic segments close to the center are approximately straight.
+    /// </para>
+    /// <para>
+    /// Consider a geodesic segment of length <i>l</i>.
+    /// Let <i>T</i> be the point on the geodesic (extended if necessary) closest to <i>C</i> the
+    /// center of the projection and t be the distance <i>CT</i>.
+    /// To lowest order, the maximum deviation (as a true distance) of the corresponding gnomonic
+    /// line segment (i.e., with the same end points) from the geodesic is
+    /// </para>
+    /// <list type="table">
+    /// <item>(<i>K</i>(<i>T</i>) - <i>K</i>(<i>C</i>)) <i>l</i>^2 <i>t</i> / 32.</item>
+    /// </list>
+    /// where <i>K</i> is the Gaussian curvature.
+    /// <para>
+    /// This result applies for any surface. For an ellipsoid of revolution,
+    /// consider all geodesics whose end points are within a distance <i>r</i> of <i>C</i>.
+    /// For a given <i>r</i>, the deviation is maximum when the latitude of <i>C</i> is 45°,
+    /// when endpoints are a distance <i>r</i> away, and when their azimuths from the center
+    /// are ± 45° or ± 135°. To lowest order in <i>r</i> and the flattening <i>f</i>,
+    /// the deviation is <i>f</i> (<i>r</i>/2<i>a</i>)^3 <i>r</i>.
+    /// </para>
+    /// <para>
+    /// The conversions all take place using a <see cref="Geodesic"/> object
+    /// (by default <see cref="Geodesic.WGS84"/>).
+    /// For more information on geodesics see
+    /// <a href="https://geographiclib.sourceforge.io/C++/doc/geodesic.html">
+    /// Geodesics on an ellipsoid of revolution</a>.
+    /// </para>
+    /// <b>Warning</b>
+    /// <para>
+    /// The definition of this projection for a sphere is standard.
+    /// However, there is no standard for how it should be extended to an ellipsoid.
+    /// The choices are:
+    /// </para>
+    /// <list type="bullet">
+    /// <item>Declare that the projection is undefined for an ellipsoid.</item>
+    /// <item>
+    /// Project to a tangent plane from the center of the ellipsoid.
+    /// This causes great ellipses to appear as straight lines in the projection;
+    /// i.e., it generalizes the spherical great circle to a great ellipse.
+    /// This was proposed by independently by Bowring and Williams in 1997.
+    /// </item>
+    /// <item>
+    /// Project to the conformal sphere with the constant of integration chosen so that
+    /// the values of the latitude match for the center point and perform a central
+    /// projection onto the plane tangent to the conformal sphere at the center point.
+    /// This causes normal sections through the center point to appear as straight lines
+    /// in the projection; i.e., it generalizes the spherical great circle to a normal
+    /// section. This was proposed by I. G. Letoval'tsev, Generalization of the gnomonic
+    /// projection for a spheroid and the principal geodetic problems involved in the
+    /// alignment of surface routes, Geodesy and Aerophotography (5), 271–274 (1963).
+    /// </item>
+    /// <item>
+    /// The projection given here. This causes geodesics close to the center point to
+    /// appear as straight lines in the projection; i.e., it generalizes the spherical
+    /// great circle to a geodesic.
+    /// </item>
+    /// </list>
     ///  </remarks>
     public class Gnomonic : IEllipsoid
     {

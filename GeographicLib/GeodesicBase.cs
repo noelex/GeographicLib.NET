@@ -28,7 +28,7 @@ namespace GeographicLib
             double s12_a12, GeodesicFlags caps = GeodesicFlags.All);
 
         /// <inheritdoc/>
-        public abstract double GenInverse(double lat1, double lon1, double lat2, double lon2, GeodesicFlags outmask, out double s12, out double azi1, 
+        public abstract double GenInverse(double lat1, double lon1, double lat2, double lon2, GeodesicFlags outmask, out double s12, out double azi1,
             out double azi2, out double m12, out double M12, out double M21, out double S12);
 
         /// <inheritdoc/>
@@ -202,11 +202,45 @@ namespace GeographicLib
 
         /// <inheritdoc/>
         public DirectGeodesicResult Direct(double lat1, double lon1, double azi1, double s12, GeodesicFlags outmask = GeodesicFlags.All)
-            => Line(lat1, lon1, azi1, outmask).Position(s12, outmask);
+        {
+            var a12 = GenDirect(lat1, lon1, azi1, false, s12, outmask,
+                out var lat2, out var lon2, out var azi2, out var s12_,
+                out var m12, out var M12, out var M21, out var S12);
+
+            return new DirectGeodesicResult
+            {
+                ArcLength = a12,
+                Area = S12,
+                Azimuth2 = azi2,
+                Distance = s12_,
+                GeodesicScale12 = M12,
+                GeodesicScale21 = M21,
+                Latitude = lat2,
+                Longitude = lon2,
+                ReducedLength = m12
+            };
+        }
 
         /// <inheritdoc/>
         public DirectGeodesicResult ArcDirect(double lat1, double lon1, double azi1, double a12, GeodesicFlags outmask = GeodesicFlags.All)
-            => Line(lat1, lon1, azi1, outmask).ArcPosition(a12, outmask);
+        {
+            var a12_ = GenDirect(lat1, lon1, azi1, true, a12, outmask,
+                out var lat2, out var lon2, out var azi2, out var s12,
+                out var m12, out var M12, out var M21, out var S12);
+
+            return new DirectGeodesicResult
+            {
+                ArcLength = a12_,
+                Area = S12,
+                Azimuth2 = azi2,
+                Distance = s12,
+                GeodesicScale12 = M12,
+                GeodesicScale21 = M21,
+                Latitude = lat2,
+                Longitude = lon2,
+                ReducedLength = m12
+            };
+        }
 
         /// <inheritdoc/>
         public InverseGeodesicResult Inverse(double lat1, double lon1, double lat2, double lon2, GeodesicFlags outmask = GeodesicFlags.All)

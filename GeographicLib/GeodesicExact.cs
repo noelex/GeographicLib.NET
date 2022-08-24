@@ -294,12 +294,8 @@ namespace GeographicLib
             {
                 // Scale lam12 and bet2 to x, y coordinate system where antipodal point
                 // is at origin and singular point is at y = 0, x = -1.
-                double y, lamscale, betscale;
-                // Volatile declaration needed to fix inverse case
-                // 56.320923501171 0 -56.320923501171 179.664747671772880215
-                // which otherwise fails with g++ 4.4.4 x86 -O3
-                /*GEOGRAPHICLIB_VOLATILE*/
-                double x;
+                double x, y, lamscale, betscale;
+
                 var lam12x = Atan2(-slam12, -clam12); // lam12 - pi
                 if (_f >= 0)
                 {            // In fact f == 0 does not get here
@@ -508,20 +504,16 @@ namespace GeographicLib
             // east-going and meridional geodesics.
             var lon12 = AngDiff(lon1, lon2, out var lon12s);
             // Make longitude difference positive.
-            int lonsign = lon12 >= 0 ? 1 : -1;
-            // If very close to being on the same half-meridian, then make it so.
-            lon12 = lonsign * AngRound(lon12);
-            lon12s = AngRound((180 - lon12) - lonsign * lon12s);
+            int lonsign = SignBit(lon12) ? -1 : 1;
+            lon12 *= lonsign; lon12s *= lonsign;
             double
               lam12 = lon12 * Degree,
               slam12, clam12;
-            if (lon12 > 90)
-            {
-                SinCosd(lon12s, out slam12, out clam12);
-                clam12 = -clam12;
-            }
-            else
-                SinCosd(lon12, out slam12, out clam12);
+
+            // Calculate sincos of lon12 + error (this applies AngRound internally).
+            SinCosde(lon12, lon12s, out slam12, out clam12);
+            // the supplementary longitude difference
+            lon12s = (HD - lon12) - lon12s;
 
             // If really close to the equator, treat as on equator.
             lat1 = AngRound(LatFix(lat1));
@@ -534,14 +526,14 @@ namespace GeographicLib
                 lonsign *= -1;
                 Swap(ref lat1, ref lat2);
             }
-            // Make lat1 <= 0
-            int latsign = lat1 < 0 ? 1 : -1;
+            // Make lat1 <= -0
+            int latsign = SignBit(lat1) ? 1 : -1;
             lat1 *= latsign;
             lat2 *= latsign;
             // Now we have
             //
             //     0 <= lon12 <= 180
-            //     -90 <= lat1 <= 0
+            //     -90 <= lat1 <= -0
             //     lat1 <= lat2 <= -lat1
             //
             // longsign, swapp, latsign register the transformation to bring the
@@ -575,7 +567,7 @@ namespace GeographicLib
             if (cbet1 < -sbet1)
             {
                 if (cbet2 == cbet1)
-                    sbet2 = sbet2 < 0 ? sbet1 : -sbet1;
+                    sbet2 = CopySign(sbet1, sbet2);
             }
             else
             {
@@ -591,7 +583,7 @@ namespace GeographicLib
 
             double a12=double.NaN, sig12;
 
-            bool meridian = lat1 == -90 || slam12 == 0;
+            bool meridian = lat1 == -QD || slam12 == 0;
 
             if (meridian)
             {
@@ -638,11 +630,11 @@ namespace GeographicLib
                     meridian = false;
             }
 
-            // somg12 > 1 marks that it needs to be calculated
+            // somg12 == 2 marks that it needs to be calculated
             double omg12 = 0, somg12 = 2, comg12 = 0;
             if (!meridian &&
                 sbet1 == 0 &&   // and sbet2 == 0
-                (_f <= 0 || lon12s >= _f * 180))
+                (_f <= 0 || lon12s >= _f * HD))
             {
 
                 // Geodesic runs along equator
@@ -785,10 +777,10 @@ namespace GeographicLib
             }
 
             if (outmask.HasAny(GeodesicFlags.Distance))
-                s12 = 0 + s12x;           // Convert -0 to 0
+                s12 = 0d + s12x;           // Convert -0 to 0
 
             if (outmask.HasAny(GeodesicFlags.ReducedLength))
-                m12 = 0 + m12x;           // Convert -0 to 0
+                m12 = 0d + m12x;           // Convert -0 to 0
 
             if (outmask.HasAny(GeodesicFlags.Area))
             {
@@ -820,12 +812,9 @@ namespace GeographicLib
                     // Avoid problems with indeterminate sig1, sig2 on equator
                     S12 = 0;
 
-                if (!meridian)
+                if (!meridian && somg12 == 2)
                 {
-                    if (somg12 > 1)
-                    {
-                        somg12 = Sin(omg12); comg12 = Cos(omg12);
-                    }
+                    somg12 = Sin(omg12); comg12 = Cos(omg12);
                 }
 
                 if (!meridian &&

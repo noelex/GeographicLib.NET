@@ -14,16 +14,21 @@
 		<Product>GeographicLib.NET</Product>
 		<Company />
 		<Description>
-			GeographicLib is a small set of C++ classes for performing conversions between geographic, UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations, and for solving geodesic problems.
+			<![CDATA[GeographicLib is a small set of C++ classes for performing conversions between geographic, UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations, and for solving geodesic problems.
 
-			GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.
+GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.]]>
 		</Description>
-		<Copyright>Copyright (c) 2021 GeographicLib.NET contributors</Copyright>
-		<VersionPrefix>1.52.1</VersionPrefix>
+		<Copyright>Copyright (c) 2021-2022, GeographicLib.NET contributors</Copyright>
+		<VersionPrefix>2.0.0</VersionPrefix>
 		<PackageTags>gis, geodesic, geographic, geoid, geomagnetic, gravity, projection, rhumb</PackageTags>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
 		<PublicSign>True</PublicSign>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0'">
+		<IsTrimmable>true</IsTrimmable>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -36,7 +41,7 @@
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 	</ItemGroup>
@@ -47,9 +52,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\LICENSE">
+		<None Include="$(ProjectDir)..\README.md">
 			<Pack>True</Pack>
-			<PackagePath></PackagePath>
+			<PackagePath>\</PackagePath>
+			<Visible>false</Visible>
+		</None>
+		<None Include="$(ProjectDir)..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+			<Visible>false</Visible>
 		</None>
 	</ItemGroup>
 </Project>

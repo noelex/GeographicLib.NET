@@ -188,14 +188,14 @@ namespace GeographicLib
                     break;
                 }
                 // Note that we accept 59.999999... even though it rounds to 60.
-                if (ipieces[1] >= 60 || fpieces[1] > 60)
+                if (ipieces[1] >= DM || fpieces[1] > DM)
                 {
-                    errormsg = $"Minutes {fpieces[1]} not in range [0, 60)";
+                    errormsg = $"Minutes {fpieces[1]} not in range [0, {DM})";
                     break;
                 }
-                if (ipieces[2] >= 60 || fpieces[2] > 60)
+                if (ipieces[2] >= MS || fpieces[2] > MS)
                 {
-                    errormsg = $"Seconds {fpieces[2]} not in range [0, 60)";
+                    errormsg = $"Seconds {fpieces[2]} not in range [0, {MS})";
                     break;
                 }
                 // Assume check on range of result is made by calling routine (which
@@ -203,9 +203,9 @@ namespace GeographicLib
                 ind = ind1;
                 return (sign *
                   (fpieces[2] != 0 ?
-                    (60 * (60 * fpieces[0] + fpieces[1]) + fpieces[2]) / 3600 :
+                    (MS * (DM * fpieces[0] + fpieces[1]) + fpieces[2]) / DS :
                     (fpieces[1] != 0 ?
-                      (60 * fpieces[0] + fpieces[1]) / 60 : fpieces[0])), ind);
+                      (DM * fpieces[0] + fpieces[1]) / DM : fpieces[0])), ind);
             } while (false);
             var val = dmsa.NumMatch();
             if (val == 0)
@@ -234,7 +234,8 @@ namespace GeographicLib
         /// A hemisphere designator (N, E, W, S) may be added to the beginning or end of the string.
         /// The result is multiplied by the implied sign of the hemisphere designator (negative for S and W).
         /// In addition ind is set to <see cref="HemisphereIndicator.Latitude"/> if N or S is present, to <see cref="HemisphereIndicator.Longitude"/>
-        /// if E or W is present, and to <see cref="HemisphereIndicator.None"/> otherwise. Throws an error on a malformed string.
+        /// if E or W is present, and to <see cref="HemisphereIndicator.None"/> otherwise.
+        /// Leading and trailing whitespace is removed from the string before processing. This routine throws an error on a malformed string.
         /// No check is performed on the range of the result. Examples of legal and illegal strings are
         /// <list type="bullet">
         /// <item>
@@ -261,7 +262,7 @@ namespace GeographicLib
         /// the initial sign). Examples of legal and illegal combinations are
         /// <list type="bullet">
         /// <item>
-        /// <i>LEGAL</i> (these are all equivalent): <c>070:00:45, 70:01:15W+0:0.5, 70:01:15W-0:0:30W, W70:01:15+0:0:30E</c>
+        /// <i>LEGAL</i> (these are all equivalent): <c>-070:00:45, 70:01:15W+0:0.5, 70:01:15W-0:0:30W, W70:01:15+0:0:30E</c>
         /// </item>
         /// <item>
         /// <i>ILLEGAL</i> (the exception thrown explains the problem): <c>70:01:15W+0:0:15N, W70:01:15+W0:0:15</c>
@@ -394,7 +395,7 @@ namespace GeographicLib
                 .Trim();
 
             // The trimmed string in [beg, end)
-            double v = 0;
+            double v = -0.0; // So "-0" returns -0.0
             int i = 0;
             var ind1 = HemisphereIndicator.None;
 
@@ -436,7 +437,7 @@ namespace GeographicLib
         /// <c>-DMS.Decode(3.0, 20.0)</c> or <c>DMS.Decode(-3.0, -20.0)</c>.
         /// </remarks>
         public static double Decode(double d, double m = 0, double s = 0)
-            => d + (m + s / 60) / 60;
+            => d + (m + s / MS) / DM;
 
         /// <summary>
         /// Convert a pair of strings to latitude and longitude.
@@ -473,8 +474,8 @@ namespace GeographicLib
             double
               lat1 = ia == HemisphereIndicator.Latitude ? a : b,
               lon1 = ia == HemisphereIndicator.Latitude ? b : a;
-            if (Abs(lat1) > 90)
-                throw new GeographicException($"Latitude {lat1}d not in [-90d, 90d]");
+            if (Abs(lat1) > QD)
+                throw new GeographicException($"Latitude {lat1}d not in [-{QD}d, {QD}d]");
 
             return (lat1, lon1);
         }
@@ -570,86 +571,116 @@ namespace GeographicLib
             // 15 - 2 * trailing = ceiling(log10(2^53/90/60^trailing)).
             // This suffices to give full real precision for numbers in [-90,90]
             prec = Min(15 + 0 - 2 * (int)trailing, prec);
-            var scale = 1d;
-            for (var i = 0; i < (int)trailing; ++i)
-                scale *= 60;
-            for (var i = 0; i < prec; ++i)
-                scale *= 10;
+            double scale = 
+                trailing == TrailingUnit.Minute ? DM :
+                (trailing == TrailingUnit.Second ? DS : 1);
+
             if (ind == HemisphereIndicator.Azimuth)
-                angle -= Floor(angle / 360) * 360;
-            int sign = angle < 0 ? -1 : 1;
+            {
+                angle = AngNormalize(angle);
+                // Only angles strictly less than 0 can become 360; convert -0 to +0.
+                if (angle < 0)
+                    angle += TD;
+                else
+                    angle = 0 + angle;
+            }
+            var sign = SignBit(angle) ? -1 : 1;
             angle *= sign;
 
-            // Break off integer part to preserve precision in manipulation of
-            // fractional part.
+            // Break off integer part to preserve precision and avoid overflow in
+            // manipulation of fractional part for MINUTE and SECOND
             double
-              idegree = Floor(angle),
-              fdegree = (angle - idegree) * scale + 0.5;
+              idegree = trailing == TrailingUnit.Degree ? 0 : Floor(angle),
+              fdegree = (angle - idegree) * scale;
+            string s = Utility.ToFixedString(fdegree, prec), degree, minute = string.Empty, second = string.Empty;
+            switch (trailing)
             {
-                // Implement the "round ties to even" rule
-                var f = Floor(fdegree);
-                fdegree = (f == fdegree && (f % 2) == 1) ? f - 1 : f;
+                case TrailingUnit.Degree:
+                    degree = s;
+                    break;
+                default:   // case MINUTE: case SECOND:
+                    var p = s.IndexOf('.');
+                    long i;
+                    if (p == 0)
+                        i = 0;
+                    else
+                    {
+                        if (p < 0)
+                        {
+                            i = long.Parse(s);
+                            s = string.Empty;
+                        }
+                        else
+                        {
+                            i = long.Parse(s.Substring(0, p));
+                            s = s.Substring(p);
+                        }
+                    }
+                    // Now i in [0,Math::dm] or [0,Math::ds] for MINUTE/DEGREE
+                    switch (trailing)
+                    {
+                        case TrailingUnit.Minute:
+                            minute = string.Format("{0}{1}", i % DM, s); i /= DM;
+                            degree = Utility.ToFixedString(i + idegree, 0); // no overflow since i in [0,1]
+                            break;
+                        default: // case SECOND:
+                            second = string.Format("{0}{1}", i % MS, s); i /= MS;
+                            minute = (i % DM).ToString(); i /= DM;
+                            degree = Utility.ToFixedString(i + idegree, 0); // no overflow since i in [0,1]
+                            break;
+                    }
+                    break;
             }
-            fdegree /= scale;
-            if (fdegree >= 1)
-            {
-                idegree += 1;
-                fdegree -= 1;
-            }
-            Span<double> pieces = stackalloc[] { fdegree, 0, 0 };
-            for (var i = 1; i <= (int)trailing; ++i)
-            {
-                double
-                  ip = Floor(pieces[i - 1]),
-                  fp = pieces[i - 1] - ip;
-                pieces[i] = fp * 60;
-                pieces[i - 1] = ip;
-            }
-            pieces[0] += idegree;
-            var s = new StringBuilder();
+
+            // No glue together degree+minute+second with
+            // sign + zero-fill + delimiters + hemisphere
+            var str = new StringBuilder();
+            if (prec > 0) ++prec;           // Extra width for decimal point
             if (ind == HemisphereIndicator.None && sign < 0)
-                s.Append('-');
+                str.Append('-');
             var w = 0;
+            const char fill = '0';
             switch (trailing)
             {
                 case TrailingUnit.Degree:
                     if (ind != HemisphereIndicator.None)
-                    {
-                        w = 1 + Min((int)ind, 2) + prec + (prec != 0 ? 1 : 0);
-                    }
-                    s.Append(pieces[0].ToFixedString(prec).PadLeft(w, '0'));
+                        w = 1 + Min((int)ind, 2) + prec;
+                    str.Append(degree.PadLeft(w, fill));
                     // Don't include degree designator (d) if it is the trailing component.
                     break;
-                default:
+                case TrailingUnit.Minute:
                     if (ind != HemisphereIndicator.None)
-                    {
                         w = 1 + Min((int)ind, 2);
-                    }
-                    s.Append(pieces[0].ToString().PadLeft(w, '0'))
-                     .Append(dmssep != 0 ? dmssep : char.ToLower(dmsindicators_[0]));
-                    switch (trailing)
-                    {
-                        case TrailingUnit.Minute:
-                            w = 2 + prec + (prec != 0 ? 1 : 0);
-                            s.Append(pieces[1].ToFixedString(prec).PadLeft(w, '0'));
-                            if (dmssep != 0)
-                                s.Append(char.ToLower(dmsindicators_[1]));
-                            break;
-                        case TrailingUnit.Second:
-                            s.AppendFormat("{0:D2}", (int)pieces[1])
-                             .Append(dmssep != 0 ? dmssep : char.ToLower(dmsindicators_[1]))
-                             .Append(pieces[2].ToFixedString(prec).PadLeft(2 + prec + (prec != 0 ? 1 : 0), '0'));
-                            if (dmssep == 0)
-                                s.Append(char.ToLower(dmsindicators_[2]));
-                            break;
-                        default:
-                            break;
-                    }
+                    str.Append(degree.PadLeft(w, fill))
+                       .Append(dmssep != 0 ? dmssep : char.ToLower(dmsindicators_[0]));
+
+                    w = 2 + prec;
+                    str.Append(minute.PadLeft(w, fill));
+
+                    if (dmssep == 0)
+                        str.Append(char.ToLower(dmsindicators_[1]));
+                    break;
+                default:                    // case SECOND:
+                    if (ind != HemisphereIndicator.None)
+                        w = 1 + Min((int)ind, 2);
+                    str.Append(degree.PadLeft(w, fill))
+                       .Append(dmssep != 0 ? dmssep : char.ToLower(dmsindicators_[0]));
+
+                    w = 2;
+                    str.Append(minute.PadLeft(w, fill))
+                       .Append(dmssep != 0 ? dmssep : char.ToLower(dmsindicators_[1]));
+
+                    w = 2 + prec;
+                    str.Append(second.PadLeft(w, fill));
+
+                    if (dmssep == 0)
+                        str.Append(char.ToLower(dmsindicators_[2]));
                     break;
             }
+
             if (ind != HemisphereIndicator.None && ind != HemisphereIndicator.Azimuth)
-                s.Append(hemispheres_[(ind == HemisphereIndicator.Latitude ? 0 : 2) + (sign < 0 ? 0 : 1)]);
-            return s.ToString();
+                str.Append(hemispheres_[(ind == HemisphereIndicator.Latitude ? 0 : 2) + (sign < 0 ? 0 : 1)]);
+            return str.ToString();
         }
 
         /// <summary>
@@ -660,7 +691,7 @@ namespace GeographicLib
         public static (double degrees, double minutes) EncodeDM(double ang)
         {
             var d = (int)ang;
-            return (d, 60 * (ang - d));
+            return (d, DM * (ang - d));
         }
 
         /// <summary>
@@ -671,10 +702,10 @@ namespace GeographicLib
         public static (double degrees, double minutes, double seconds) Encode(double ang)
         {
             var d = (int)ang;
-            ang = 60 * (ang - d);
+            ang = DM * (ang - d);
             var m = (int)ang;
 
-            return (d, m, 60 * (ang - m));
+            return (d, m, MS * (ang - m));
         }
     }
 }

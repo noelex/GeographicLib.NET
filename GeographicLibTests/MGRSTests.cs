@@ -12,12 +12,6 @@ namespace GeographicLib.Tests
     [TestClass]
     public class MGRSTests
     {
-        [TestMethod]
-        public void UTMUPSSantityCheck()
-        {
-            MGRS.Check();
-        }
-
         [DataTestMethod]
         [DataRow(33.3, 44.4, "38SMB4414084706")]
         [DataRow(0, 0, "31NAA6602100000")]
@@ -56,6 +50,25 @@ namespace GeographicLib.Tests
             {
                 Assert.AreEqual(olon, lon, 1e-5);
             }
+        }
+
+        [DataTestMethod]
+        [DataRow(+0d, 0d, true, "31NEA0000")]
+        [DataRow(-0d, 10e6, false, "31MEV0099")]
+        public void TestForward_LatitudeSign(double lat, double y, bool northp, string mgrs)
+        {
+            var (zone, northpa, x, ya) = UTMUPS.Forward(lat, 3);
+            Assert.That.EqualsExactly(y, ya);
+            Assert.AreEqual(northp, northpa);
+
+            var mgrsa = MGRS.Forward(zone, northp, x, y, 2);
+            Assert.AreEqual(mgrs, mgrsa);
+
+            mgrsa = MGRS.Forward(zone, northp, x, y, +0, 2);
+            Assert.AreEqual(mgrs, mgrsa);
+
+            mgrsa = MGRS.Forward(zone, northp, x, y, -0, 2);
+            Assert.AreEqual(mgrs, mgrsa);
         }
     }
 }

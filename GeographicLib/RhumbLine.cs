@@ -33,8 +33,8 @@ namespace GeographicLib
             (_rh, _lat1, _lon1, _azi12) = (rh, LatFix(lat1), lon1, AngNormalize(azi12));
 
             var alp12 = _azi12 * Degree;
-            _salp = _azi12 == -180 ? 0 : Sin(alp12);
-            _calp = Abs(_azi12) == 90 ? 0 : Cos(alp12);
+            _salp = _azi12 == -HD ? 0 : Sin(alp12);
+            _calp = Abs(_azi12) == QD ? 0 : Cos(alp12);
             _mu1 = _rh._ell.RectifyingLatitude(lat1);
             _psi1 = _rh._ell.IsometricLatitude(lat1);
             _r1 = _rh._ell.CircleRadius(lat1);
@@ -67,13 +67,13 @@ namespace GeographicLib
         public void GenPosition(double s12, GeodesicFlags outmask, out double lat2, out double lon2, out double S12)
         {
             double
-              mu12 = s12 * _calp * 90 / _rh._ell.QuarterMeridian,
+              mu12 = s12 * _calp * QD / _rh._ell.QuarterMeridian,
               mu2 = _mu1 + mu12;
             double psi2, lat2x, lon2x;
 
             lat2 = lon2 = S12 = double.NaN;
 
-            if (Abs(mu2) <= 90)
+            if (Abs(mu2) <= QD)
             {
                 if (_calp != 0)
                 {
@@ -100,7 +100,7 @@ namespace GeographicLib
                 // Reduce to the interval [-180, 180)
                 mu2 = AngNormalize(mu2);
                 // Deal with points on the anti-meridian
-                if (Abs(mu2) > 90) mu2 = AngNormalize(180 - mu2);
+                if (Abs(mu2) > QD) mu2 = AngNormalize(HD - mu2);
                 lat2x = _rh._ell.InverseRectifyingLatitude(mu2);
                 lon2x = double.NaN;
                 if (outmask.HasFlag(GeodesicFlags.Area))

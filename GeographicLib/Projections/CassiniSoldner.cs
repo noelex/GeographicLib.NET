@@ -143,18 +143,18 @@ namespace GeographicLib.Projections
             if (s12 == 0)
             {
                 var da = AngDiff(azi1, azi2) / 2;
-                if (Abs(dlon) <= 90)
+                if (Abs(dlon) <= QD)
                 {
-                    azi1 = 90 - da;
-                    azi2 = 90 + da;
+                    azi1 = QD - da;
+                    azi2 = QD + da;
                 }
                 else
                 {
-                    azi1 = -90 - da;
-                    azi2 = -90 + da;
+                    azi1 = -QD - da;
+                    azi2 = -QD + da;
                 }
             }
-            if (dlon < 0)
+            if (SignBit(dlon))
             {
                 azi2 = azi1;
                 s12 = -s12;
@@ -171,7 +171,7 @@ namespace GeographicLib.Projections
             SinCosd(perp.EquatorialAzimuth, out var salp0, out var calp0);
             double
               sbet1 = lat >= 0 ? calp0 : -calp0,
-              cbet1 = Abs(dlon) <= 90 ? Abs(salp0) : -Abs(salp0),
+              cbet1 = Abs(dlon) <= QD ? Abs(salp0) : -Abs(salp0),
               sbet01 = sbet1 * _cbet0 - cbet1 * _sbet0,
               cbet01 = cbet1 * _cbet0 + sbet1 * _sbet0,
               sig01 = Atan2(sbet01, cbet01) / Degree;
@@ -203,7 +203,7 @@ namespace GeographicLib.Projections
         public (double lat, double lon) Reverse(double x, double y, out double azi, out double rk)
         {
             _meridian.Position(y, out var lat1, out var lon1, out var azi0);
-            _earth.Direct(lat1, lon1, azi0 + 90, x, out var lat, out var lon, out azi, out rk, out _);
+            _earth.Direct(lat1, lon1, azi0 + QD, x, out var lat, out var lon, out azi, out rk, out _);
 
             return (lat, lon);
         }

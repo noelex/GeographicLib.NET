@@ -192,7 +192,7 @@ namespace GeographicLib.Geocodes
 
             // Estimate center row number for latitude band
             // 90 deg = 100 tiles; 1 band = 8 deg = 100*8/90 tiles
-            var c = 100 * (8 * iband + 4) / 90d;
+            var c = 100 * (8 * iband + 4) / (double)QD;
             bool northp = iband >= 0;
             // These are safe bounds on the rows
             //  iband minrow maxrow
@@ -455,7 +455,7 @@ namespace GeographicLib.Geocodes
             {
                 int
                   // Correct fuzziness in latitude near equator
-                  iband = Abs(lat) > angeps ? LatitudeBand(lat) : (northp ? 0 : -1),
+                  iband = Abs(lat) < angeps ? (northp ? 0 : -1) : LatitudeBand(lat),
                   icol = xh - minutmcol_,
                   irow = UTMRow(iband, icol, yh % utmrowperiod_);
 
@@ -571,7 +571,7 @@ namespace GeographicLib.Geocodes
             bool utmp = zone1 != (int)ZoneSpec.UPS;
             int zonem1 = zone1 - 1;
             var band = utmp ? latband_ : upsband_;
-            int iband = band.IndexOf(mgrs[p++]);
+            int iband = band.IndexOf(mgrs[p++], StringComparison.InvariantCultureIgnoreCase);
 
             if (iband < 0)
                 throw new GeographicException($"Band letter {mgrs[p - 1]} not in {(utmp ? "UTM" : "UPS")} set {band}");
@@ -580,7 +580,7 @@ namespace GeographicLib.Geocodes
             if (p == len)
             {             // Grid zone only (ignore centerp)
                           // Approx length of a degree of meridian arc in units of tile.
-                var deg = (double)utmNshift_ / (90 * tile_);
+                var deg = (double)utmNshift_ / (QD * tile_);
 
                 if (utmp)
                 {
@@ -605,13 +605,13 @@ namespace GeographicLib.Geocodes
 
             var col = utmp ? utmcols_[zonem1 % 3] : upscols_[iband];
             var row = utmp ? utmrow_ : upsrows_[northp1 ? 1 : 0];
-            int icol = col.IndexOf(mgrs[p++]);
+            int icol = col.IndexOf(mgrs[p++], StringComparison.InvariantCultureIgnoreCase);
 
             if (icol < 0)
                 throw new GeographicException($"Column letter {mgrs[p - 1]} not in " +
                     $"{(utmp ? "zone " + mgrs.Slice(0, p - 2).ToString() : "UPS band " + mgrs[p - 2])} set {col}");
 
-            int irow = row.IndexOf(mgrs[p++]);
+            int irow = row.IndexOf(mgrs[p++], StringComparison.InvariantCultureIgnoreCase);
             if (irow < 0)
                 throw new GeographicException($"Row letter {mgrs[p - 1]} not in " +
                     $"{(utmp ? "UTM" : ("UPS " + hemispheres_[northp1 ? 1 : 0]))} set {row}");

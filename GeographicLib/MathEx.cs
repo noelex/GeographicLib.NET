@@ -13,8 +13,37 @@ namespace GeographicLib
         /// <summary>
         /// The number of radians in a degree
         /// </summary>
-        public const double Degree = PI / 180;
+        public const double Degree = PI / HD;
 
+        /// <summary>
+        /// degrees per quarter turn
+        /// </summary>
+        internal const int QD = 90;
+
+        /// <summary>
+        /// minutes per degree
+        /// </summary>
+        internal const int DM = 60;
+
+        /// <summary>
+        /// seconds per minute
+        /// </summary>
+        internal const int MS = 60;
+
+        /// <summary>
+        /// degrees per half turn
+        /// </summary>
+        internal const int HD = 2 * QD;
+
+        /// <summary>
+        /// degrees per turn
+        /// </summary>
+        internal const int TD = 2 * HD;
+
+        /// <summary>
+        /// seconds per degree
+        /// </summary>
+        internal const int DS = DM * MS;
         /// <summary>
         /// 
         /// </summary>
@@ -122,7 +151,7 @@ namespace GeographicLib
 
 #if NETSTANDARD2_0
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsFinite(double x) => ((ulong)BitConverter.DoubleToInt64Bits(x) & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
+        internal static bool IsFinite(double x) => ((ulong)(Bit64)x & unchecked((ulong)-1L) >> 1) < 0x7ffUL << 52;
 
         /// <summary>
         /// Returns the angle whose hyperbolic tangent is the specified number.
@@ -132,7 +161,7 @@ namespace GeographicLib
         /// An angle, θ, measured in radians, such that -∞ &lt; θ &lt; -1, or 1 &lt; θ &lt; ∞.
         /// -or- <see cref="double.NaN"/> if <paramref name="x"/> &lt; -1 or <paramref name="x"/> > 1 or <paramref name="x"/> equals <see cref="double.NaN"/>.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Atanh(double x) => CMath.Instance.Atanh(x);
 
         /// <summary>
@@ -145,7 +174,7 @@ namespace GeographicLib
         /// An angle, θ, measured in radians, such that -∞ &lt; θ ≤ -1, or 1 ≤ θ &lt; ∞. -or- <see cref="double.NaN"/>
         /// if <paramref name="x"/> equals <see cref="double.NaN"/>.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Asinh(double x) => CMath.Instance.Asinh(x);
 
         /// <summary>
@@ -153,7 +182,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">The number whose cube root is to be found.</param>
         /// <returns>The cube root of <paramref name="x"/>. -or- <see cref="double.NaN"/> if <paramref name="x"/> equals <see cref="double.NaN"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Cbrt(double x) => CMath.Instance.Cbrt(x);
 #else
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,7 +196,7 @@ namespace GeographicLib
         /// <param name="x">A double-precision floating-point number that specifies the base value.</param>
         /// <param name="n">A 32-bit integer that specifies the power.</param>
         /// <returns>x * 2^n computed efficiently.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double ScaleB(double x, int n) => CMath.Instance.ScaleB(x, n);
 
         /// <summary>
@@ -176,7 +205,7 @@ namespace GeographicLib
         /// <param name="x">A number whose magnitude is used in the result.</param>
         /// <param name="y">A number whose sign is the used in the result.</param>
         /// <returns>A value with the magnitude of <paramref name="x"/> and the sign of <paramref name="y"/>.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double CopySign(double x, double y) => CMath.Instance.CopySign(x, y);
 
         /// <summary>
@@ -207,6 +236,10 @@ namespace GeographicLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Log2(double x) => CMath.Instance.Log2(x);
 #endif
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static (double Sin, double Cos) SinCos(double x) => (Sin(x), Cos(x));
 
         /// <summary>
         /// Compute exp(x) - 1 without loss of precision for small values of x.
@@ -332,27 +365,19 @@ namespace GeographicLib
         /// <remarks>
         /// The results obey exactly the elementary properties of the trigonometric
         /// functions, e.g., sin 9° = cos 81° = - sin 123456789°.
-        /// If x = -0, then sinx = -0; this is the only case where
-        /// -0 is returned.
+        /// <para>
+        /// If <i>x</i> = -0 or a negative multiple of 180°, then sin<i>x</i> = -0;
+        /// this is the only case where -0 is returned.
+        /// </para>
         /// </remarks>
         public static void SinCosd(double x, out double sinx, out double cosx)
         {
             // In order to minimize round-off errors, this function exactly reduces
             // the argument to the range [-45, 45] before converting it to radians.
-            double r;
-
-            r = Remquo(x, 90, out var q);
+            var r = Remquo(x, QD, out var q);
             r *= Degree;
 
-#if NET6_0_OR_GREATER
-            // TODO: Math.SinCos is failing test case PlanimeterTests.TestComputeWithPoints on Windows,
-            // procuding error ranging from 0.0002 to 0.02 meters, which is much greater than expected error 1e-8.
-            // Needs further investigation.
-            // var (s, c) = SinCos(r);
-            var (s, c) = (Sin(r), Cos(r));
-#else
-            double s = Sin(r), c = Cos(r);
-#endif
+            var (s, c) = SinCos(r);
 
             switch ((uint)q & 3U)
             {
@@ -362,9 +387,55 @@ namespace GeographicLib
                 default: sinx = -c; cosx = s; break; // case 3U
             }
 
-            // TODO: Handle signed zero.
-            // Set sign of 0 results.  -0 only produced for sin(-0)
-            if (x != 0) { sinx += 0d; cosx += 0d; }
+            // http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1950.pdf
+            cosx += 0d;                              // special values from F.10.1.12
+            if (sinx == 0) sinx = CopySign(sinx, x); // special values from F.10.1.13
+        }
+
+        /// <summary>
+        /// Evaluate the sine and cosine with reduced argument plus correction.
+        /// </summary>
+        /// <param name="x">angle in degrees.</param>
+        /// <param name="t">correction in degrees.</param>
+        /// <param name="sinx">sin(<i>x</i>).</param>
+        /// <param name="cosx">cos(<i>x</i>).</param>
+        /// <remarks>
+        /// This is a variant of <see cref="SinCosd(double, out double, out double)"/> 
+        /// allowing a correction to the angle to be supplied.
+        /// <para>
+        /// <paramref name="x"/> must be in [-180°, 180°] and <paramref name="t"/> is
+        /// assumed to be a <i>small</i> correction.
+        /// </para>
+        /// <para>
+        /// <see cref="AngRound(double)"/> is
+        /// applied to the reduced angle to prevent problems with <paramref name="x"/> +
+        /// <paramref name="t"/> being extremely close but not exactly equal to one of
+        /// the cardinal directions.
+        /// </para>
+        /// </remarks>
+        public static void SinCosde(double x, double t, out double sinx, out double cosx)
+        {
+            // In order to minimize round-off errors, this function exactly reduces
+            // the argument to the range [-45, 45] before converting it to radians.
+            // This implementation allows x outside [-180, 180], but implementations in
+            // other languages may not.
+            var r = AngRound(Remquo(x, QD, out var q) + t); // now abs(r) <= 45
+            r *= Degree;
+
+            // g++ -O turns these two function calls into a call to sincos
+            var (s, c) = SinCos(r);
+
+            switch ((uint)q & 3U)
+            {
+                case 0U: sinx = s; cosx = c; break;
+                case 1U: sinx = c; cosx = -s; break;
+                case 2U: sinx = -s; cosx = -c; break;
+                default: sinx = -c; cosx = s; break; // case 3U
+            }
+            // http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1950.pdf
+            // mpreal needs T(0) here
+            cosx += 0d;                            // special values from F.10.1.12
+            if (sinx == 0) sinx = CopySign(sinx, x); // special values from F.10.1.13
         }
 
         /// <summary>
@@ -372,11 +443,15 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">in degrees.</param>
         /// <returns>sin(<i>x</i>)</returns>
+        /// <remarks>
+        /// The result is +0 for <paramref name="x"/> = +0 and positive multiples of 180°. The
+        /// result is -0 for <paramref name="x"/> = -0 and negative multiples of 180°.
+        /// </remarks>
         public static double Sind(double x)
         {
             // See sincosd
             double r;
-            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
+            r = Remquo(x, QD, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)q;
@@ -384,7 +459,7 @@ namespace GeographicLib
             r = (p & 1U) != 0 ? Cos(r) : Sin(r);
             if ((p & 2U) != 0) r = -r;
 
-            if (x != 0) r += 0d;
+            if (r == 0) r = CopySign(r, x);
 
             return r;
         }
@@ -394,11 +469,14 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">in degrees.</param>
         /// <returns>cos(<i>x</i>)</returns>
+        /// <remarks>
+        /// The result is +0 for <paramref name="x"/> an odd multiple of 90°.
+        /// </remarks>
         public static double Cosd(double x)
         {
             // See sincosd
             double r;
-            r = Remquo(x, 90d, out var q); // now abs(r) <= 45
+            r = Remquo(x, QD, out var q); // now abs(r) <= 45
             r *= Degree;
 
             var p = (uint)(q + 1);
@@ -413,14 +491,18 @@ namespace GeographicLib
         /// <param name="x">in degrees.</param>
         /// <returns>tan(<i>x</i>).</returns>
         /// <remarks>
-        /// If <paramref name="x"/> = ±90°, then a suitably large (but finite) value is returned.
+        /// If <paramref name="x"/> is an odd multiple of 90°, then a suitably large (but finite) value is returned.
         /// </remarks>
         public static double Tand(double x)
         {
             const double overflow = 1 / (DBL_EPSILON * DBL_EPSILON);
 
             SinCosd(x, out var s, out var c);
-            return c != 0 ? s / c : (s < 0 ? -overflow : overflow);
+            // http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1950.pdf
+            var r = s / c;  // special values from F.10.1.14
+                            // With C++17 this becomes clamp(s / c, -overflow, overflow);
+                            // Use max/min here (instead of fmax/fmin) to preserve NaN
+            return Min(Max(r, -overflow), overflow);
         }
 
         /// <summary>
@@ -430,9 +512,8 @@ namespace GeographicLib
         /// <param name="x"></param>
         /// <returns>atan2(<i>y</i>, <i>x</i>) in degrees.</returns>
         /// <remarks>
-        /// The result is in the range (-180°, 180°].  N.B.,
-        /// atan2d(±0, -1) = +180°; atan2d(-ε,-1) = -180°, for ε positive and tiny;
-        /// atan2d(±0, +1) = ±0°.
+        /// The result is in the range [-180°, 180°].  N.B.,
+        /// atan2d(±0, -1) = ±180°.
         /// </remarks>
         public static double Atan2d(double y, double x)
         {
@@ -442,7 +523,7 @@ namespace GeographicLib
             // quadrant.
             int q = 0;
             if (Abs(y) > Abs(x)) { Swap(ref x, ref y); q = 2; }
-            if (x < 0) { x = -x; ++q; }
+            if (SignBit(x)) { x = -x; ++q; }
             // here x >= 0 and x >= abs(y), so angle is in [-pi/4, pi/4]
             var ang = Atan2(y, x) / Degree;
 
@@ -454,12 +535,13 @@ namespace GeographicLib
             // and handle mpfr as in AngRound.
             switch (q)
             {
-                case 0: return 0 + ang;
-                case 1: return (y >= 0 ? 180 : -180) - ang;
-                case 2: return 90 - ang;
-                case 3: return -90 + ang;
-                default: throw new NotImplementedException();
+                case 1: ang = CopySign(HD, y) - ang; break;
+                case 2: ang = QD - ang; break;
+                case 3: ang = -QD + ang; break;
+                default: break;
             }
+
+            return ang;
         }
 
         /// <summary>
@@ -575,10 +657,10 @@ namespace GeographicLib
             var s = u + v;
             var up = s - v;
             var vpp = s - up;
-
+            // if s = 0, then t = 0 and give t the same sign as s
             up -= u;
             vpp -= v;
-            t = -(up + vpp);
+            t = s != 0 ? 0d - (up + vpp) : s;
 
             // u + v =       s      + t
             //       = round(u + v) + t
@@ -588,16 +670,20 @@ namespace GeographicLib
         /// <summary>
         /// Normalize an angle.
         /// </summary>
+        /// <remarks>
+        /// The range of <paramref name="x"/> is unrestricted. If the result is ±0° or
+        /// ±180° then the sign is the sign of <paramref name="x"/>.
+        /// </remarks>
         /// <param name="x">The angle in degrees.</param>
-        /// <returns>The angle reduced to the range (-180°, 180°]</returns>
+        /// <returns>The angle reduced to the range [-180°, 180°]</returns>
         public static double AngNormalize(double x)
         {
-            x = IEEERemainder(x, 360d);
-            return x != -180 ? x : 180;
+            var y = IEEERemainder(x, TD);
+            return Abs(y) == HD ? CopySign(HD, x) : y;
         }
 
         /// <summary>
-        /// The exact difference of two angles reduced to (-180°, 180°].
+        /// The exact difference of two angles reduced to [-180°, 180°].
         /// </summary>
         /// <param name="x">The first angle in degrees.</param>
         /// <param name="y">The second angle in degrees.</param>
@@ -605,35 +691,37 @@ namespace GeographicLib
         /// <returns><i>d</i>, the truncated value of <paramref name="y"/> - <paramref name="x"/>. </returns>
         /// <remarks>
         /// This computes <i>z</i> = <i>y</i> - <i>x</i> exactly, reduced to
-        /// (-180°, 180°]; and then sets <i>z</i> = <i>d</i> + <i>e</i> where <i>d</i>
+        /// [-180°, 180°]; and then sets <i>z</i> = <i>d</i> + <i>e</i> where <i>d</i>
         /// is the nearest representable number to <i>z</i> and <i>e</i> is the truncation
-        /// error.If <i>d</i> = -180, then <i>e</i> > 0; If <i>d</i> = 180, then <i>e</i> &lt;= 0.
+        /// error. If <i>z</i> = ±0° or ±180°, then the sign of <i>d</i> is given
+        /// by the sign of <i>y</i> - <i>x</i>. The maximum absolute value of <i>e</i> is 2^-26
+        /// (for doubles).
         /// </remarks>
         public static double AngDiff(double x, double y, out double e)
         {
-            double t, d = AngNormalize(Sum(IEEERemainder(-x, 360d),
-                                           IEEERemainder(y, 360d), out t));
-
-            // Here y - x = d + t (mod 360), exactly, where d is in (-180,180] and
-            // abs(t) <= eps (eps = 2^-45 for doubles).  The only case where the
-            // addition of t takes the result outside the range (-180,180] is d = 180
-            // and t > 0.  The case, d = -180 + eps, t = -eps, can't happen, since
-            // sum would have returned the exact result in such a case (i.e., given t
-            // = 0).
-            return Sum(d == 180 && t > 0 ? -180 : d, t, out e);
+            // Use remainder instead of AngNormalize, since we treat boundary cases
+            // later taking account of the error
+            var d = Sum(IEEERemainder(-x, TD), IEEERemainder(y, TD), out e);
+            // This second sum can only change d if abs(d) < 128, so don't need to
+            // apply remainder yet again.
+            d = Sum(IEEERemainder(d, TD), e, out e);
+            // Fix the sign if d = -180, 0, 180.
+            if (d == 0 || Abs(d) == HD)
+                // If e == 0, take sign from y - x
+                // else (e != 0, implies d = +/-180), d and e must have opposite signs
+                d = CopySign(d, e == 0 ? y - x : -e);
+            return d;
         }
 
         /// <summary>
-        /// The exact difference of two angles reduced to (-180°, 180°].
+        /// The exact difference of two angles reduced to [-180°, 180°].
         /// </summary>
         /// <param name="x">The first angle in degrees.</param>
         /// <param name="y">The second angle in degrees.</param>
         /// <returns><i>d</i>, the truncated value of <paramref name="y"/> - <paramref name="x"/>. </returns>
         /// <remarks>
-        /// This computes <i>z</i> = <i>y</i> - <i>x</i> exactly, reduced to
-        /// (-180°, 180°]; and then sets <i>z</i> = <i>d</i> + <i>e</i> where <i>d</i>
-        /// is the nearest representable number to <i>z</i> and <i>e</i> is the truncation
-        /// error.If <i>d</i> = -180, then <i>e</i> > 0; If <i>d</i> = 180, then <i>e</i> &lt;= 0.
+        /// This computes <i>z</i> = <i>y</i> - <i>x</i> exactly, reducing
+        /// it to [-180°, 180°] and rounding the result.
         /// </remarks>
         public static double AngDiff(double x, double y) => AngDiff(x, y, out _);
 
@@ -642,23 +730,32 @@ namespace GeographicLib
         /// </summary>
         /// <param name="x">The angle in degrees.</param>
         /// <returns><paramref name="x"/> if it is in the range [-90°, 90°], otherwise <see cref="double.NaN"/>.</returns>
-        public static double LatFix(double x) => Abs(x) > 90 ? double.NaN : x;
+        public static double LatFix(double x) => Abs(x) > QD ? double.NaN : x;
 
         /// <summary>
-        /// Round specified angle value.
+        /// Coarsen a value close to zero.
         /// </summary>
         /// <param name="x"></param>
-        /// <returns></returns>
+        /// <returns>the coarsened value.</returns>
+        /// <remarks>
+        /// The makes the smallest gap in <i>x</i> = 1/16 - nextafter(1/16, 0) = 1/2^57
+        /// for doubles = 0.8 pm on the earth if <i>x</i> is an angle
+        /// in degrees.  (This is about 2000 times more resolution than we get with
+        /// angles around 90°.)  We use this to avoid having to deal with near
+        /// singular cases when <i>x</i> is non-zero but tiny (e.g.,
+        /// 10^-200).  The sign of ±0 is preserved.
+        /// </remarks>
         public static double AngRound(double x)
         {
             const double z = 1 / 16d;
 
-            if (x is 0) return 0;
-            var y = Abs(x);
+            double 
+                y = Abs(x),
+                w = z - y;
 
             // The compiler mustn't "simplify" z - (z - y) to y
-            y = y < z ? z - (z - y) : y;
-            return x < 0 ? -y : y;
+            y = w > 0 ? z - w : y;
+            return CopySign(y, x);
         }
 
         /// <summary>
@@ -690,5 +787,8 @@ namespace GeographicLib
         /// The evaluation uses Horner's method.
         /// </remarks>
         public static double PolyVal(int N, ReadOnlyMemory<double> p, double x) => PolyVal(N, p.Span, x);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool SignBit(double v) => ((ulong)(Bit64)v & 0x8000000000000000) != 0;
     }
 }

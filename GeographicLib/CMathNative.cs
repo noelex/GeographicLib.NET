@@ -37,19 +37,19 @@ namespace GeographicLib
             });
         }
 
-        [DllImport("m")]
+        [SuppressGCTransition, DllImport("m")]
         private static extern double expm1(double x);
 
-        [DllImport("m")]
+        [SuppressGCTransition, DllImport("m")]
         private static extern double hypot(double x, double y);
 
-        [DllImport("m")]
+        [SuppressGCTransition, DllImport("m")]
         private static extern double log1p(double x);
 
-        [DllImport("m")]
+        [SuppressGCTransition, DllImport("m")]
         private static extern double remquo(double x, double y, out int quo);
 
-        [DllImport("m")]
+        [SuppressGCTransition, DllImport("m")]
         private static extern double frexp(double x, out int e);
 
         public override double Expm1(double x) => expm1(x);

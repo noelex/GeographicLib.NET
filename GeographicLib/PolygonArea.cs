@@ -21,7 +21,7 @@ namespace GeographicLib
     /// <a href="https://doi.org/10.1007/s00190-012-0578-z">Algorithms for geodesics</a>,
     /// J. Geodesy 87, 43–55 (2013);
     /// DOI: 10.1007/s00190-012-0578-z;
-    /// addenda: geod-addenda.html.
+    /// addenda: <a href="https://geographiclib.sourceforge.io/geod-addenda.html">geod-addenda.html</a>.
     /// </item>
     /// </list>
     /// Arbitrarily complex polygons are allowed.
@@ -74,19 +74,17 @@ namespace GeographicLib
     /// <para>45 mm^2 for all perimeters</para>
     /// </code>
     /// </remarks>
-    public class PolygonArea<T> where T : IGeodesicLike
+    public class PolygonArea<T> : IPolygonArea where T : IGeodesicLike
     {
         private readonly T _earth;
 
-        private double _area0;
-        private bool _polyline;
-        private GeodesicFlags _mask;
-        private int _num;
-        private int _crossings;
+        private readonly double _area0;
+        private readonly bool _polyline;
+        private readonly GeodesicFlags _mask;
 
-        private Accumulator _areasum, _perimetersum;
-
+        private int _num, _crossings;
         private double _lat0, _lon0, _lat1, _lon1;
+        private Accumulator _areasum, _perimetersum;
 
         /// <summary>
         /// Constructor for <see cref="PolygonArea{T}"/>.
@@ -106,20 +104,36 @@ namespace GeographicLib
             Clear();
         }
 
+        /// <inheritdoc/>
+        public int Count => _num;
+
+        /// <inheritdoc/>
+        public bool IsPolyline => _polyline;
+
         private static int Transit(double lon1, double lon2)
         {
             // Return 1 or -1 if crossing prime meridian in east or west direction.
-            // Otherwise return zero.
-            // Compute lon12 the same way as Geodesic::Inverse.
+            // Otherwise return zero.  longitude = +/-0 considered to be positive.
+            // This is (should be?) compatible with transitdirect which computes
+            // exactly the parity of
+            //   int(floor((lon1 + lon12) / 360)) - int(floor(lon1 / 360)))
+            var lon12 = AngDiff(lon1, lon2);
             lon1 = AngNormalize(lon1);
             lon2 = AngNormalize(lon2);
-            var lon12 = AngDiff(lon1, lon2);
-            // Treat 0 as negative in these tests.  This balances +/- 180 being
-            // treated as positive, i.e., +180.
-            int cross =
-              lon1 <= 0 && lon2 > 0 && lon12 > 0 ? 1 :
-              (lon2 <= 0 && lon1 > 0 && lon12 < 0 ? -1 : 0);
-            return cross;
+            // N.B. lon12 == 0 gives cross = 0
+            return
+                // edge case lon1 = 180, lon2 = 360->0, lon12 = 180 to give 1
+                lon12 > 0 && ((lon1 < 0 && lon2 >= 0) ||
+                              // lon12 > 0 && lon1 > 0 && lon2 == 0 implies lon1 == 180
+                              (lon1 > 0 && lon2 == 0)) ? 1 :
+                // non edge case lon1 = -180, lon2 = -360->-0, lon12 = -180
+                (lon12 < 0 && lon1 >= 0 && lon2 < 0 ? -1 : 0);
+            // This was the old method (treating +/- 0 as negative).  However, with the
+            // new scheme for handling longitude differences this fails on:
+            // lon1 = -180, lon2 = -360->-0, lon12 = -180 gives 0 not -1.
+            //    return
+            //      lon1 <= 0 && lon2 > 0 && lon12 > 0 ? 1 :
+            //      (lon2 <= 0 && lon1 > 0 && lon12 < 0 ? -1 : 0);
         }
 
         // an alternate version of transit to deal with longitudes in the direct
@@ -127,11 +141,21 @@ namespace GeographicLib
         private static int TransitDirect(double lon1, double lon2)
         {
             // Compute exactly the parity of
-            //   int(ceil(lon2 / 360)) - int(ceil(lon1 / 360))
-            lon1 = IEEERemainder(lon1, 720);
-            lon2 = IEEERemainder(lon2, 720);
-            return ((lon2 <= 0 && lon2 > -360 ? 1 : 0) -
-                     (lon1 <= 0 && lon1 > -360 ? 1 : 0));
+            //   int(floor(lon2 / 360)) - int(floor(lon1 / 360))
+
+            // C++ C remainder -> [-360,360]
+            // Java % -> (-720, 720) switch to IEEEremainder?
+            // JS % -> (-720, 720)
+            // Python fmod -> (-720, 720)
+            // Fortran, Octave skip
+            // If mod function gives result in [-360, 360]
+            // [0, 360) -> 0; [-360, 0) or 360 -> 1
+            // If mod function gives result in (-720, 720)
+            // [0, 360) or [-inf, -360) -> 0; [-360, 0) or [360, inf) -> 1
+            lon1 = IEEERemainder(lon1, 2 * TD);
+            lon2 = IEEERemainder(lon2, 2 * TD);
+            return ((lon2 >= 0 && lon2 < TD ? 0 : 1) -
+                     (lon1 >= 0 && lon1 < TD ? 0 : 1));
         }
 
         private void Remainder(ref Accumulator a) => a.Remainder(_area0);
@@ -141,7 +165,7 @@ namespace GeographicLib
         private void AreaReduce(ref Accumulator area, int crossings, bool reverse, bool sign)
         {
             Remainder(ref area);
-            if ((crossings & 1) !=0) area += (area < 0 ? 1 : -1) * _area0 / 2;
+            if ((crossings & 1) != 0) area += (area < 0 ? 1 : -1) * _area0 / 2;
             // area is with the clockwise sense.  If !reverse convert to
             // counter-clockwise convention.
             if (!reverse) area *= -1;
@@ -186,9 +210,7 @@ namespace GeographicLib
             }
         }
 
-        /// <summary>
-        /// Clear current instance of <see cref="PolygonArea{T}"/>, allowing a new polygon to be started.
-        /// </summary>
+        /// <inheritdoc/>
         public void Clear()
         {
             _num = 0;
@@ -198,18 +220,10 @@ namespace GeographicLib
             _lat0 = _lon0 = _lat1 = _lon1 = double.NaN;
         }
 
-        /// <summary>
-        /// Add a point to the polygon or polyline.
-        /// </summary>
-        /// <param name="lat">the latitude of the point (degrees).</param>
-        /// <param name="lon">the longitude of the point (degrees).</param>
-        /// <remarks>
-        /// <paramref name="lat"/> should be in the range [−90°, 90°].
-        /// </remarks>
+        /// <inheritdoc/>
         public void AddPoint(double lat, double lon)
         {
             lat = LatFix(lat);
-            lon = AngNormalize(lon);
             if (_num == 0)
             {
                 _lat0 = _lat1 = lat;
@@ -230,36 +244,22 @@ namespace GeographicLib
             ++_num;
         }
 
-        /// <summary>
-        /// Add a point to the polygon or polyline.
-        /// </summary>
-        /// <param name="coords">point to add.</param>
+        /// <inheritdoc/>
         public void AddPoint(GeoCoords coords) => AddPoint(coords.Latitude, coords.Longitude);
 
-        /// <summary>
-        /// Add points to the polygon or polyline.
-        /// </summary>
-        /// <param name="coords">points to add.</param>
+        /// <inheritdoc/>
         public void AddPoints(IEnumerable<GeoCoords> coords)
         {
-            foreach(var coord in coords)
+            foreach (var coord in coords)
             {
                 AddPoint(coord);
             }
         }
 
-        /// <summary>
-        /// Add an edge to the polygon or polyline.
-        /// </summary>
-        /// <param name="azi">azimuth at current point (degrees).</param>
-        /// <param name="s">distance from current point to next point (meters).</param>
-        /// <remarks>
-        /// This does nothing if no points have been added yet.
-        /// Use <see cref="CurrentPoint"/> to determine the position of the new vertex.
-        /// </remarks>
+        /// <inheritdoc/>
         public void AddEdge(double azi, double s)
         {
-            if (_num!=0)
+            if (_num != 0)
             {                 // Do nothing if _num is zero
                 _earth.GenDirect(_lat1, _lon1, azi, false, s, _mask,
                                  out var lat, out var lon, out _, out _, out _, out _, out _, out var S12);
@@ -268,35 +268,16 @@ namespace GeographicLib
                 {
                     _areasum += S12;
                     _crossings += TransitDirect(_lon1, lon);
-                    lon = AngNormalize(lon);
                 }
                 _lat1 = lat; _lon1 = lon;
                 ++_num;
             }
         }
 
-        /// <summary>
-        /// Return the results so far.
-        /// </summary>
-        /// <param name="reverse">if <see langword="true"/> then clockwise (instead of counter-clockwise) traversal counts as a positive area.</param>
-        /// <param name="sign">if <see langword="true"/> then return a signed result for the area if the polygon is traversed in the "wrong" direction
-        /// instead of returning the area for the rest of the earth.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item>
-        /// <i>points</i>, the number of points.
-        /// </item>
-        /// <item>
-        /// <i>perimeter</i>, the perimeter of the polygon or length of the polyline (meters).
-        /// </item>
-        /// <item>
-        /// <i>area</i>, the area of the polygon (meters^2); only set if polyline is <see langword="false"/> in the constructor.
-        /// </item>
-        /// </list>
-        /// </returns>
+        /// <inheritdoc/>
         public (int points, double perimeter, double area) Compute(bool reverse, bool sign)
         {
-            double perimeter, area=0;
+            double perimeter, area = 0;
             if (_num < 2)
             {
                 perimeter = 0;
@@ -316,38 +297,11 @@ namespace GeographicLib
             tempsum += S12;
             int crossings = _crossings + Transit(_lon1, _lon0);
             AreaReduce(ref tempsum, crossings, reverse, sign);
-            area = 0 + tempsum;
+            area = 0d + tempsum;
             return (_num, perimeter, area);
         }
 
-        /// <summary>
-        /// Return the results assuming a tentative final test point is added; however, the data for the test point is not saved.
-        /// This lets you report a running result for the perimeter and area as the user moves the mouse cursor.
-        /// Ordinary floating point arithmetic is used to accumulate the data for the test point;
-        /// thus the area and perimeter returned are less accurate than if
-        /// <see cref="AddPoint(double, double)"/> and <see cref="Compute(bool, bool)"/> are used.
-        /// </summary>
-        /// <param name="lat">the latitude of the test point (degrees).</param>
-        /// <param name="lon">the longitude of the test point (degrees).</param>
-        /// <param name="reverse">if <see langword="true"/> then clockwise (instead of counter-clockwise) traversal counts as a positive area.</param>
-        /// <param name="sign">if <see langword="true"/> then return a signed result for the area if the polygon is traversed in the "wrong" direction
-        /// instead of returning the area for the rest of the earth.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item>
-        /// <i>points</i>, the number of points.
-        /// </item>
-        /// <item>
-        /// <i>perimeter</i>, the perimeter of the polygon or length of the polyline (meters).
-        /// </item>
-        /// <item>
-        /// <i>area</i>, the area of the polygon (meters^2); only set if polyline is <see langword="false"/> in the constructor.
-        /// </item>
-        /// </list>
-        /// </returns>
-        /// <remarks>
-        /// <paramref name="lat"/> should be in the range [−90°, 90°].
-        /// </remarks>
+        /// <inheritdoc/>
         public (int points, double perimeter, double area) TestPoint(double lat, double lon, bool reverse, bool sign)
         {
             double perimeter, area = 0;
@@ -380,63 +334,15 @@ namespace GeographicLib
                 return (num, perimeter, area);
 
             AreaReduce(ref tempsum, crossings, reverse, sign);
-            area = 0 + tempsum;
+            area = 0d + tempsum;
             return (num, perimeter, area);
         }
 
-        /// <summary>
-        /// Return the results assuming a tentative final test point is added; however, the data for the test point is not saved.
-        /// This lets you report a running result for the perimeter and area as the user moves the mouse cursor.
-        /// Ordinary floating point arithmetic is used to accumulate the data for the test point;
-        /// thus the area and perimeter returned are less accurate than if
-        /// <see cref="AddPoint(GeoCoords)"/> and <see cref="Compute(bool, bool)"/> are used.
-        /// </summary>
-        /// <param name="coords">point to test.</param>
-        /// <param name="reverse">if <see langword="true"/> then clockwise (instead of counter-clockwise) traversal counts as a positive area.</param>
-        /// <param name="sign">if <see langword="true"/> then return a signed result for the area if the polygon is traversed in the "wrong" direction
-        /// instead of returning the area for the rest of the earth.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item>
-        /// <i>points</i>, the number of points.
-        /// </item>
-        /// <item>
-        /// <i>perimeter</i>, the perimeter of the polygon or length of the polyline (meters).
-        /// </item>
-        /// <item>
-        /// <i>area</i>, the area of the polygon (meters^2); only set if polyline is <see langword="false"/> in the constructor.
-        /// </item>
-        /// </list>
-        /// </returns>
+        /// <inheritdoc/>
         public (int points, double perimeter, double area) TestPoint(GeoCoords coords, bool reverse, bool sign)
             => TestPoint(coords.Latitude, coords.Longitude, reverse, sign);
 
-        /// <summary>
-        /// Return the results assuming a tentative final test point is added via an azimuth and distance;
-        /// however, the data for the test point is not saved.
-        /// This lets you report a running result for the perimeter and area as the user moves the mouse cursor.
-        /// Ordinary floating point arithmetic is used to accumulate the data for the test point;
-        /// thus the area and perimeter returned are less accurate than if
-        /// <see cref="AddEdge(double, double)"/> and <see cref="Compute(bool, bool)"/> are used.
-        /// </summary>
-        /// <param name="azi">azimuth at current point (degrees).</param>
-        /// <param name="s">distance from current point to final test point (meters).</param>
-        /// <param name="reverse">if <see langword="true"/> then clockwise (instead of counter-clockwise) traversal counts as a positive area.</param>
-        /// <param name="sign">if <see langword="true"/> then return a signed result for the area if the polygon is traversed in the "wrong" direction
-        /// instead of returning the area for the rest of the earth.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item>
-        /// <i>points</i>, the number of points.
-        /// </item>
-        /// <item>
-        /// <i>perimeter</i>, the perimeter of the polygon or length of the polyline (meters).
-        /// </item>
-        /// <item>
-        /// <i>area</i>, the area of the polygon (meters^2); only set if polyline is <see langword="false"/> in the constructor.
-        /// </item>
-        /// </list>
-        /// </returns>
+        /// <inheritdoc/>
         public (int points, double perimeter, double area) TestEdge(double azi, double s, bool reverse, bool sign)
         {
             double perimeter, area = 0;
@@ -459,7 +365,6 @@ namespace GeographicLib
                                  out var lat, out var lon, out _, out _, out _, out _, out _, out var S12);
                 tempsum += S12;
                 crossings += TransitDirect(_lon1, lon);
-                lon = AngNormalize(lon);
                 _earth.GenInverse(lat, lon, _lat0, _lon0, _mask,
                                   out var s12, out _, out _, out _, out _, out _, out S12);
                 perimeter += s12;
@@ -472,12 +377,7 @@ namespace GeographicLib
             return (num, perimeter, area);
         }
 
-        /// <summary>
-        /// Gets a value representing the previous vertex added to the polygon or polyline.
-        /// </summary>
-        /// <remarks>
-        /// If no points have been added, then <see cref="double.NaN"/>s are returned. Otherwise, <i>lon</i> will be in the range [−180°, 180°].
-        /// </remarks>
+        /// <inheritdoc/>
         public (double lat, double lon) CurrentPoint => (_lat1, _lon1);
     }
 
