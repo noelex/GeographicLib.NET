@@ -122,9 +122,9 @@ namespace GeographicLib
         private readonly double _offset, _scale, _maxerror, _rmserror;
         private readonly int _width, _height;
         private readonly long _datastart, _swidth;
-        private readonly bool _threadsafe;
+        private readonly bool _threadsafe, _leaveOpen;
 
-        private List<Memory<ushort>> _data=new List<Memory<ushort>>();
+        private List<Memory<ushort>> _data = new List<Memory<ushort>>();
         private bool _cache;
         private int _xoffset, _yoffset, _xsize, _ysize;
         private int _ix, _iy;
@@ -156,7 +156,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Construct a geoid.
+        /// Construct a geoid from file.
         /// </summary>
         /// <param name="name">the name of the geoid.</param>
         /// <param name="path">directory for data file.</param>
@@ -170,25 +170,68 @@ namespace GeographicLib
         /// and single-cell caching is turned off; this results in a <see cref="Geoid"/> object which is thread safe.
         /// </remarks>
         public Geoid(string name, string path = "", bool cubic = true, bool threadsafe = false)
+            : this(null, name, path, cubic, threadsafe, false)
         {
-            _name = name;
-            _dir = path;
+        }
+
+        /// <summary>
+        /// Construct a geoid from <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="inputStream">A <b>seekable</b> <see cref="Stream"/> object containing geoid data.</param>
+        /// <param name="cubic">interpolation method; <see langword="false"/> means bilinear, <see langword="true"/> (the default) means cubic.</param>
+        /// <param name="threadsafe">if <see langword="true"/>, construct a thread safe object. The default is <see langword="false"/></param>
+        /// <param name="leaveOpen"><see langword="true"/> to leave the stream open after the <see cref="Geoid"/> object is disposed; otherwise, <see langword="false"/>.</param>
+        public Geoid(Stream inputStream, bool cubic = true, bool threadsafe = false, bool leaveOpen = false)
+            : this(inputStream, null, null, cubic, threadsafe, leaveOpen)
+        {
+        }
+
+        /// <summary>
+        /// Construct a geoid from <see cref="byte"/> array.
+        /// </summary>
+        /// <param name="buffer">A <see cref="byte"/> array containing geoid data.</param>
+        /// <param name="cubic">interpolation method; <see langword="false"/> means bilinear, <see langword="true"/> (the default) means cubic.</param>
+        /// <param name="threadsafe">if <see langword="true"/>, construct a thread safe object. The default is <see langword="false"/></param>
+        public Geoid(byte[] buffer, bool cubic = true, bool threadsafe = false)
+            : this(new MemoryStream(buffer), null, null, cubic, threadsafe, false)
+        {
+        }
+
+        private Geoid(Stream inputStream, string name, string path, bool cubic, bool threadsafe, bool leaveOpen)
+        {
+            Debug.Assert(pixel_size_ == GEOGRAPHICLIB_GEOID_PGM_PIXEL_WIDTH, "pixel_t has the wrong size");
+
             _cubic = cubic;
             //_a = Constants.WGS84_a;
             //_e2 = (2 - Constants.WGS84_f) * Constants.WGS84_f;
             //_degree = Degree;
             _eps = Sqrt(DBL_EPSILON);
             _threadsafe = false;
+            _leaveOpen = leaveOpen;
 
-            Debug.Assert(pixel_size_ == Macros.GEOGRAPHICLIB_GEOID_PGM_PIXEL_WIDTH, "pixel_t has the wrong size");
-
-            if (string.IsNullOrWhiteSpace(_dir))
+            if (inputStream != null)
             {
-                _dir = DefaultGeoidPath;
-            }
+                if (!inputStream.CanSeek)
+                {
+                    throw new ArgumentException("Input stream must be seekable.", nameof(inputStream));
+                }
 
-            _filename = Path.Combine(_dir, Path.ChangeExtension(_name, pixel_size_ != 4 ? "pgm" : "pgm4"));
-            _file = File.OpenRead(_filename);
+                _file = inputStream;
+                _filename = nameof(inputStream);
+            }
+            else
+            {
+                _name = name;
+                _dir = path;
+
+                if (string.IsNullOrWhiteSpace(_dir))
+                {
+                    _dir = DefaultGeoidPath;
+                }
+
+                _filename = Path.Combine(_dir, Path.ChangeExtension(_name, pixel_size_ != 4 ? "pgm" : "pgm4"));
+                _file = File.OpenRead(_filename);
+            }
 
             using (var sr = new StreamReader(_file, Encoding.UTF8, true, bufferSize: 1, leaveOpen: true))
             {
@@ -222,7 +265,7 @@ namespace GeographicLib
                         }
                         else if (key == "DateTime")
                         {
-                            _datetime = System.DateTime.Parse( match.Groups[2].Value.Trim());
+                            _datetime = System.DateTime.Parse(match.Groups[2].Value.Trim());
                         }
                         else if (key == "Offset")
                         {
@@ -276,7 +319,7 @@ namespace GeographicLib
                     var sp = buff.Span;
 
                     MemoryMarshal.TryGetArray<char>(buff, out var buffArray);
-                    sr.ReadBlock(buffArray.Array, buffArray.Offset, buffArray.Count);               
+                    sr.ReadBlock(buffArray.Array, buffArray.Offset, buffArray.Count);
 #else
                 {
                     Span<char> sp = stackalloc char[1024];
@@ -293,24 +336,24 @@ namespace GeographicLib
             if (_offset == double.MaxValue)
                 throw new GeographicException("Offset not set: " + _filename);
             if (_scale == 0)
-                throw new GeographicException("Scale not set " + _filename);
+                throw new GeographicException("Scale not set: " + _filename);
             if (_scale < 0)
-                throw new GeographicException("Scale must be positive " + _filename);
+                throw new GeographicException("Scale must be positive: " + _filename);
             if (_height < 2 || _width < 2)
                 // Coarsest grid spacing is 180deg.
-                throw new GeographicException("Raster size too small " + _filename);
+                throw new GeographicException("Raster size too small: " + _filename);
             if ((_width & 1) != 0)
                 // This is so that longitude grids can be extended thru the poles.
-                throw new GeographicException("Raster width is odd " + _filename);
+                throw new GeographicException("Raster width is odd: " + _filename);
             if ((_height & 1) == 0)
                 // This is so that latitude grid includes the equator.
-                throw new GeographicException("Raster height is even " + _filename);
+                throw new GeographicException("Raster height is even: " + _filename);
 
             _file.Seek(0, SeekOrigin.End);
             if (_datastart + pixel_size_ * _swidth * _height != _file.Position)
                 // Possibly this test should be "<" because the file contains, e.g., a
                 // second image.  However, for now we are more strict.
-                throw new GeographicException("File has the wrong length " + _filename);
+                throw new GeographicException("File has the wrong length: " + _filename);
             _rlonres = _width / (double)TD;
             _rlatres = (_height - 1) / (double)HD;
             _cache = false;
@@ -783,7 +826,7 @@ namespace GeographicLib
         /// </summary>
         public void Dispose()
         {
-            _file.Dispose();
+            if(!_leaveOpen) _file.Dispose();
             _data.Clear();
         }
     }
