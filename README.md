@@ -110,11 +110,12 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
-### Version 2.0.0 (unreleased)
+### Version 2.0.0 (released 2022/08/24)
 - **NEW**
   - Add `IPolygonArea` interface to provide better support for unit testing and dependency injection.
   - Add `Count` and `IsPolyline` properties (corresponding to `NumPoints` and `Polyline` methods in GeographicLib) to `PolygonArea`.
   - Add a new method `Utility.FractionalYear` which can parse floating point number and date time string as fractional year.
+  - [Allow constructing `Geoid` from `Stream` and byte array](https://github.com/noelex/GeographicLib.NET/discussions/22).
 - **FIX**
   - String accepting APIs now handle lowercase "nan" correctly.
   - Ensure consistent rounding mode (`MidpointRounding.ToEven`) across different runtimes when converting floating point number to string.
