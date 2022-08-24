@@ -115,6 +115,7 @@ For changes adopted from GeographicLib, please refer the its change log [here](h
   - Add `IPolygonArea` interface to provide better support for unit testing and dependency injection.
   - Add `Count` and `IsPolyline` properties (corresponding to `NumPoints` and `Polyline` methods in GeographicLib) to `PolygonArea`.
   - Add a new method `Utility.FractionalYear` which can parse floating point number and date time string as fractional year.
+  - [Allow constructing `Geoid` from `Stream` and byte array](https://github.com/noelex/GeographicLib.NET/discussions/22).
 - **FIX**
   - String accepting APIs now handle lowercase "nan" correctly.
   - Ensure consistent rounding mode (`MidpointRounding.ToEven`) across different runtimes when converting floating point number to string.
