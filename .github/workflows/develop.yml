@@ -3,12 +3,6 @@ name: develop
 on:
   workflow_dispatch:
     branches: [ develop ]
-  push:
-    branches: [ develop ]
-    paths:
-      - 'GeographicLib/**'
-      - 'GeographicLibTests/**'
-      - 'GeographicLib.NET.sln'
 
 jobs:
   build:
