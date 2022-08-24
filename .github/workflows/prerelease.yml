@@ -1,8 +1,14 @@
-name: develop
+name: prerelease
 
 on:
   workflow_dispatch:
-    branches: [ develop ]
+    branches: [ master ]
+  push:
+    branches: [ master ]
+    paths:
+      - 'GeographicLib/**'
+      - 'GeographicLibTests/**'
+      - 'GeographicLib.NET.sln'
 
 jobs:
   build:

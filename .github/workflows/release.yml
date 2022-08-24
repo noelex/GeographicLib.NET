@@ -1,14 +1,12 @@
-name: master
+name: release
 
 on:
   workflow_dispatch:
     branches: [ master ]
   push:
     branches: [ master ]
-    paths:
-      - 'GeographicLib/**'
-      - 'GeographicLibTests/**'
-      - 'GeographicLib.NET.sln'
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build:
