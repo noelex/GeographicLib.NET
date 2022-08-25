@@ -206,7 +206,7 @@ namespace GeographicLib
             // which otherwise failed for Visual Studio 10 (Release and Debug)
             tol1_ = 200 * tol0_;
             tol2_ = Sqrt(tol0_);
-            tolb_ = tol0_ * tol2_; // Check on bisection interval
+            tolb_ = tol0_; // Check on bisection interval
             xthresh_ = 1000 * tol2_;
             _a = a;
             _f = f;
@@ -1468,8 +1468,12 @@ namespace GeographicLib
                                           slam12, clam12,
                                           out salp2, out calp2, out sig12, out ssig1, out csig1, out ssig2, out csig2,
                                           out eps, out domg12, numit < maxit1_, out dv, Ca);
-                        // Reversed test to allow escape with NaNs
-                        if (tripb || !(Abs(v) >= (tripn ? 8 : 1) * tol0_)) break;
+                        if (tripb ||
+                            // Reversed test to allow escape with NaNs
+                            !(Abs(v) >= (tripn ? 8 : 1) * tol0_) ||
+                            // Enough bisections to get accurate result
+                            numit == maxit2_)
+                            break;
                         // Update bracketing values
                         if (v > 0 && (numit > maxit1_ || calp1 / salp1 > calp1b / salp1b))
                         { salp1b = salp1; calp1b = calp1; }
@@ -1478,20 +1482,26 @@ namespace GeographicLib
                         if (numit < maxit1_ && dv > 0)
                         {
                             var dalp1 = -v / dv;
-                            double
-                              sdalp1 = Sin(dalp1), cdalp1 = Cos(dalp1),
-                              nsalp1 = salp1 * cdalp1 + calp1 * sdalp1;
-
-                            if (nsalp1 > 0 && Abs(dalp1) < PI)
+                            // |dalp1| < pi test moved earlier because GEOGRAPHICLIB_PRECISION
+                            // = 5 can result in dalp1 = 10^(10^8).  Then sin(dalp1) takes ages
+                            // (because of the need to do accurate range reduction).
+                            if (Abs(dalp1) < PI)
                             {
-                                calp1 = calp1 * cdalp1 - salp1 * sdalp1;
-                                salp1 = nsalp1;
-                                Norm(ref salp1, ref calp1);
-                                // In some regimes we don't get quadratic convergence because
-                                // slope -> 0.  So use convergence conditions based on epsilon
-                                // instead of sqrt(epsilon).
-                                tripn = Abs(v) <= 16 * tol0_;
-                                continue;
+                                double
+                                  sdalp1 = Sin(dalp1), cdalp1 = Cos(dalp1),
+                                  nsalp1 = salp1 * cdalp1 + calp1 * sdalp1;
+
+                                if (nsalp1 > 0)
+                                {
+                                    calp1 = calp1 * cdalp1 - salp1 * sdalp1;
+                                    salp1 = nsalp1;
+                                    Norm(ref salp1, ref calp1);
+                                    // In some regimes we don't get quadratic convergence because
+                                    // slope -> 0.  So use convergence conditions based on epsilon
+                                    // instead of sqrt(epsilon).
+                                    tripn = Abs(v) <= 16 * tol0_;
+                                    continue;
+                                }
                             }
                         }
                         // Either dv was not positive or updated value was outside legal

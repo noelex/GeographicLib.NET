@@ -1,5 +1,4 @@
-﻿using GeographicLib.Dsp;
-using System;
+﻿using System;
 using System.Numerics;
 using static System.Math;
 using static System.Numerics.Complex;
@@ -18,7 +17,7 @@ namespace GeographicLib
         public DST(int N = 0)
         {
             _N = N;
-            _fft = new Fft64(2 * N);
+            _fft = new Fft64(2 * N, false);
         }
 
         /// <summary>
@@ -37,6 +36,15 @@ namespace GeographicLib
             var d = PI / (2 * _N);
             for (int i = 1; i <= _N; ++i)
                 data[i] = f(i * d);
+            fft_transform(data, F, false);
+        }
+
+        internal void Transform(ref GeodesicExact.I4Integrand i4, Span<double> F)
+        {
+            Span<double> data = stackalloc double[4 * _N];
+            var d = PI / (2 * _N);
+            for (int i = 1; i <= _N; ++i)
+                data[i] = i4.Evaluate(i * d);
             fft_transform(data, F, false);
         }
 
@@ -62,7 +70,7 @@ namespace GeographicLib
         /// <param name="F"></param>
         /// <param name="N"></param>
         /// <returns></returns>
-        public double Eval(double sinx, double cosx, ReadOnlySpan<double> F, int N)
+        public static double Eval(double sinx, double cosx, ReadOnlySpan<double> F, int N)
         {
             // Evaluate
             // y = sum(F[i] * sin((2*i+1) * x), i, 0, N-1)
@@ -90,7 +98,7 @@ namespace GeographicLib
         /// <param name="F"></param>
         /// <param name="N"></param>
         /// <returns></returns>
-        public double Integral(double sinx, double cosx, ReadOnlySpan<double> F, int N)
+        public static double Integral(double sinx, double cosx, ReadOnlySpan<double> F, int N)
         {
             // Evaluate
             // y = -sum(F[i]/(2*i+1) * cos((2*i+1) * x), i, 0, N-1)
@@ -134,12 +142,8 @@ namespace GeographicLib
                 for (int i = 0; i < 2 * _N; ++i) data[2 * _N + i] = -data[i]; // [2*N, 4*N-1]
             }
 
-            Span<double>
-                reals = stackalloc double[2 * _N],
-                imags = stackalloc double[2 * _N];
-
-            var ctemp = new ComplexSpan(reals, imags);
-            _fft.DFT(data, ctemp);
+            Span<Complex> ctemp = stackalloc Complex[2 * _N];
+            _fft.Transform(data, ctemp);
 
             if (centerp)
             {
@@ -168,11 +172,6 @@ namespace GeographicLib
             for (int i = 0; i < _N; ++i)
                 // (DST-IV order N + DST-III order N) / 2
                 F[i] = (data[i] + F[i]) / 2;
-        }
-
-        private void TransformScalar()
-        {
-
         }
     }
 }

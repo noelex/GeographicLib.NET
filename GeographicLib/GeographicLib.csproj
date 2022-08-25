@@ -72,4 +72,8 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 			<Visible>false</Visible>
 		</None>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Dsp\" />
+	</ItemGroup>
 </Project>

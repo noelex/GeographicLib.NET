@@ -18,7 +18,7 @@ namespace GeographicLib
     /// </remarks>
     public class GeodesicLineExact : GeodesicLineBase
     {
-        private const int nC4_ = GeodesicExact.nC4_;
+        private readonly int _nC4;
 
         private static readonly double tiny_ = GeodesicExact.tiny_;
 
@@ -28,7 +28,7 @@ namespace GeographicLib
           _somg1, _comg1, _cchi1,
           _A4, _B41, _E0, _D0, _H0, _E1, _D1, _H1;
 
-        private readonly Memory<double> _C4a = new double[nC4_];            // all the elements of _C4a are used
+        private readonly Memory<double> _C4a;            // all the elements of _C4a are used
         private readonly EllipticFunction _E = new EllipticFunction();
         private readonly GeodesicFlags _caps;
 
@@ -42,7 +42,7 @@ namespace GeographicLib
             LineInit(g, lat1, lon1, azi1, salp1, calp1, caps, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1,
                 ref _a, ref _f, ref _b, ref _c2, ref _f1, ref _e2, ref _caps, ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _csig1,
                 ref _somg1, ref _comg1, ref _cchi1, ref _k2, ref _E0, ref _E1, ref _stau1, ref _ctau1, ref _D0, ref _D1, ref _H0, ref _H1,
-                ref _A4, ref _B41, ref _s13, ref _a13);
+                ref _A4, ref _B41, ref _s13, ref _a13, ref _C4a, ref _nC4);
             SetDistance(arcmode, s13_a13);
         }
 
@@ -93,7 +93,7 @@ namespace GeographicLib
             LineInit(g, lat1, lon1, azi1, salp1, calp1, caps, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1,
                 ref _a, ref _f, ref _b, ref _c2, ref _f1, ref _e2, ref _caps, ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _csig1,
                 ref _somg1, ref _comg1, ref _cchi1, ref _k2, ref _E0, ref _E1, ref _stau1, ref _ctau1, ref _D0, ref _D1, ref _H0, ref _H1,
-                ref _A4, ref _B41, ref _s13, ref _a13);
+                ref _A4, ref _B41, ref _s13, ref _a13, ref _C4a, ref _nC4);
         }
 
         /// <inheritdoc/>
@@ -264,8 +264,8 @@ namespace GeographicLib
 
             if (outmask.HasAny(GeodesicFlags.Area))
             {
-                var
-                  B42 = GeodesicExact.CosSeries(ssig2, csig2, _C4a.Span, nC4_);
+                var B42 = _A4 == 0 ? 0 :
+                     DST.Integral(ssig2, csig2, _C4a.Span, _nC4);
                 double salp12, calp12;
                 if (_calp0 == 0 || _salp0 == 0)
                 {
@@ -317,7 +317,8 @@ namespace GeographicLib
                   ref double _a, ref double _f, ref double _b, ref double _c2, ref double _f1, ref double _e2, ref GeodesicFlags _caps,
                   ref double _dn1, ref double _salp0, ref double _calp0, ref double _ssig1, ref double _csig1, ref double _somg1, ref double _comg1,
                   ref double _cchi1, ref double _k2, ref double _E0, ref double _E1, ref double _stau1, ref double _ctau1,
-                  ref double _D0, ref double _D1, ref double _H0, ref double _H1, ref double _A4, ref double _B41, ref double _s13, ref double _a13)
+                  ref double _D0, ref double _D1, ref double _H0, ref double _H1, ref double _A4, ref double _B41,
+                  ref double _s13, ref double _a13, ref Memory<double> _C4a, ref int _nC4)
         {
             _lat1 = LatFix(lat1);
             _lon1 = lon1;
@@ -330,6 +331,7 @@ namespace GeographicLib
             _c2 = g._c2;
             _f1 = g._f1;
             _e2 = g._e2;
+            _nC4 = g._nC4;
             // Always allow latitude and azimuth and unrolling of longitude
             caps = caps | GeodesicFlags.Latitude | GeodesicFlags.Azimuth | GeodesicFlags.LongUnroll;
 
@@ -409,16 +411,20 @@ namespace GeographicLib
 
             if (_caps.Capabilities().HasFlag(GeodesicCapability.C4))
             {
-                var eps = _k2 / (2 * (1 + Sqrt(1 + _k2)) + _k2);
-                g.C4f(eps, _C4a.Span);
                 // Multiplier = a^2 * e^2 * cos(alpha0) * sin(alpha0)
                 _A4 = Sq(_a) * _calp0 * _salp0 * _e2;
-                _B41 = GeodesicExact.CosSeries(_ssig1, _csig1, _C4a.Span, nC4_);
+                if (_A4 == 0)
+                    _B41 = 0;
+                else
+                {
+                    var i4 = new GeodesicExact.I4Integrand(g._ep2, _k2);
+                    _C4a = new double[_nC4];
+                    g._fft.Transform(ref i4, _C4a.Span);
+                    _B41 = DST.Integral(_ssig1, _csig1, _C4a.Span, _nC4);
+                }
             }
 
             _a13 = _s13 = double.NaN;
         }
-
-
     }
 }
