@@ -762,7 +762,9 @@ namespace GeographicLib
         /// Evaluate a polynomial.
         /// </summary>
         /// <param name="N">the order of the polynomial.</param>
-        /// <param name="p">the coefficient array (of size <paramref name="N"/> + 1).</param>
+        /// <param name="p">
+        /// the coefficient array (of size <paramref name="N"/> + 1) with
+        /// <i>p</i><sub>0</sub> being coefficient of <i>x</i><sup><i>N</i></sup>.</param>
         /// <param name="x">the variable.</param>
         /// <returns>the value of the polynomial.</returns>
         /// <remarks>
@@ -770,6 +772,9 @@ namespace GeographicLib
         /// </remarks>
         public static double PolyVal(int N, ReadOnlySpan<double> p, double x)
         {
+            // This used to employ Math::fma; but that's too slow and it seemed not
+            // to improve the accuracy noticeably.  This might change when there's
+            // direct hardware support for fma.
             var i = 0;
             double y = N < 0 ? 0 : p[i++];
             while (--N >= 0) y = y * x + p[i++];
@@ -780,7 +785,9 @@ namespace GeographicLib
         /// Evaluate a polynomial.
         /// </summary>
         /// <param name="N">the order of the polynomial.</param>
-        /// <param name="p">the coefficient array (of size <paramref name="N"/> + 1).</param>
+        /// <param name="p">
+        /// the coefficient array (of size <paramref name="N"/> + 1) with
+        /// <i>p</i><sub>0</sub> being coefficient of <i>x</i><sup><i>N</i></sup>.</param>
         /// <param name="x">the variable.</param>
         /// <returns>the value of the polynomial.</returns>
         /// <remarks>

@@ -539,5 +539,20 @@ namespace GeographicLib.Tests
             result = g.Inverse(0, 0, 60.0832522871723, 89.8492185074635);
             Assert.AreEqual("42426932221845", result.Area.ToFixedString(0));
         }
+
+        /// <summary>
+        /// Area of on high eccentricity n = 0.94 ellipsoid.  This is the most
+        /// oblate case that Nowak + Nowak Da Costa (2022) treats (convergence
+        /// with kmax = 18504).  High precision result is 5910062452739.93899501;
+        /// Accept xxx.930 thru xx.949
+        /// </summary>
+        [TestMethod]
+        public void GeodSolve98()
+        {
+            var result = new GeodesicExact(6.4e6, 188 / 194d)
+                .ArcDirect(0, 0, 45, 90, GeodesicFlags.Area | GeodesicFlags.LongUnroll);
+
+            Assert.AreEqual(5910062452739.9395, result.Area, 0.0095);
+        }
     }
 }
