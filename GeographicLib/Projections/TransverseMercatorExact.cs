@@ -20,7 +20,9 @@ namespace GeographicLib.Projections
     /// Part V of Conformal Projections Based on Elliptic Functions,
     /// (B. V. Gutsell, Toronto, 1976), 128pp.,
     /// ISBN: 0919870163 (also appeared as: Monograph 16,
-    /// Suppl. No. 1 to Canadian Cartographer, Vol 13).
+    /// Suppl. No. 1 to Canadian Cartographer, Vol 13);
+    /// <a href="https://archive.org/details/conformalproject0000leel/page/92">
+    /// borrow from archive.org</a>.
     /// </item>
     /// <item>
     /// C. F. F. Karney,
