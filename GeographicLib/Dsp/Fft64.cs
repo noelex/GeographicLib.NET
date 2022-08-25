@@ -48,6 +48,78 @@ namespace GeographicLib.Dsp
 
         public int WindowSize { get => windowSize; }
 
+        public void DFT(Complex[] signal, Complex[] spectrum)
+        {
+            Span<double> signalReal = stackalloc double[windowSize];
+            Span<double> signalImaginary = stackalloc double[windowSize];
+            Span<double> spectrumReal = stackalloc double[windowSize];
+            Span<double> spectrumImaginary = stackalloc double[windowSize];
+
+            for (int i = 0; i < windowSize; i++)
+            {
+                signalReal[i] = signal[i].Real;
+                signalImaginary[i] = signal[i].Imaginary;
+            }
+
+            DFT(new ComplexSpan(signalReal, signalImaginary), new ComplexSpan(spectrumReal, spectrumImaginary));
+
+            for (int i = 0; i < windowSize; i++)
+            {
+                spectrum[i] = new Complex(spectrumReal[i], spectrumImaginary[i]);
+            }
+        }
+
+        public void DFT(ReadOnlySpan<double> signal, ComplexSpan spectrum)
+        {
+            Span<double>
+                reals = stackalloc double[signal.Length / 2],
+                imags = stackalloc double[signal.Length / 2];
+
+            var cpx = new ComplexSpan(reals, imags);
+            cpx.CopyFromScalar(signal);
+
+            FFT(cpx, spectrum, new ComplexSpan(dftCoefficientReal, dftCoefficientImaginary));
+        }
+
+        public void IDFT(Complex[] spectrum, Complex[] signal)
+        {
+            Span<double> signalReal = stackalloc double[windowSize];
+            Span<double> signalImaginary = stackalloc double[windowSize];
+            Span<double> spectrumReal = stackalloc double[windowSize];
+            Span<double> spectrumImaginary = stackalloc double[windowSize];
+
+            for (int i = 0; i < windowSize; i++)
+            {
+                spectrumReal[i] = spectrum[i].Real;
+                spectrumImaginary[i] = spectrum[i].Imaginary;
+            }
+
+            IDFT(new ComplexSpan(spectrumReal, spectrumImaginary), new ComplexSpan(signalReal, signalImaginary));
+
+            for (int i = 0; i < windowSize; i++)
+            {
+                signal[i] = new Complex(signalReal[i], signalImaginary[i]);
+            }
+        }
+
+        public void DFT(ReadOnlyComplexSpan signal, ComplexSpan spectrum)
+        {
+            FFT(signal, spectrum, new ComplexSpan(dftCoefficientReal, dftCoefficientImaginary));
+        }
+
+        public void IDFT(ReadOnlyComplexSpan spectrum, ComplexSpan signal)
+        {
+            FFT(spectrum, signal, new ComplexSpan(idftCoefficientReal, idftCoefficientImaginary));
+            double coefficientAdjustment = 1D / windowSize;
+            Span<double> signalReal = signal.Real;
+            Span<double> signalImaginary = signal.Imaginary;
+            for (int i = 0; i < windowSize; i++)
+            {
+                signalReal[i] *= coefficientAdjustment;
+                signalImaginary[i] *= coefficientAdjustment;
+            }
+        }
+
         private static int Log2(int n)
         {
             int log = 0;

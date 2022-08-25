@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -17,6 +18,8 @@ namespace GeographicLib.Dsp
 
         public ComplexSpan(Span<double> real, Span<double> imaginary)
         {
+            Debug.Assert(real.Length == imaginary.Length);
+
             Real = real;
             Imaginary = imaginary;
         }
@@ -28,6 +31,17 @@ namespace GeographicLib.Dsp
             {
                 Real[index] = value.Real;
                 Imaginary[index] = value.Imaginary;
+            }
+        }
+
+        public void CopyFromScalar(ReadOnlySpan<double> src)
+        {
+            Debug.Assert(src.Length / 2 == Real.Length);
+
+            for (int i = 0; i < src.Length; i += 2)
+            {
+                Real[i] = src[i];
+                Imaginary[i] = src[i + 1];
             }
         }
     }
