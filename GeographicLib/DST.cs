@@ -5,6 +5,13 @@ using static System.Numerics.Complex;
 
 namespace GeographicLib
 {
+    /// <summary>
+    /// Discrete sine transforms.
+    /// </summary>
+    /// <remarks>
+    /// See <a href="https://geographiclib.sourceforge.io/C++/doc/classGeographicLib_1_1DST.html">here</a>
+    /// for detailed description.
+    /// </remarks>
     public class DST
     {
         private readonly Fft64 _fft;
@@ -28,8 +35,12 @@ namespace GeographicLib
         /// <summary>
         /// Determine first <i>N</i> terms in the Fourier series.
         /// </summary>
-        /// <param name="f"></param>
-        /// <param name="F"></param>
+        /// <param name="f">the function used for evaluation.</param>
+        /// <param name="F">the first <i>N</i> coefficients of the Fourier series.</param>
+        /// <remarks>
+        /// The evaluates <i>f</i>(σ) at σ=(<i>j</i>+1)π/(2<i>N</i>) for integer <i>j</i>∈[0,<i>N</i>).
+        /// <i>F</i> should be an array of length at least <i>N</i>.
+        /// </remarks>
         public void Transform(Func<double, double> f, Span<double> F)
         {
             Span<double> data = stackalloc double[4 * _N];
@@ -51,8 +62,21 @@ namespace GeographicLib
         /// <summary>
         /// Refine the Fourier series by doubling the number of points sampled
         /// </summary>
-        /// <param name="f"></param>
-        /// <param name="F"></param>
+        /// <param name="f">the function used for evaluation.</param>
+        /// <param name="F">
+        /// on input this is the first <i>N</i> coefficents of the Fourier series;
+        /// on output this is the refined transform based on 2<i>N</i> points, i.e., the first 2<i>N</i> coefficents.
+        /// </param>
+        /// <remarks>
+        /// The evaluates <i>f</i>(σ) at additional points σ=(<i>j</i> + 1/2)π/(2<i>N</i>)
+        /// for integer <i>j</i>∈[0,<i>N</i>),
+        /// computes the DST-IV transform of these, and combines this with the input <i>F</i>
+        /// to compute the 2<i>N</i> term DST-III discrete sine transform.
+        /// <para>
+        /// This is equivalent to calling transform with twice the value of <i>N</i> but is
+        /// more efficient, given that the <i>N</i> term coefficients are already known.
+        /// </para>
+        /// </remarks>
         public void Refine(Func<double, double> f, Span<double> F)
         {
             Span<double> data = stackalloc double[4 * _N];
@@ -65,17 +89,17 @@ namespace GeographicLib
         /// <summary>
         /// Evaluate the Fourier sum given the sine and cosine of the angle.
         /// </summary>
-        /// <param name="sinx"></param>
-        /// <param name="cosx"></param>
-        /// <param name="F"></param>
-        /// <param name="N"></param>
-        /// <returns></returns>
-        public static double Eval(double sinx, double cosx, ReadOnlySpan<double> F, int N)
+        /// <param name="sinx">sinσ.</param>
+        /// <param name="cosx">cosσ.</param>
+        /// <param name="F">the array of Fourier coefficients.</param>
+        /// <returns>the value of the Fourier sum.</returns>
+        public static double Eval(double sinx, double cosx, ReadOnlySpan<double> F)
         {
             // Evaluate
             // y = sum(F[i] * sin((2*i+1) * x), i, 0, N-1)
             // using Clenshaw summation.
             // Approx operation count = (N + 5) mult and (2 * N + 2) add
+            int N = F.Length;
             double
               ar = 2 * (cosx - sinx) * (cosx + sinx), // 2 * cos(2 * x)
               y0 = (N & 1) != 0 ? F[--N] : 0, y1 = 0;          // accumulators for sum
@@ -93,18 +117,20 @@ namespace GeographicLib
         /// Evaluate the integral of Fourier sum given the sine and cosine of the
         /// angle.
         /// </summary>
-        /// <param name="sinx"></param>
-        /// <param name="cosx"></param>
-        /// <param name="F"></param>
-        /// <param name="N"></param>
-        /// <returns></returns>
-        public static double Integral(double sinx, double cosx, ReadOnlySpan<double> F, int N)
+        /// <param name="sinx">sinσ.</param>
+        /// <param name="cosx">cosσ.</param>
+        /// <param name="F">the array of Fourier coefficients.</param>
+        /// <returns>the value of the integral.</returns>
+        /// <remarks>
+        /// The constant of integration is chosen so that the integral is zero at σ=(1/2)π.
+        /// </remarks>
+        public static double Integral(double sinx, double cosx, ReadOnlySpan<double> F)
         {
             // Evaluate
             // y = -sum(F[i]/(2*i+1) * cos((2*i+1) * x), i, 0, N-1)
             // using Clenshaw summation.
             // Approx operation count = (N + 5) mult and (2 * N + 2) add
-            int l = N;
+            int N = F.Length, l = N;
             double
               ar = 2 * (cosx - sinx) * (cosx + sinx), // 2 * cos(2 * x)
               y0 = (N & 1) != 0 ? F[--N] / (2 * (--l) + 1) : 0, y1 = 0; // accumulators for sum

@@ -265,7 +265,7 @@ namespace GeographicLib
             if (outmask.HasAny(GeodesicFlags.Area))
             {
                 var B42 = _A4 == 0 ? 0 :
-                     DST.Integral(ssig2, csig2, _C4a.Span, _nC4);
+                     DST.Integral(ssig2, csig2, _C4a.Span);
                 double salp12, calp12;
                 if (_calp0 == 0 || _salp0 == 0)
                 {
@@ -420,7 +420,7 @@ namespace GeographicLib
                     var i4 = new GeodesicExact.I4Integrand(g._ep2, _k2);
                     _C4a = new double[_nC4];
                     g._fft.Transform(ref i4, _C4a.Span);
-                    _B41 = DST.Integral(_ssig1, _csig1, _C4a.Span, _nC4);
+                    _B41 = DST.Integral(_ssig1, _csig1, _C4a.Span);
                 }
             }
 

@@ -1087,8 +1087,8 @@ namespace GeographicLib
                     _fft.Transform(ref i4, C4a);
 
                     double
-                      B41 = DST.Integral(ssig1, csig1, C4a, _nC4),
-                      B42 = DST.Integral(ssig2, csig2, C4a, _nC4);
+                      B41 = DST.Integral(ssig1, csig1, C4a),
+                      B42 = DST.Integral(ssig2, csig2, C4a);
                     S12 = A4 * (B42 - B41);
                 }
                 else
