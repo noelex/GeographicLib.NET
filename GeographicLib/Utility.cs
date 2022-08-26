@@ -187,6 +187,22 @@ namespace GeographicLib
             return -1;
         }
 
+        internal static int FindFirstOf(this ReadOnlySpan<char> source, string chars, int offset = 0)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            if (chars == null) throw new ArgumentNullException("chars");
+
+            if (source.Length == 0) return -1;
+            if (chars.Length == 0) return 0;
+
+            for (int i = offset; i < source.Length; i++)
+            {
+                if (chars.IndexOf(source[i]) >= 0) return i;
+            }
+
+            return -1;
+        }
+
         internal static int FindLastNotOf(this ReadOnlySpan<char> source, string chars, int offset = 0)
         {
             if (source == null) throw new ArgumentNullException("source");
