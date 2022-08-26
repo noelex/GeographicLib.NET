@@ -1,7 +1,7 @@
 # GeographicLib.NET
 
-[![master](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml)
-[![develop](https://github.com/noelex/GeographicLib.NET/actions/workflows/develop.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/develop.yml)
+[![release](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml/release.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/release.yml)
+[![prerelease](https://github.com/noelex/GeographicLib.NET/actions/workflows/prerelease.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/prerelease.yml)
 
 [GeographicLib](https://sourceforge.net/p/geographiclib) is a small set of C++ classes for performing conversions between geographic,
 UTM, UPS, MGRS, geocentric, and local cartesian coordinates,for gravity (e.g., EGM2008), geoid height and geomagnetic field (e.g., WMM2020) calculations,

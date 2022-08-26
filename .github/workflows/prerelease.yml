@@ -1,14 +1,9 @@
 name: prerelease
 
 on:
-  workflow_dispatch:
-    branches: [ master ]
-  push:
-    branches: [ master ]
-    paths:
-      - 'GeographicLib/**'
-      - 'GeographicLibTests/**'
-      - 'GeographicLib.NET.sln'
+  release:
+    types:
+      - prereleased
 
 jobs:
   build:
@@ -49,7 +44,7 @@ jobs:
       run: dotnet restore
       
     - name: Build
-      run: dotnet build -c Release --no-restore
+      run: dotnet build -p:Version=${GITHUB_REF#refs/tags/v} -c Release --no-restore
       
     - name: Test
       id: test
@@ -60,7 +55,6 @@ jobs:
       env:
         API_KEY: "${{ secrets.NUGET_API_KEY }}"
       run: |
-        dotnet pack -c Release --no-build --version-suffix "preview-$(date +%Y%m%d%H%M%S)"
+        dotnet pack -p:Version=${GITHUB_REF#refs/tags/v} -c Release --no-build
         cd ./GeographicLib/bin/Release/
         dotnet nuget push *.nupkg -k $API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
-      
