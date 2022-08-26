@@ -19,7 +19,6 @@
 GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.]]>
 		</Description>
 		<Copyright>Copyright (c) 2021-2022, GeographicLib.NET contributors</Copyright>
-		<VersionPrefix>2.1.1</VersionPrefix>
 		<PackageTags>gis, geodesic, geographic, geoid, geomagnetic, gravity, projection, rhumb</PackageTags>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
@@ -30,10 +29,6 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<IsTrimmable>true</IsTrimmable>
 		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0' or '$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
 
 	<PropertyGroup>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -53,12 +48,7 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 		<PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
 	</ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-  </ItemGroup>
 
 	<ItemGroup>
 		<None Include="$(ProjectDir)..\README.md">
@@ -71,9 +61,5 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 			<PackagePath>\</PackagePath>
 			<Visible>false</Visible>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Dsp\" />
 	</ItemGroup>
 </Project>
