@@ -54,6 +54,14 @@ namespace GeographicLib
     /// spaced points in σ. <i>N</i> chosen to ensure full accuracy for
     /// <i>b</i>/<i>a</i> ∈ [0.01, 100] or <i>f</i> ∈ [-99, 0.99].
     /// <para>
+    /// The algorithms are described in
+    /// - C. F. F. Karney,
+    /// <a href = "https://arxiv.org/abs/2208.00492" >
+    /// Geodesics on an arbitrary ellipsoid of revolution</a>, Aug. 2022;
+    /// preprint<a href="https://arxiv.org/abs/2208.00492">
+    /// arxiv:2208.00492</a>.
+    /// </para>
+    /// <para>
     /// See <a href="https://geographiclib.sourceforge.io/C++/doc/geodesic.html#geodellip">
     /// Geodesics in terms of elliptic integrals</a>
     /// for the formulation.See the documentation on the
@@ -854,7 +862,7 @@ namespace GeographicLib
               dn2 = (_f >= 0 ? Sqrt(1 + _ep2 * Sq(sbet2)) :
                      Sqrt(1 - _e2 * Sq(cbet2)) / _f1);
 
-            double a12=double.NaN, sig12;
+            double a12 = double.NaN, sig12;
 
             bool meridian = lat1 == -QD || slam12 == 0;
 
@@ -1214,10 +1222,10 @@ namespace GeographicLib
         /// <inheritdoc/>
         public override IGeodesicLine InverseLine(double lat1, double lon1, double lat2, double lon2, GeodesicFlags caps = GeodesicFlags.All)
         {
-            double  
+            double
                 a12 = GenInverse(lat1, lon1, lat2, lon2,
                    // No need to specify AZIMUTH here
-                   0u,out _, out var salp1, out var calp1, out var salp2, out var calp2,
+                   0u, out _, out var salp1, out var calp1, out var salp2, out var calp2,
                    out _, out _, out _, out _),
                 azi1 = Atan2d(salp1, calp1);
             // Ensure that a12 can be converted to a distance
