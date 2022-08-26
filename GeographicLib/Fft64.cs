@@ -23,7 +23,7 @@ namespace GeographicLib
         private readonly List<int> _stageRadix = new List<int>();
         private readonly List<int> _stageRemainder = new List<int>();
 
-        private readonly List<Complex> _scratchbuf = new List<Complex>();
+        private Complex[] _scratchbuf = Array.Empty<Complex>();
 
         public Fft64(int nfft, bool inverse)
         {
@@ -303,7 +303,7 @@ namespace GeographicLib
                 int p
                 )
         {
-            //if (p > _scratchbuf.Count) _scratchbuf.resize(p);
+            if (p > _scratchbuf.Length) Array.Resize(ref _scratchbuf, p);
 
             for (var u = 0; u < m; ++u)
             {
