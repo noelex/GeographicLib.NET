@@ -70,5 +70,46 @@ namespace GeographicLib.Tests
             mgrsa = MGRS.Forward(zone, northp, x, y, -0, 2);
             Assert.AreEqual(mgrs, mgrsa);
         }
+
+        [DataTestMethod]
+        [DataRow("38SMB4488", "38S", "MB", "44", "88")]
+        [DataRow("3SMB4488", "3S", "MB", "44", "88")]
+        [DataRow("SMB4488", "S", "MB", "44", "88")]
+        [DataRow("SMB48", "S", "MB", "4", "8")]
+        public void TestDecode(string mgrs, string gridzone, string block, string easting, string northing)
+        {
+            var (z, b, e, n) = MGRS.Decode(mgrs.AsSpan());
+            Assert.AreEqual(gridzone, z);
+            Assert.AreEqual(block, b);
+            Assert.AreEqual(easting, e);
+            Assert.AreEqual(northing, n);
+        }
+
+        [DataTestMethod]
+        [DataRow("INV", "INV", "", "", "")]
+        [DataRow("iNv", "iNv", "", "", "")]
+        [DataRow("inv1234567", "inv", "", "", "")]
+        public void TestDecode_InvHandling(string mgrs, string gridzone, string block, string easting, string northing)
+        {
+            var (z, b, e, n) = MGRS.Decode(mgrs.AsSpan());
+            Assert.AreEqual(gridzone, z);
+            Assert.AreEqual(block, b);
+            Assert.AreEqual(easting, e);
+            Assert.AreEqual(northing, n);
+        }
+
+        [DataTestMethod]
+        [ExpectedException(typeof(GeographicException))]
+        [DataRow("AABCDDD")]
+        [DataRow("0011223")]
+        [DataRow("0AB1223")]
+        [DataRow("0ABC223")]
+        [DataRow("0ABCD23")]
+        [DataRow("00OOD23")]
+        [DataRow("00IID23")]
+        public void TestDecode_SanityCheck(string mgrs)
+        {
+            MGRS.Decode(mgrs.AsSpan());
+        }
     }
 }

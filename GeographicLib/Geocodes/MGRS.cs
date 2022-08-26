@@ -58,6 +58,8 @@ namespace GeographicLib.Geocodes
         private const string latband_ = "CDEFGHJKLMNPQRSTUVWX";
         private const string upsband_ = "ABYZ";
         private const string digits_ = "0123456789";
+        private const string alpha_ =  // Omit I+O
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjklmnpqrstuvwxyz";
 
         // Entries are [band, x, y] either side of the band boundaries.  Units for
         // x, y are t = 100km.
@@ -671,6 +673,70 @@ namespace GeographicLib.Geocodes
             }
 
             return (zone1, northp1, (tile_ * x1) / unit, (tile_ * y1) / unit, prec1);
+        }
+
+        /// <summary>
+        /// Split a MGRS grid reference into its components.
+        /// </summary>
+        /// <param name="mgrs">MGRS string, e.g., 38SMB4488.</param>
+        /// <returns>
+        /// <list type="table">
+        /// <item><i>gridzone</i> the grid zone, e.g., 38S.</item>
+        /// <item><i>block</i> the 100km block id, e.g., MB.</item>
+        /// <item><i>easting</i> the leading digits of the block easting, e.g., 44.</item>
+        /// <item><i>northing</i> the leading digits of the block easting, e.g., 88.</item>
+        /// </list>
+        /// </returns>
+        /// <remarks>
+        /// Only the most rudimentary checking of MGRS grid ref is done: it is
+        /// expected to consist of 0-2 digits followed by 1 or 3 letters, followed
+        /// (in the case of 3 letters) by an even number (possibly 0) of digits.  In
+        /// reporting errors, the letters I and O (illegal in MSRS) are regarded as
+        /// non-alphabetic.  The returned <i>gridzone</i> will always be non-empty.  The
+        /// other output arguments may be empty strings.
+        /// <para>
+        /// If the first 3 characters of <paramref name="mgrs"/> are "INV", then <i>gridzone</i> is set
+        /// to those 3 characters and the other return arguments are set to empty
+        /// strings.
+        /// </para>
+        /// </remarks>
+        public static (string gridzone, string block,
+            string easting, string northing) Decode(ReadOnlySpan<char> mgrs)
+        {
+            int n = mgrs.Length;
+            if (n >= 3 &&
+                char.ToUpperInvariant(mgrs[0]) == 'I' &&
+                char.ToUpperInvariant(mgrs[1]) == 'N' &&
+                char.ToUpperInvariant(mgrs[2]) == 'V')
+            {
+                return (mgrs.Slice(0, 3).ToString(),
+                    string.Empty, string.Empty, string.Empty);
+            }
+            int p0 = mgrs.FindFirstNotOf(digits_);
+            if (p0 == -1)
+                throw new GeographicException("MGRS::Decode: ref does not contain alpha chars");
+            if (!(p0 <= 2))
+                throw new GeographicException("MGRS::Decode: ref does not start with 0-2 digits");
+            int p1 = mgrs.FindFirstOf(alpha_, p0);
+            if (p1 != p0)
+                throw new GeographicException("MGRS::Decode: ref contains non alphanumeric chars");
+            p1 = Min(mgrs.FindFirstNotOf(alpha_, p0), n);
+            if (!(p1 == p0 + 1 || p1 == p0 + 3))
+                throw new GeographicException("MGRS::Decode: ref must contain 1 or 3 alpha chars");
+            if (p1 == p0 + 1 && p1 < n)
+                throw new GeographicException("MGRS::Decode: ref contains junk after 1 alpha char");
+            if (p1 < n && (mgrs.FindFirstOf(digits_, p1) != p1 ||
+                           mgrs.FindFirstNotOf(digits_, p1) != -1))
+                throw new GeographicException("MGRS::Decode: ref contains junk at end");
+            if (((n - p1) & 1u)!=0)
+                throw new GeographicException("MGRS::Decode: ref must end with even no of digits");
+            // Here [0, p0) = initial digits; [p0, p1) = alpha; [p1, n) = end digits
+            return (
+                mgrs.Slice(0, p0 + 1).ToString(),
+                mgrs.Slice(p0 + 1, p1 - (p0 + 1)).ToString(),
+                mgrs.Slice(p1, (n - p1) / 2).ToString(),
+                mgrs.Slice(p1 + (n - p1) / 2).ToString()
+            );
         }
 
         /// <summary>
