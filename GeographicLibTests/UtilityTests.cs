@@ -20,7 +20,7 @@ namespace GeographicLib.Tests
         [DataRow("-inf", -inf)]
         public void TestParseDouble(string input, double r)
         {
-            var r1 = Utility.ParseDouble(input);
+            var r1 = Utility.ParseDoubleInfNan(input);
             Assert.That.EqualsExactly(r, r1);
         }
 

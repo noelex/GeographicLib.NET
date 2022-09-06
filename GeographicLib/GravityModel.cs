@@ -641,17 +641,17 @@ namespace GeographicLib
                     else if (key == "Description")
                         _description = val;
                     else if (key == "ReleaseDate")
-                        _date = System.DateTime.Parse(val);
+                        _date = val.ParseDateTime();
                     else if (key == "ModelRadius")
-                        _amodel = val.ParseDouble();
+                        _amodel = val.ParseDoubleInfNan();
                     else if (key == "ModelMass")
-                        _GMmodel = val.ParseDouble();
+                        _GMmodel = val.ParseDoubleInfNan();
                     else if (key == "AngularVelocity")
-                        omega = val.ParseDouble();
+                        omega = val.ParseDoubleInfNan();
                     else if (key == "ReferenceRadius")
-                        a = val.ParseDouble();
+                        a = val.ParseDoubleInfNan();
                     else if (key == "ReferenceMass")
-                        GM = val.ParseDouble();
+                        GM = val.ParseDoubleInfNan();
                     else if (key == "Flattening")
                         f = val.ParseFract();
                     else if (key == "DynamicalFormFactor")

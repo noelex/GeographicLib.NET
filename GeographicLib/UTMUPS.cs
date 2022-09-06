@@ -414,11 +414,8 @@ namespace GeographicLib
 
             var hemiStart = zonestr.FindFirstNotOf("1234567890");
             var startsWithNumber =
-#if NETSTANDARD2_0
-                int.TryParse(zonestr.Slice(0, hemiStart).ToString(), out var zone1);
-#else
-                int.TryParse(zonestr.Slice(0, hemiStart), out var zone1);
-#endif
+                zonestr.Slice(0, hemiStart).TryParseInt32(out var zone1);
+
             // if (zone1 == 0) zone1 = UPS; (not necessary)
 
             if (zone1 == (int)ZoneSpec.UPS)

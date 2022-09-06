@@ -13,6 +13,7 @@ using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
 using System.Buffers;
 using System.Runtime.InteropServices;
+using System.Globalization;
 
 namespace GeographicLib
 {
@@ -265,18 +266,18 @@ namespace GeographicLib
                         }
                         else if (key == "DateTime")
                         {
-                            _datetime = System.DateTime.Parse(match.Groups[2].Value.Trim());
+                            _datetime = match.Groups[2].Value.Trim().ParseDateTime();
                         }
                         else if (key == "Offset")
                         {
-                            if (!double.TryParse(match.Groups[2].Value.Trim(), out _offset))
+                            if (!match.Groups[2].Value.Trim().TryParseDouble(out _offset))
                             {
                                 throw new GeographicException("Error reading offset: " + _filename);
                             }
                         }
                         else if (key == "Scale")
                         {
-                            if (!double.TryParse(match.Groups[2].Value.Trim(), out _scale))
+                            if (!match.Groups[2].Value.Trim().TryParseDouble(out _scale))
                             {
                                 throw new GeographicException("Error reading scale: " + _filename);
                             }
@@ -284,18 +285,18 @@ namespace GeographicLib
                         else if (key == (_cubic ? "MaxCubicError" : "MaxBilinearError"))
                         {
                             // It's not an error if the error can't be read
-                            double.TryParse(match.Groups[2].Value.Trim(), out _maxerror);
+                            match.Groups[2].Value.Trim().TryParseDouble(out _maxerror);
                         }
                         else if (key == (_cubic ? "RMSCubicError" : "RMSBilinearError"))
                         {
                             // It's not an error if the error can't be read
-                            double.TryParse(match.Groups[2].Value.Trim(), out _rmserror);
+                            match.Groups[2].Value.Trim().TryParseDouble(out _rmserror);
                         }
                     }
                     else
                     {
                         var items = s.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (items.Length != 2 || !int.TryParse(items[0], out _width) || !int.TryParse(items[1], out _height))
+                        if (items.Length != 2 || !items[0].TryParseInt32(out _width) || !items[1].TryParseInt32(out _height))
                         {
                             throw new GeographicException("Error reading raster size: " + _filename);
                         }
@@ -304,7 +305,7 @@ namespace GeographicLib
                 }
 
 
-                if (!uint.TryParse(s = sr.ReadLine(), out var maxval))
+                if (!(s = sr.ReadLine()).TryParseUInt32(out var maxval))
                     throw new GeographicException("Error reading maxval: " + _filename);
                 if (maxval != pixel_max_)
                     throw new GeographicException("Incorrect value of maxval: " + _filename);
@@ -826,7 +827,7 @@ namespace GeographicLib
         /// </summary>
         public void Dispose()
         {
-            if(!_leaveOpen) _file.Dispose();
+            if (!_leaveOpen) _file.Dispose();
             _data.Clear();
         }
     }
