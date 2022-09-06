@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace GeographicLib.Tests
 {
@@ -10134,7 +10133,7 @@ namespace GeographicLib.Tests
             {
                 yield return (id, new string(line)
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(p => (double.Parse(p) as object))
+                    .Select(p => p.ParseDouble() as object)
                     .ToArray());
 
                 id++;
