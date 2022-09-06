@@ -16,7 +16,7 @@ namespace GeographicLib
     {
 #if NETSTANDARD2_0
         internal static int IndexOf(this string str, char c, StringComparison stringComparison)
-            => str.IndexOf(c.ToString(), stringComparison);
+            => str.IndexOf(c.ToStringInvariant(), stringComparison);
 #endif
         /// <summary>
         /// Swap byte order of elements in the specified array.
@@ -46,11 +46,27 @@ namespace GeographicLib
 
             // double.ToString does not output sign for zero in early versions of .NET.
             var sign = x == 0 && MathEx.SignBit(x) ? "-" : "";
-            return string.Format("{0}{1}", sign, p >= 0 ? x.ToString($"F{p}") : x.ToString());
+            return string.Format("{0}{1}", sign, p >= 0 ? x.ToStringInvariant($"F{p}") : x.ToStringInvariant());
 #else
-            return p >= 0 ? x.ToString($"F{p}") : x.ToString();
+            return p >= 0 ? x.ToStringInvariant($"F{p}") : x.ToStringInvariant();
 #endif
         }
+
+        internal static string ToStringInvariant<T>(this T value, string format)
+            where T : IFormattable
+            => value.ToString(format, CultureInfo.InvariantCulture);
+
+        internal static string ToStringInvariant(this double value)
+            => value.ToString(CultureInfo.InvariantCulture);
+
+        internal static string ToStringInvariant(this long value)
+            => value.ToString(CultureInfo.InvariantCulture);
+
+        internal static string ToStringInvariant(this int value)
+            => value.ToString(CultureInfo.InvariantCulture);
+
+        internal static string ToStringInvariant(this char value)
+            => value.ToString(CultureInfo.InvariantCulture);
 
         internal static double ParseFract(this string s) => ParseFract(s.AsSpan());
 
