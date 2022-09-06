@@ -1,13 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GeographicLib;
-using System.Reflection;
 using System.Globalization;
+using System.IO;
+using System.Reflection;
 
 namespace GeographicLib.Tests
 {
@@ -145,12 +140,21 @@ namespace GeographicLib.Tests
         [DataRow("pt-PT")]
         public void Test_LoadGeoidWithDifferentCulture(string culture)
         {
-            CultureInfo.CurrentCulture = new CultureInfo(culture);
+            var currentCulture = CultureInfo.CurrentCulture;
 
-            var geoid = new Geoid("egm84-30",
-                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "geoids"));
+            try
+            {
+                CultureInfo.CurrentCulture = new CultureInfo(culture);
 
-            Assert.AreEqual(0.003, geoid.Scale);
+                var geoid = new Geoid("egm84-30",
+                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "geoids"));
+
+                Assert.AreEqual(0.003, geoid.Scale);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = currentCulture;
+            }
         }
     }
 }
