@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib.Tests
 {
@@ -2862,7 +2860,7 @@ namespace GeographicLib.Tests
 -0.000000001031000 82.636272824610003 18351035.5568834618 -0.0012568148 -0.0000000179421018 11.0244905178638426
 ";
 
-        private const string exactData= @"8.322143510836000 69.488157190492998 10460475.8977297805 2553463.6243908596 21.9658685443147590 2.7002964595099224
+        private const string exactData = @"8.322143510836000 69.488157190492998 10460475.8977297805 2553463.6243908596 21.9658685443147590 2.7002964595099224
 79.275096210569004 83.551272329393996 1196539.9721941068 9861920.8362302519 83.4376684401981379 1.0171372371869942
 0.641227178780000 80.918463581180006 16601151.3828977626 534164.0257383508 6.0116239836331573 7.5031557802420252
 17.236083818472999 51.445169213730999 6165042.5437759375 2937758.3809370166 20.5410955695908797 1.5076960380550306
@@ -5740,9 +5738,9 @@ namespace GeographicLib.Tests
             {
                 foreach (var line in data.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    yield return 
+                    yield return
                         line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(p => (double.Parse(p) as object))
+                        .Select(p => p.ParseDouble() as object)
                         .ToArray();
                 }
             }
@@ -5756,7 +5754,7 @@ namespace GeographicLib.Tests
                 {
                     yield return
                         line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(p => (double.Parse(p) as object))
+                        .Select(p => p.ParseDouble() as object)
                         .ToArray();
                 }
             }
