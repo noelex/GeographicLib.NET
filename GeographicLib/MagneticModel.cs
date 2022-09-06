@@ -239,27 +239,27 @@ namespace GeographicLib
                         case "Description":
                             _description = val; break;
                         case "ReleaseDate":
-                            _date = System.DateTime.Parse(val); break;
+                            _date = val.ParseDateTime(); break;
                         case "Radius":
-                            _a = double.Parse(val); break;
+                            _a = val.ParseDouble(); break;
                         case "Type" when val.ToLower() != "linear":
                             throw new GeographicException("Only linear models are supported");
                         case "Epoch":
-                            _t0 = double.Parse(val); break;
+                            _t0 = val.ParseDouble(); break;
                         case "DeltaEpoch":
-                            _dt0 = double.Parse(val); break;
+                            _dt0 = val.ParseDouble(); break;
                         case "NumModels":
-                            _Nmodels = int.Parse(val); break;
+                            _Nmodels = val.ParseInt32(); break;
                         case "NumConstants":
-                            _Nconstants = int.Parse(val); break;
+                            _Nconstants = val.ParseInt32(); break;
                         case "MinTime":
-                            _tmin = double.Parse(val); break;
+                            _tmin = val.ParseDouble(); break;
                         case "MaxTime":
-                            _tmax = double.Parse(val); break;
+                            _tmax = val.ParseDouble(); break;
                         case "MinHeight":
-                            _hmin = double.Parse(val); break;
+                            _hmin = val.ParseDouble(); break;
                         case "MaxHeight":
-                            _hmax = double.Parse(val); break;
+                            _hmax = val.ParseDouble(); break;
                         case "ID":
                             _id = val; break;
                         case "Normalization":

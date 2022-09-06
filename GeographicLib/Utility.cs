@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -58,14 +59,14 @@ namespace GeographicLib
             var delim = s.IndexOf('/');
             return
               !(delim != -1 && delim >= 1 && delim + 2 <= s.Length) ?
-                s.ParseDouble() :
+                s.ParseDoubleInfNan() :
                 // delim in [1, size() - 2]
-                s.Slice(0, delim).ParseDouble() / s.Slice(delim + 1).ParseDouble();
+                s.Slice(0, delim).ParseDoubleInfNan() / s.Slice(delim + 1).ParseDoubleInfNan();
         }
 
-        internal static double ParseDouble(this string s) => ParseDouble(s.AsSpan());
+        internal static double ParseDoubleInfNan(this string s) => ParseDoubleInfNan(s.AsSpan());
 
-        internal static double ParseDouble(this ReadOnlySpan<char> s)
+        internal static double ParseDoubleInfNan(this ReadOnlySpan<char> s)
         {
             double x;
 
@@ -76,8 +77,7 @@ namespace GeographicLib
                 throw new GeographicException($"Extra text {t.Slice(sep + 1).ToString()} at end of {t.ToString()}");
             }
 
-
-            if (!double.TryParse(t.ToString(), out x) && (x = t.NumMatch()) == 0)
+            if (!t.TryParseDouble(out x) && (x = t.NumMatch()) == 0)
             {
                 throw new GeographicException($"Cannot decode {t.ToString()}");
             }
@@ -99,7 +99,7 @@ namespace GeographicLib
             if (s.Length < 3) return 0;
 
             Span<char> t = stackalloc char[s.Length];
-            s.ToUpper(t, System.Globalization.CultureInfo.CurrentCulture);
+            s.ToUpper(t, CultureInfo.CurrentCulture);
 
             var sign = t[0] == '-' ? -1 : 1;
             var p0 = t[0] == '-' || t[0] == '+' ? 1 : 0;
@@ -197,7 +197,7 @@ namespace GeographicLib
 
             for (int i = offset; i < source.Length; i++)
             {
-                if (chars.IndexOf(source[i]) >= 0) return i;
+                if (chars.Contains(source[i])) return i;
             }
 
             return -1;
@@ -213,7 +213,7 @@ namespace GeographicLib
 
             for (int i = source.Length - 1; i >= offset; i--)
             {
-                if (chars.IndexOf(source[i]) == -1) return i;
+                if (!chars.Contains(source[i])) return i;
             }
 
             return -1;
@@ -235,13 +235,96 @@ namespace GeographicLib
         /// </remarks>
         public static double FractionalYear(string s)
         {
-            if (double.TryParse(s, out var result))
+            if (s.TryParseDouble(out var result))
             {
                 return result;
             }
 
-            var ymd = s == "now" ? DateTime.Now : DateTime.Parse(s);
+            var ymd = s == "now" ? DateTime.Now : s.ParseDateTime();
             return ymd.Year + Math.Round(ymd.DayOfYear / (double)(new DateTime(ymd.Year + 1, 1, 1) - new DateTime(ymd.Year, 1, 1)).Days, 1);
         }
+
+        internal static DateTime ParseDateTime(this string input)
+            => DateTime.Parse(input, CultureInfo.InvariantCulture);
+
+        internal static double ParseDouble(this string input)
+            => double.Parse(input, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseDouble(this string input, out double result)
+            => double.TryParse(input, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out result);
+
+        internal static int ParseInt32(this string input)
+            => int.Parse(input, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseInt32(this string input, out int result)
+            => int.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+        internal static uint ParseUInt32(this string input)
+            => uint.Parse(input, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseUInt32(this string input, out uint result)
+            => uint.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+        internal static long ParseInt64(this string input)
+            => long.Parse(input, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseInt64(this string input, out long result)
+            => long.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+#if NETSTANDARD2_0
+        internal static DateTime ParseDateTime(this ReadOnlySpan<char> input)
+            => ParseDateTime(input.ToString());
+
+        internal static double ParseDouble(this ReadOnlySpan<char> input)
+            => ParseDouble(input.ToString());
+
+        internal static bool TryParseDouble(this ReadOnlySpan<char> input, out double result)
+            => TryParseDouble(input.ToString(), out result);
+
+        internal static int ParseInt32(this ReadOnlySpan<char> input)
+            => int.Parse(input.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseInt32(this ReadOnlySpan<char> input, out int result)
+            => int.TryParse(input.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+        internal static uint ParseUInt32(this ReadOnlySpan<char> input)
+            => uint.Parse(input.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseUInt32(this ReadOnlySpan<char> input, out uint result)
+            => uint.TryParse(input.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+        internal static long ParseInt64(this ReadOnlySpan<char> input)
+            => ParseInt64(input.ToString());
+
+        internal static bool TryParseInt64(this ReadOnlySpan<char> input, out long result)
+            => TryParseInt64(input.ToString(), out result);
+#else
+        internal static DateTime ParseDateTime(this ReadOnlySpan<char> input)
+            => DateTime.Parse(input, CultureInfo.InvariantCulture);
+
+        internal static double ParseDouble(this ReadOnlySpan<char> input)
+            => double.Parse(input, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseDouble(this ReadOnlySpan<char> input, out double result)
+            => double.TryParse(input, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out result);
+
+        internal static int ParseInt32(this ReadOnlySpan<char> input)
+            => int.Parse(input, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseInt32(this ReadOnlySpan<char> input, out int result)
+            => int.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+        internal static uint ParseUInt32(this ReadOnlySpan<char> input)
+            => uint.Parse(input, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseUInt32(this ReadOnlySpan<char> input, out uint result)
+            => uint.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+
+        internal static long ParseInt64(this ReadOnlySpan<char> input)
+            => long.Parse(input, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+        internal static bool TryParseInt64(this ReadOnlySpan<char> input, out long result)
+            => long.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
+#endif
     }
 }

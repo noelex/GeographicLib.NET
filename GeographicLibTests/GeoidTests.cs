@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GeographicLib;
 using System.Reflection;
+using System.Globalization;
 
 namespace GeographicLib.Tests
 {
@@ -131,6 +132,25 @@ namespace GeographicLib.Tests
 
                 Assert.AreEqual(height, h, 1e-4);
             }
+        }
+
+        /// <summary>
+        /// Regression for issue <a href="https://github.com/noelex/GeographicLib.NET/issues/27">#27</a>.
+        /// </summary>
+        /// <param name="culture"></param>
+        [DataTestMethod]
+        [DataRow("de-DE")]
+        [DataRow("en-US")]
+        [DataRow("fr-FR")]
+        [DataRow("pt-PT")]
+        public void Test_LoadGeoidWithDifferentCulture(string culture)
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(culture);
+
+            var geoid = new Geoid("egm84-30",
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "geoids"));
+
+            Assert.AreEqual(0.003, geoid.Scale);
         }
     }
 }

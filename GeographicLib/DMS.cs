@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -135,8 +136,8 @@ namespace GeographicLib
                         }
                         if (digcount > 0)
                         {
-                            fcurrent = double.Parse(dmsa.Substring(p - intcount - digcount - 1,
-                                        intcount + digcount));
+                            fcurrent = dmsa.Substring(p - intcount - digcount - 1,
+                                        intcount + digcount).ParseDouble();
                             icurrent = 0;
                         }
                         ipieces[k] = icurrent;
@@ -175,8 +176,8 @@ namespace GeographicLib
                     }
                     if (digcount > 0)
                     {
-                        fcurrent = double.Parse(dmsa.Substring(p - intcount - digcount,
-                                      intcount + digcount));
+                        fcurrent = dmsa.Substring(p - intcount - digcount,
+                                      intcount + digcount).ParseDouble();
                         icurrent = 0;
                     }
                     ipieces[npiece] = icurrent;
@@ -607,12 +608,12 @@ namespace GeographicLib
                     {
                         if (p < 0)
                         {
-                            i = long.Parse(s);
+                            i = s.ParseInt64();
                             s = string.Empty;
                         }
                         else
                         {
-                            i = long.Parse(s.Substring(0, p));
+                            i = s.Substring(0, p).ParseInt64();
                             s = s.Substring(p);
                         }
                     }

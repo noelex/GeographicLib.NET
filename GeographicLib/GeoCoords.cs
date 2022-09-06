@@ -300,11 +300,11 @@ namespace GeographicLib
                 {
                     if (i != 0)
                     {
-                        _northing = sa[coordind + i].ParseDouble();
+                        _northing = sa[coordind + i].ParseDoubleInfNan();
                     }
                     else
                     {
-                        _easting = sa[coordind + i].ParseDouble();
+                        _easting = sa[coordind + i].ParseDoubleInfNan();
                     }
                 }
 
