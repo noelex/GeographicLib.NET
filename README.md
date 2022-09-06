@@ -111,6 +111,9 @@ Bellow is a list of stable releases of GeographicLib.NET and changes made in .NE
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
 ### Version 2.1.1 (unreleased)
+- **FIX**
+  - Fixed an issue where number and date time parsing may fail or produce unexpected result when working with 
+    number and date time formats provided by `CultureInfo.CurrentCulture`. This fixes [issue #27](https://github.com/noelex/GeographicLib.NET/issues/27).
 
 ### Version 2.0.0 (released 2022/08/24)
 - **NEW**
