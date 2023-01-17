@@ -146,6 +146,17 @@ namespace GeographicLib.Tests
             Assert.IsTrue(MathEx.Hypot(x, y2) >= MathEx.Hypot(x, y1));
         }
 
+        [TestMethod]
+        public void TestHypot_GH75651()
+        {
+            var x = MathEx.Hypot(1, +1e20); // 1E+20 okA
+            Assert.IsTrue(x > 0);
+            x = MathEx.Hypot(1, -1e10); // 1E+10 ok
+            Assert.IsTrue(x > 0);
+            x = MathEx.Hypot(1, -1e20); // -1E+20 wrong
+            Assert.IsTrue(x > 0);
+        }
+
         [DataTestMethod]
         [DynamicData("Remquo", typeof(MathExTestData))]
         public void TestRemquo(long x, long y, long d, int q)
