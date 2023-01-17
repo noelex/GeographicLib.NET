@@ -48,7 +48,7 @@ namespace GeographicLib.SphericalHarmonics
     /// R. E. Deakin, Derivatives of the earth's potentials, Geomatics Research Australasia 68, 31–60, (June 1998).
     /// </item>
     /// <item>
-    /// W. A. Heiskanen and H. Moritz, Physical Geodesy, (Freeman, San Francisco, 1967). (See Sec. 1-14, for a definition of Pbar.)
+    /// <a href="https://archive.org/details/HeiskanenMoritz1967PhysicalGeodesy">Physical Geodesy (Freeman, San Francisco, 1967)</a>. (See Sec. 1-14, for a definition of Pbar.)
     /// </item>
     /// <item>
     /// S. A. Holmes and W. E. Featherstone, 

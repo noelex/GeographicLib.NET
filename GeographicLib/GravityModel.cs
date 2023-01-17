@@ -323,12 +323,12 @@ namespace GeographicLib
               clam = M[3], slam = -M[0],
               P = Hypot(X, Y),
               R = Hypot(P, Z),
-              // psi is geocentric latitude
-              cpsi = R != 0 ? P / R : M[7],
-              spsi = R != 0 ? Z / R : M[8];
+              // theta is geocentric latitude
+              ctheta = R != 0 ? P / R : M[7],
+              stheta = R != 0 ? Z / R : M[8];
             // Rotate cartesian into spherical coordinates
             Span<double> MC = stackalloc double[Geocentric.dim2_];
-            Geocentric.Rotation(spsi, cpsi, slam, clam, MC);
+            Geocentric.Rotation(stheta, ctheta, slam, clam, MC);
             Geocentric.Unrotate(MC, deltax, deltay, deltaz, out deltax, out deltay, out deltaz);
             // H+M, Eq 2-151c
             var Dg01 = -deltaz - 2 * T / R;

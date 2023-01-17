@@ -55,12 +55,12 @@ namespace GeographicLib
     /// </item>
     /// <item>
     /// W. A. Heiskanen and H. Moritz,
-    /// Physical Geodesy (Freeman, San Francisco, 1967),
+    /// <a href="https://archive.org/details/HeiskanenMoritz1967PhysicalGeodesy">Physical Geodesy (Freeman, San Francisco, 1967)</a>.
     /// Secs. 1-19, 2-7, 2-8 (2-9, 2-10), 6-2 (6-3).
     /// </item>
     /// <item>
     /// B. Hofmann-Wellenhof, H. Moritz,
-    /// <a href="https://doi.org/10.1007/978-3-211-33545-1">Physical Geodesy</a> (Second edition, Springer, 2006)
+    /// <a href="https://doi.org/10.1007/978-3-211-33545-1">Physical Geodesy (Second edition, Springer, 2006)</a>
     /// </item>
     /// <item>
     /// H. Moritz,

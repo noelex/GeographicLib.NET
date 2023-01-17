@@ -1,6 +1,6 @@
 # GeographicLib.NET
 
-[![release](https://github.com/noelex/GeographicLib.NET/actions/workflows/master.yml/release.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/release.yml)
+[![release](https://github.com/noelex/GeographicLib.NET/actions/workflows/release.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/release.yml)
 [![prerelease](https://github.com/noelex/GeographicLib.NET/actions/workflows/prerelease.yml/badge.svg)](https://github.com/noelex/GeographicLib.NET/actions/workflows/prerelease.yml)
 
 [GeographicLib](https://sourceforge.net/p/geographiclib) is a small set of C++ classes for performing conversions between geographic,
@@ -110,7 +110,7 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
-### Version 2.1.1 (unreleased)
+### Version 2.1.2 (released 2023/01/17)
 - **FIX**
   - Fixed an issue where number and date time parsing may fail or produce unexpected result when working with 
     number and date time formats provided by `CultureInfo.CurrentCulture`. This fixes [issue #27](https://github.com/noelex/GeographicLib.NET/issues/27).
