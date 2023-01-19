@@ -11,8 +11,7 @@ namespace GeographicLib
                 SPLIT = 134217729, // (0x1p27 + 1)
                 _0x1p64 = 1.8446744073709552E+19,
                 _0x1p700 = 5.2601359015483735E+210,
-                _0x1p_700 = 1.90109156629516E-211,
-                _0x1p1023 = 8.98846567431158E+307;
+                _0x1p_700 = 1.90109156629516E-211;
 
         /// <summary>
         /// Computes the remainder of two integer values, 
@@ -195,6 +194,9 @@ namespace GeographicLib
             sq(out hy, out ly, y);
             return z * Sqrt(ly + lx + hy + hx);
         }
+
+#if !NET7_0_OR_GREATER
+        private const double _0x1p1023 = 8.98846567431158E+307;
 
         /// <summary>
         /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
@@ -389,7 +391,7 @@ namespace GeographicLib
                 y = (x - (e + u.Double) + 1) * twopk;
             return y;
         }
-
+#endif
         public override double Frexp(double x, out int e)
         {
             Bit64 y = x;

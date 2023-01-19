@@ -168,6 +168,16 @@ namespace GeographicLib.Tests
         }
 
         [DataTestMethod]
+        [DynamicData("Frexp", typeof(MathExTestData))]
+        public void TestFrexp(long x, long expected, int e)
+        {
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Frexp(BitConverter.Int64BitsToDouble(x),out var ae ));
+            Assert.AreEqual(e, ae);
+            Assert.AreEqual(expected, result);
+        }
+
+#if !NET7_0_OR_GREATER
+        [DataTestMethod]
         [DynamicData("Log1p", typeof(MathExTestData))]
         public void TestLog1p(long x, long expected)
         {
@@ -188,15 +198,7 @@ namespace GeographicLib.Tests
             else Assert.IsTrue(true);
             // Assert.AreEqual(expected, BitConverter.DoubleToInt64Bits(MathEx.Log1p(BitConverter.Int64BitsToDouble(x))));
         }
-
-        [DataTestMethod]
-        [DynamicData("Frexp", typeof(MathExTestData))]
-        public void TestFrexp(long x, long expected, int e)
-        {
-            var result = BitConverter.DoubleToInt64Bits(MathEx.Frexp(BitConverter.Int64BitsToDouble(x),out var ae ));
-            Assert.AreEqual(e, ae);
-            Assert.AreEqual(expected, result);
-        }
+#endif
 
 #if !NET5_0_OR_GREATER
         [DataTestMethod]

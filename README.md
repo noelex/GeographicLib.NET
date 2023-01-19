@@ -54,10 +54,11 @@ dotnet add package GeographicLib.NET --prerelease
 ## Mathematical Functions
 GeographicLib uses several C mathematical functions that are not available in all versions of .NET. These functions are:
  - remquo
- - hypot
- - log1p
- - expm1
  - frexp
+ - sincos (available since .NET 7.0, but not used due to [this issue](https://github.com/dotnet/runtime/issues/48776))
+ - hypot (available since .NET 7.0, but not used due to [this issue](https://github.com/dotnet/runtime/issues/75651))
+ - log1p (available since .NET 7.0)
+ - expm1 (available since .NET 7.0)
  - log2 (available since .NET 5.0)
  - fma (available since .NET 5.0)
  - scalbn (available since .NET 5.0)

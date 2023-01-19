@@ -10,15 +10,17 @@ namespace GeographicLib
     {
         private static readonly CMath managed = new CMathManaged(), native = CMathNative.Create();
 
-        public abstract double Expm1(double x);
-
         public abstract double Remquo(double x, double y, out int quo);
 
         public abstract double Hypot(double x, double y);
 
+        public abstract double Frexp(double x, out int e);
+
+#if !NET7_0_OR_GREATER
         public abstract double Log1p(double x);
 
-        public abstract double Frexp(double x, out int e);
+        public abstract double Expm1(double x);
+#endif
 
 #if !NET5_0_OR_GREATER
         public abstract double CopySign(double x, double y);

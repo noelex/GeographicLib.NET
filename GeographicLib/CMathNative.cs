@@ -37,26 +37,33 @@ namespace GeographicLib
             });
         }
 
-        [SuppressGCTransition, DllImport("m")]
-        private static extern double expm1(double x);
+
 
         [SuppressGCTransition, DllImport("m")]
         private static extern double hypot(double x, double y);
 
         [SuppressGCTransition, DllImport("m")]
-        private static extern double log1p(double x);
-
-        [SuppressGCTransition, DllImport("m")]
         private static extern double remquo(double x, double y, out int quo);
 
+#if !NET7_0_OR_GREATER
         [SuppressGCTransition, DllImport("m")]
-        private static extern double frexp(double x, out int e);
+        private static extern double expm1(double x);
+
+        [SuppressGCTransition, DllImport("m")]
+        private static extern double log1p(double x);
+
 
         public override double Expm1(double x) => expm1(x);
 
+        public override double Log1p(double x) => log1p(x);
+#endif
+
+        [SuppressGCTransition, DllImport("m")]
+        private static extern double frexp(double x, out int e);
         public override double Hypot(double x, double y) => hypot(x, y);
 
-        public override double Log1p(double x) => log1p(x);
+
+
 
         public override double Remquo(double x, double y, out int quo) => remquo(x, y, out quo);
 
@@ -65,7 +72,7 @@ namespace GeographicLib
         public static CMath Create() => new CMathNative();
     }
 #else
-    class CMathNative
+        class CMathNative
     {
         public static CMath Create()
         {

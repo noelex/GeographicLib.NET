@@ -126,7 +126,7 @@ namespace GeographicLib
         /// library when the above functions are called.
         /// </para>
         /// </remarks>
-#else
+#elif NET5_0 || NET6_0
         /// <summary>
         /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
         /// when there's no corresponding implementation provided by .NET runtime.
@@ -136,6 +136,24 @@ namespace GeographicLib
         /// <list type="bullet">
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
+        /// <item><see cref="Hypot(double, double)"/></item>
+        /// <item><see cref="Remquo(double, double, out int)"/></item>
+        /// <item><see cref="Frexp(double, out int)"/></item>
+        /// </list>
+        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementations when the above functions are called.
+        /// <para>
+        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use platform dependent implementations provided by system C runtime
+        /// library when the above functions are called.
+        /// </para>
+        /// </remarks>
+#else
+        /// <summary>
+        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
+        /// when there's no corresponding implementation provided by .NET runtime.
+        /// </summary>
+        /// <remarks>
+        /// The following functions have managed implementation:
+        /// <list type="bullet">
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
         /// <item><see cref="Frexp(double, out int)"/></item>
@@ -238,8 +256,30 @@ namespace GeographicLib
 #endif
 
 
+#if NET7_0_OR_GREATER
+        /// <summary>
+        /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static (double Sin, double Cos) SinCos(double x) => (Sin(x), Cos(x));
+        public static double Log1p(double x) => double.LogP1(x);
+
+        /// <summary>
+        /// Compute exp(x) - 1 without loss of precision for small values of x.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Expm1(double x) => double.ExpM1(x);
+#else
+        /// <summary>
+        /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Log1p(double x) => CMath.Instance.Log1p(x);
 
         /// <summary>
         /// Compute exp(x) - 1 without loss of precision for small values of x.
@@ -248,7 +288,13 @@ namespace GeographicLib
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Expm1(double x) => CMath.Instance.Expm1(x);
+#endif
 
+        // TODO: Relpace with double.SinCos (https://github.com/dotnet/runtime/issues/48776). 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static (double Sin, double Cos) SinCos(double x) => (Sin(x), Cos(x));
+
+        // TODO: Relpace with double.Hypot (https://github.com/dotnet/runtime/issues/75651). 
         /// <summary>
         /// Computes the square root of the sum of the squares of x and y.
         /// </summary>
@@ -257,14 +303,6 @@ namespace GeographicLib
         /// <returns>Hypotenuse of a right-angled triangle computed as √(x^2+y^2).</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Hypot(double x, double y) => CMath.Instance.Hypot(x, y);
-
-        /// <summary>
-        /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double Log1p(double x) => CMath.Instance.Log1p(x);
 
         /// <summary>
         /// Computes the remainder of two integer values, 
