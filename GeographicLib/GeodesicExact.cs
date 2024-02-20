@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-
-using static System.Math;
-using static GeographicLib.Macros;
 using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -1055,7 +1050,7 @@ namespace GeographicLib
                     m12x *= _b;
                     s12x *= _b;
                     a12 = sig12 / Degree;
-                    if (outmask.HasAny(GeodesicFlags.GeodesicScale))
+                    if (outmask.HasAny(GeodesicFlags.Area))
                     {
                         // omg12 = lam12 - domg12
                         double sdomg12 = Sin(domg12), cdomg12 = Cos(domg12);

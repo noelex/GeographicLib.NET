@@ -1,9 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib.Tests
 {
@@ -39,12 +36,12 @@ namespace GeographicLib.Tests
 
         [DataTestMethod]
         [DynamicData("EdgeData", typeof(PolygonAreaTests))]
-        public void TestComputeWithEdges( (double lat, double lon) startp, (double azi, double s)[] edges, int n, double perimeter, double area)
+        public void TestComputeWithEdges((double lat, double lon) startp, (double azi, double s)[] edges, int n, double perimeter, double area)
         {
             var p = new PolygonArea(Geodesic.WGS84);
             p.AddPoint(startp.lat, startp.lon);
 
-            foreach(var (azimuth,distance) in edges)
+            foreach (var (azimuth, distance) in edges)
             {
                 p.AddEdge(azimuth, distance);
             }
@@ -53,6 +50,20 @@ namespace GeographicLib.Tests
             Assert.AreEqual(n, c);
             Assert.AreEqual(perimeter, peri, 1e-8);
             Assert.AreEqual(area, a, 1e-8);
+        }
+
+        [TestMethod]
+        public void GH29_PolygonAreaExactGivesIncorrectResult()
+        {
+            var poly = new PolygonAreaExact(GeodesicExact.WGS84);
+            poly.AddPoint(46.227634, 7.9019728);
+            poly.AddPoint(46.21863761, 7.9019728);
+            poly.AddPoint(46.21863761, 7.914933282);
+            poly.AddPoint(46.227634, 7.914933282);
+
+            var (_, _, area) = poly.Compute(false, false);
+
+            Assert.AreEqual(1_000_000, area, 100);
         }
     }
 }
