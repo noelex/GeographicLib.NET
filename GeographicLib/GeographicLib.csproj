@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net6.0;net5.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netstandard2.1;netstandard2.0</TargetFrameworks>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\GeographicLib.xml</DocumentationFile>
 		<DefineConstants>x__FP_FAST_FMA,GEOGRAPHICLIB_AREA_DST</DefineConstants>
 		<PackageId>GeographicLib.NET</PackageId>
