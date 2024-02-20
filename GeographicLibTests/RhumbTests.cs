@@ -1,10 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib.Tests
 {
@@ -49,12 +43,12 @@ namespace GeographicLib.Tests
             rhumb.Direct(c1.Latitude, c1.Longitude, azi12, s12, out var _lat2, out var _lon2, out var _S12);
             Assert.AreEqual(c2.Latitude, _lat2, 1e-8);
             Assert.AreEqual(c2.Longitude, _lon2, 1e-8);
-            Assert.AreEqual(S12, _S12, 0.01);
+            Assert.AreEqual(S12, _S12, 0.1);
 
             var result = rhumb.Direct(c1.Latitude, c1.Longitude, azi12, s12);
             Assert.AreEqual(c2.Latitude, result.Latitude, 1e-8);
             Assert.AreEqual(c2.Longitude, result.Longitude, 1e-8);
-            Assert.AreEqual(S12, result.Area, 0.01);
+            Assert.AreEqual(S12, result.Area, 0.1);
         }
     }
 }

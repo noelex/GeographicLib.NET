@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using static GeographicLib.MathEx;
 using static System.Math;
-using static GeographicLib.MathEx;
 
 namespace GeographicLib
 {
@@ -32,9 +26,7 @@ namespace GeographicLib
         {
             (_rh, _lat1, _lon1, _azi12) = (rh, LatFix(lat1), lon1, AngNormalize(azi12));
 
-            var alp12 = _azi12 * Degree;
-            _salp = _azi12 == -HD ? 0 : Sin(alp12);
-            _calp = Abs(_azi12) == QD ? 0 : Cos(alp12);
+            SinCosd(_azi12, out _salp, out _calp);
             _mu1 = _rh._ell.RectifyingLatitude(lat1);
             _psi1 = _rh._ell.IsometricLatitude(lat1);
             _r1 = _rh._ell.CircleRadius(lat1);
