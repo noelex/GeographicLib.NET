@@ -1,9 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using GeographicLib;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
 using static GeographicLib.Tests.MathExTestData;
 
 namespace GeographicLib.Tests
@@ -171,12 +167,11 @@ namespace GeographicLib.Tests
         [DynamicData("Frexp", typeof(MathExTestData))]
         public void TestFrexp(long x, long expected, int e)
         {
-            var result = BitConverter.DoubleToInt64Bits(MathEx.Frexp(BitConverter.Int64BitsToDouble(x),out var ae ));
+            var result = BitConverter.DoubleToInt64Bits(MathEx.Frexp(BitConverter.Int64BitsToDouble(x), out var ae));
             Assert.AreEqual(e, ae);
             Assert.AreEqual(expected, result);
         }
 
-#if !NET7_0_OR_GREATER
         [DataTestMethod]
         [DynamicData("Log1p", typeof(MathExTestData))]
         public void TestLog1p(long x, long expected)
@@ -198,7 +193,27 @@ namespace GeographicLib.Tests
             else Assert.IsTrue(true);
             // Assert.AreEqual(expected, BitConverter.DoubleToInt64Bits(MathEx.Log1p(BitConverter.Int64BitsToDouble(x))));
         }
-#endif
+
+        [DataTestMethod]
+        [DataRow(4, 16)]
+        [DataRow(0.5, 1.4142135623730951)]
+        [DataRow(-4, 0.0625)]
+        [DataRow(-0, 1.0)]
+        [DataRow(0, 1.0)]
+        [DataRow(double.NegativeInfinity, 0.0)]
+        [DataRow(1024.0, double.PositiveInfinity)]
+        [DataRow(-1075, 0)]
+        [DataRow(double.PositiveInfinity, double.PositiveInfinity)]
+        [DataRow(double.NaN, double.NaN)]
+        [DynamicData("Exp2_Tiny", typeof(MathExTestData))]
+        [DynamicData("Exp2_SmallPositive", typeof(MathExTestData))]
+        [DynamicData("Exp2_SmallNegative", typeof(MathExTestData))]
+        [DynamicData("Exp2_MediumPositive", typeof(MathExTestData))]
+        [DynamicData("Exp2_MediumNegative", typeof(MathExTestData))]
+        public void TestExp2(double input, double expected)
+        {
+            Assert.AreEqual(expected, MathEx.Exp2(input));
+        }
 
 #if !NET5_0_OR_GREATER
         [DataTestMethod]

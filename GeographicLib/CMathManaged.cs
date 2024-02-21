@@ -1,10 +1,8 @@
-﻿using System;
-
-using static System.Math;
+﻿using static System.Math;
 
 namespace GeographicLib
 {
-    class CMathManaged : CMath
+    partial class CMathManaged : CMath
     {
         private const double
                 // SPLIT = 4294967297, // (0x1p32 + 1)
@@ -195,7 +193,6 @@ namespace GeographicLib
             return z * Sqrt(ly + lx + hy + hx);
         }
 
-#if !NET7_0_OR_GREATER
         private const double _0x1p1023 = 8.98846567431158E+307;
 
         /// <summary>
@@ -257,7 +254,7 @@ namespace GeographicLib
                 /* correction term ~ log(1+x)-log(u), avoid underflow in c/u */
                 if (k < 54)
                 {
-                    c = k >= 2 ? 1 - (u.Double- x) : x - (u.Double - 1);
+                    c = k >= 2 ? 1 - (u.Double - x) : x - (u.Double - 1);
                     c /= u.Double;
                 }
                 else
@@ -391,7 +388,7 @@ namespace GeographicLib
                 y = (x - (e + u.Double) + 1) * twopk;
             return y;
         }
-#endif
+
         public override double Frexp(double x, out int e)
         {
             Bit64 y = x;

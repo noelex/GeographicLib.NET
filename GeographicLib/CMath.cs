@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GeographicLib
+﻿namespace GeographicLib
 {
     abstract class CMath
     {
@@ -16,11 +10,11 @@ namespace GeographicLib
 
         public abstract double Frexp(double x, out int e);
 
-#if !NET7_0_OR_GREATER
         public abstract double Log1p(double x);
 
         public abstract double Expm1(double x);
-#endif
+
+        public abstract double Exp2(double x);
 
 #if !NET5_0_OR_GREATER
         public abstract double CopySign(double x, double y);

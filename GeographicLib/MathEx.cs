@@ -91,6 +91,7 @@ namespace GeographicLib
         /// <item><see cref="ScaleB(double, int)"/></item>
         /// <item><see cref="CopySign(double, double)"/></item>
         /// <item><see cref="Log2(double)"/></item>
+        /// <item><see cref="Exp2(double)"/></item>
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
         /// <item><see cref="Hypot(double, double)"/></item>
@@ -114,6 +115,7 @@ namespace GeographicLib
         /// <item><see cref="ScaleB(double, int)"/></item>
         /// <item><see cref="CopySign(double, double)"/></item>
         /// <item><see cref="Log2(double)"/></item>
+        /// <item><see cref="Exp2(double)"/></item>
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
         /// <item><see cref="Hypot(double, double)"/></item>
@@ -126,7 +128,7 @@ namespace GeographicLib
         /// library when the above functions are called.
         /// </para>
         /// </remarks>
-#elif NET5_0 || NET6_0
+#elif NET5_0_OR_GREATER
         /// <summary>
         /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
         /// when there's no corresponding implementation provided by .NET runtime.
@@ -134,26 +136,9 @@ namespace GeographicLib
         /// <remarks>
         /// The following functions have managed implementation:
         /// <list type="bullet">
+        /// <item><see cref="Exp2(double)"/></item>
         /// <item><see cref="Expm1(double)"/></item>
         /// <item><see cref="Log1p(double)"/></item>
-        /// <item><see cref="Hypot(double, double)"/></item>
-        /// <item><see cref="Remquo(double, double, out int)"/></item>
-        /// <item><see cref="Frexp(double, out int)"/></item>
-        /// </list>
-        /// When set to <see langword="true"/>, <see cref="MathEx"/> will use managed implementations when the above functions are called.
-        /// <para>
-        /// When set to <see langword="false"/>, <see cref="MathEx"/> will use platform dependent implementations provided by system C runtime
-        /// library when the above functions are called.
-        /// </para>
-        /// </remarks>
-#else
-        /// <summary>
-        /// Gets or sets a value representing that whether <see cref="MathEx"/> should use managed implementations of C mathematical functions
-        /// when there's no corresponding implementation provided by .NET runtime.
-        /// </summary>
-        /// <remarks>
-        /// The following functions have managed implementation:
-        /// <list type="bullet">
         /// <item><see cref="Hypot(double, double)"/></item>
         /// <item><see cref="Remquo(double, double, out int)"/></item>
         /// <item><see cref="Frexp(double, out int)"/></item>
@@ -255,24 +240,11 @@ namespace GeographicLib
         public static double Log2(double x) => CMath.Instance.Log2(x);
 #endif
 
+        // NOTE: 
+        //   Although Log1p, Expm1 and Exp2 are available in recent versions of .NET,
+        //   those are just naive wrapper over Math.Log and Math.Pow.
+        //   We still need to provide these function in our CMath implementation.
 
-#if NET7_0_OR_GREATER
-        /// <summary>
-        /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double Log1p(double x) => double.LogP1(x);
-
-        /// <summary>
-        /// Compute exp(x) - 1 without loss of precision for small values of x.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double Expm1(double x) => double.ExpM1(x);
-#else
         /// <summary>
         /// Compute log(1+x) without losing precision for small values of <paramref name="x"/>.
         /// </summary>
@@ -288,7 +260,14 @@ namespace GeographicLib
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Expm1(double x) => CMath.Instance.Expm1(x);
-#endif
+
+        /// <summary>
+        /// Computes 2 raised to the given power <paramref name="x"/>.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns>2^x</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Exp2(double x) => CMath.Instance.Exp2(x);
 
         // TODO: Relpace with double.SinCos (https://github.com/dotnet/runtime/issues/48776). 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -787,7 +766,7 @@ namespace GeographicLib
         {
             const double z = 1 / 16d;
 
-            double 
+            double
                 y = Abs(x),
                 w = z - y;
 

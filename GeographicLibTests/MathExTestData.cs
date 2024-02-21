@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace GeographicLib.Tests
 {
     /// <summary>
     /// Test data generated with Windows Universal CRT (ucrtbase.dll) x64.
     /// </summary>
-    static class MathExTestData
+    static partial class MathExTestData
     {
         internal const double
             eps = MathEx.DBL_EPSILON,
@@ -117,6 +113,7 @@ namespace GeographicLib.Tests
                 new object[]{+810d, +ovf},
                 new object[]{+inf,nan}
             };
+
 
         public static IEnumerable<object[]> Atan2d =>
             new[]
@@ -1277,7 +1274,6 @@ new object[]{1L, 4602678819172646912L, -1073},
 new object[]{-9223372036854775807L, -4620693217682128896L, -1073},
             };
 
-#if !NET7_0_OR_GREATER
         public static IEnumerable<object[]> Log1p =>
             new[] {
 new object[]{-9218868437227405311L,-9218868437227405311L},
@@ -2037,7 +2033,6 @@ new object[]{-9223372036854775808L,-9223372036854775808L,},
 new object[]{4649454530587146735L,9218868437227405098L,},
 new object[]{4649454530587146736L,9218868437227405312L,},
     };
-#endif
 
 #if !NET5_0_OR_GREATER
         public static IEnumerable<object[]> CopySign =>

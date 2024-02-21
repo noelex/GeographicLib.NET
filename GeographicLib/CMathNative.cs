@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib
 {
@@ -37,42 +32,40 @@ namespace GeographicLib
             });
         }
 
-
-
         [SuppressGCTransition, DllImport("m")]
         private static extern double hypot(double x, double y);
 
         [SuppressGCTransition, DllImport("m")]
         private static extern double remquo(double x, double y, out int quo);
 
-#if !NET7_0_OR_GREATER
         [SuppressGCTransition, DllImport("m")]
         private static extern double expm1(double x);
 
         [SuppressGCTransition, DllImport("m")]
         private static extern double log1p(double x);
 
+        [SuppressGCTransition, DllImport("m")]
+        private static extern double exp2(double x);
+
+        [SuppressGCTransition, DllImport("m")]
+        private static extern double frexp(double x, out int e);
+
+        public override double Hypot(double x, double y) => hypot(x, y);
+
+        public override double Remquo(double x, double y, out int quo) => remquo(x, y, out quo);
 
         public override double Expm1(double x) => expm1(x);
 
         public override double Log1p(double x) => log1p(x);
-#endif
 
-        [SuppressGCTransition, DllImport("m")]
-        private static extern double frexp(double x, out int e);
-        public override double Hypot(double x, double y) => hypot(x, y);
-
-
-
-
-        public override double Remquo(double x, double y, out int quo) => remquo(x, y, out quo);
+        public override double Exp2(double x) => exp2(x);
 
         public override double Frexp(double x, out int e) => frexp(x, out e);
 
         public static CMath Create() => new CMathNative();
     }
 #else
-        class CMathNative
+    class CMathNative
     {
         public static CMath Create()
         {
@@ -108,6 +101,9 @@ namespace GeographicLib
             public static extern double log1p(double x);
 
             [DllImport(CRuntimeLibrary)]
+            public static extern double exp2(double x);
+
+            [DllImport(CRuntimeLibrary)]
             public static extern double copysign(double x, double y);
 
             [DllImport(CRuntimeLibrary)]
@@ -136,6 +132,8 @@ namespace GeographicLib
             public override double Frexp(double x, out int e) => frexp(x, out e);
 
             public override double Log2(double x) => log2(x);
+
+            public override double Exp2(double x) => exp2(x);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
@@ -175,6 +173,9 @@ namespace GeographicLib
             public static extern double log1p(double x);
 
             [DllImport(CRuntimeLibrary)]
+            public static extern double exp2(double x);
+
+            [DllImport(CRuntimeLibrary)]
             public static extern double copysign(double x, double y);
 
             [DllImport(CRuntimeLibrary)]
@@ -203,6 +204,8 @@ namespace GeographicLib
             public override double Frexp(double x, out int e) => frexp(x, out e);
 
             public override double Log2(double x) => log2(x);
+
+            public override double Exp2(double x) => exp2(x);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
@@ -253,6 +256,9 @@ namespace GeographicLib
             [DllImport(CRuntimeLibrary)]
             public static extern double log2(double x);
 
+            [DllImport(CRuntimeLibrary)]
+            public static extern double exp2(double x);
+
             public override double Expm1(double x) => expm1(x);
 
             public override double ScaleB(double number, int exp) => scalbn(number, exp);
@@ -270,6 +276,8 @@ namespace GeographicLib
             public override double Frexp(double x, out int e) => frexp(x, out e);
 
             public override double Log2(double x) => log2(x);
+
+            public override double Exp2(double x) => exp2(x);
 
 #if NETSTANDARD2_0
             [DllImport(CRuntimeLibrary)]
