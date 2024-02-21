@@ -35,6 +35,7 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
@@ -61,5 +62,6 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 			<PackagePath>\</PackagePath>
 			<Visible>false</Visible>
 		</None>
+		<None Include="CMathManaged.Exp2.cs" />
 	</ItemGroup>
 </Project>

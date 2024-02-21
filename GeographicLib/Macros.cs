@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GeographicLib
 {
@@ -59,5 +57,14 @@ namespace GeographicLib
         /// is a non-standard extension of the pgm format.
         /// </summary>
         public const int GEOGRAPHICLIB_GEOID_PGM_PIXEL_WIDTH = 2;
+
+        /// <summary>
+        /// The order of the series approximation used in AuxLatitude.
+        /// GEOGRAPHICLIB_AUXLATITUDE_ORDER can be set to one of[4, 6, 8].  Use order
+        /// appropriate for double precision, 6, also for GEOGRAPHICLIB_PRECISION == 5
+        /// to enable truncation errors to be measured easily.
+        /// </summary>
+        public const int GEOGRAPHICLIB_AUXLATITUDE_ORDER =
+            GEOGRAPHICLIB_PRECISION == 2 || GEOGRAPHICLIB_PRECISION == 5 ? 6 : (GEOGRAPHICLIB_PRECISION == 1 ? 4 : 8);
     }
 }
