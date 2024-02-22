@@ -55,7 +55,7 @@ namespace GeographicLib.Tests
         [TestMethod]
         public void GH29_PolygonAreaExactGivesIncorrectResult()
         {
-            var poly = new PolygonAreaExact(GeodesicExact.WGS84);
+            var poly = new PolygonArea(new Geodesic(Ellipsoid.WGS84, exact: true));
             poly.AddPoint(46.227634, 7.9019728);
             poly.AddPoint(46.21863761, 7.9019728);
             poly.AddPoint(46.21863761, 7.914933282);

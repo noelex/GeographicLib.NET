@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using static System.Math;
 using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -393,13 +389,14 @@ namespace GeographicLib
         /// <param name="polyline">
         /// if <see langword="true"/> that treat the points as defining a polyline instead of a polygon (default = <see langword="false"/>).
         /// </param>
-        public PolygonArea(Geodesic earth, bool polyline = false):base(earth, polyline) { }
+        public PolygonArea(Geodesic earth, bool polyline = false) : base(earth, polyline) { }
     }
 
     /// <summary>
     /// Polygon areas using <see cref="GeodesicExact"/>.
     /// (But note that the implementation of areas in <see cref="GeodesicExact"/> uses a high order series and this is only accurate for modest flattenings.)
     /// </summary>
+    [Obsolete("Use PolygonArea with a Geodesic object specified with exact = true.")]
     public class PolygonAreaExact : PolygonArea<GeodesicExact>
     {
         /// <summary>
