@@ -286,6 +286,25 @@ namespace GeographicLib
 
         }
 
+        /// <summary>
+        /// Constructor for an ellipsoid with equatorial radius and its flattening copied from another <see cref="IEllipsoid"/> object.
+        /// </summary>
+        /// <param name="ellipsoid">Source <see cref="IEllipsoid"/> object.</param>
+        /// <param name="exact">
+        /// If <see langword="true"/> use exact formulation in terms of elliptic
+        /// integrals instead of series expansions (default <see langword="false"/>).
+        /// </param>
+        /// <remarks>
+        /// With <paramref name="exact"/> = <see langword="true"/>, this class delegates the calculations to the
+        /// <see cref="GeodesicExact"/> and <see cref="GeodesicLineExact"/> classes which solve the geodesic
+        /// problems in terms of elliptic integrals.
+        /// </remarks>
+        public Geodesic(IEllipsoid ellipsoid, bool exact = false)
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, exact)
+        {
+
+        }
+
         #region Internal methods
 
         internal static double SinCosSeries(bool sinp, double sinx, double cosx, ReadOnlyMemory<double> c, int n)
