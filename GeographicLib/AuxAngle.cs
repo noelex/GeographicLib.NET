@@ -19,7 +19,7 @@ namespace GeographicLib
     /// </item>
     /// </list>
     /// 
-    /// An angle is represented be the <i>y</i> and <i>x</i> coordinates of a point in the
+    /// An angle is represented by the <i>y</i> and <i>x</i> coordinates of a point in the
     /// 2d plane.The two coordinates are proportional to the sine and cosine of
     /// the angle.This allows angles close to the cardinal points to be
     /// represented accurately.It also saves on unnecessary recomputations of
@@ -162,6 +162,18 @@ namespace GeographicLib
            => Abs(((p._y / p._x) - Tan) / Tan);
 
         /// <summary>
+        /// Create a copy of current <see cref="AuxAngle"/> instance with <see cref="X"/> or <see cref="Y"/> replaced with given value.
+        /// </summary>
+        /// <param name="y">The <i>y</i> coordinate.</param>
+        /// <param name="x">The <i>x</i> coordinate.</param>
+        /// <returns>The copied <see cref="AuxAngle"/> instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public AuxAngle CopyWith(double? y = null, double? x = null)
+        {
+            return new AuxAngle(y ?? Y, x ?? X);
+        }
+
+        /// <summary>
         /// Add two <see cref="AuxAngle"/> instances.
         /// </summary>
         /// <remarks>
@@ -176,8 +188,9 @@ namespace GeographicLib
             // Do nothing if p.tan() == 0 to preserve signs of y() and x()
             if (b.Tan != 0)
             {
-                double x = a._x * b._x - a._y * b._y;
-                var y = a._y * b._x + a._x * b._y;
+                double
+                    x = a._x * b._x - a._y * b._y,
+                    y = a._y * b._x + a._x * b._y;
                 return new AuxAngle(y, x);
             }
             return a;

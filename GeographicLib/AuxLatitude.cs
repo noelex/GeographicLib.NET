@@ -57,7 +57,7 @@ namespace GeographicLib
         /// either 4, 6, or 8, by the preprocessor macro
         /// GEOGRAPHICLIB_AUXLATITUDE_ORDER.
         /// </summary>
-        public const int Lmax = GEOGRAPHICLIB_AUXLATITUDE_ORDER;
+        internal const int Lmax = GEOGRAPHICLIB_AUXLATITUDE_ORDER;
 
         /// <summary>
         /// The total number of auxiliary latitudes.
@@ -72,10 +72,10 @@ namespace GeographicLib
         private readonly double tol_, bmin_, bmax_;
 
         // Ellipsoid parameters
-        private readonly double _a, _b, _f, _fm1, _e2, _e2m1, _e12, _e12p1, _n, _e, _e1, _n2, _q;
+        internal readonly double _a, _b, _f, _fm1, _e2, _e2m1, _e12, _e12p1, _n, _e, _e1, _n2, _q;
 
         // To hold computed Fourier coefficients
-        private readonly double[] _c = new double[Lmax * AUXNUMBER * AUXNUMBER];
+        internal readonly double[] _c = new double[Lmax * AUXNUMBER * AUXNUMBER];
 
         private static readonly double[] s_coeffs = new double[]
         {
@@ -780,7 +780,7 @@ namespace GeographicLib
         /// <param name="phi">Geographic latitude.</param>
         /// <param name="diff">The derivative d tan(<i>beta</i>) / d tan(<i>phi</i>).</param>
         /// <returns><i>beta</i>, the parametric latitude.</returns>
-        private unsafe AuxAngle Parametric(AuxAngle phi, out double diff)
+        internal unsafe AuxAngle Parametric(AuxAngle phi, out double diff)
         {
             diff = 0;
             fixed (double* pdiff = &diff)
@@ -794,7 +794,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="phi">Geographic latitude.</param>
         /// <returns><i>beta</i>, the parametric latitude.</returns>
-        private unsafe AuxAngle Parametric(AuxAngle phi)
+        internal unsafe AuxAngle Parametric(AuxAngle phi)
         {
             return Parametric(phi, null);
         }
@@ -814,7 +814,7 @@ namespace GeographicLib
         /// <param name="phi">Geographic latitude.</param>
         /// <param name="diff">The derivative d tan(<i>theta</i>) / d tan(<i>phi</i>).</param>
         /// <returns><i>theta</i>, the geocentric latitude.</returns>
-        private unsafe AuxAngle Geocentric(AuxAngle phi, out double diff)
+        internal unsafe AuxAngle Geocentric(AuxAngle phi, out double diff)
         {
             diff = 0;
             fixed (double* pdiff = &diff)
@@ -828,7 +828,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="phi">Geographic latitude.</param>
         /// <returns><i>theta</i>, the geocentric latitude.</returns>
-        private unsafe AuxAngle Geocentric(AuxAngle phi)
+        internal unsafe AuxAngle Geocentric(AuxAngle phi)
         {
             return Geocentric(phi, null);
         }
@@ -892,7 +892,7 @@ namespace GeographicLib
         /// <param name="phi">Geographic latitude.</param>
         /// <param name="diff">The derivative d tan(<i>mu</i>) / d tan(<i>phi</i>).</param>
         /// <returns><i>mu</i>, the rectifying latitude.</returns>
-        private unsafe AuxAngle Rectifying(AuxAngle phi, out double diff)
+        internal unsafe AuxAngle Rectifying(AuxAngle phi, out double diff)
         {
             diff = 0;
             fixed (double* pdiff = &diff)
@@ -906,7 +906,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="phi">Geographic latitude.</param>
         /// <returns><i>mu</i>, the rectifying latitude.</returns>
-        private unsafe AuxAngle Rectifying(AuxAngle phi)
+        internal unsafe AuxAngle Rectifying(AuxAngle phi)
         {
             return Rectifying(phi, null);
         }
@@ -991,13 +991,23 @@ namespace GeographicLib
         /// <param name="phi">Geographic conformal.</param>
         /// <param name="diff">The derivative d tan(<i>chi</i>) / d tan(<i>phi</i>).</param>
         /// <returns><i>chi</i>, the conformal latitude.</returns>
-        private unsafe AuxAngle Conformal(AuxAngle phi, out double diff)
+        internal unsafe AuxAngle Conformal(AuxAngle phi, out double diff)
         {
             diff = 0;
             fixed (double* pdiff = &diff)
             {
                 return Conformal(phi, pdiff);
             }
+        }
+
+        /// <summary>
+        /// Convert geographic latitude to rectifying latitude.
+        /// </summary>
+        /// <param name="phi">Geographic conformal.</param>
+        /// <returns><i>chi</i>, the conformal latitude.</returns>
+        internal unsafe AuxAngle Conformal(AuxAngle phi)
+        {
+            return Conformal(phi, null);
         }
 
         private unsafe AuxAngle Authalic(AuxAngle phi, double* diff)
@@ -1032,7 +1042,7 @@ namespace GeographicLib
         /// <param name="phi">Geographic conformal.</param>
         /// <param name="diff">The derivative d tan(<i>xi</i>) / d tan(<i>phi</i>).</param>
         /// <returns><i>xi</i>, the authalic latitude.</returns>
-        private unsafe AuxAngle Authalic(AuxAngle phi, out double diff)
+        internal unsafe AuxAngle Authalic(AuxAngle phi, out double diff)
         {
             diff = 0;
             fixed (double* pdiff = &diff)
@@ -1046,7 +1056,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="phi">Geographic conformal.</param>
         /// <returns><i>xi</i>, the authalic latitude.</returns>
-        private unsafe AuxAngle Authalic(AuxAngle phi)
+        internal unsafe AuxAngle Authalic(AuxAngle phi)
         {
             return Authalic(phi, null);
         }
@@ -1057,7 +1067,7 @@ namespace GeographicLib
         /// <param name="auxout"></param>
         /// <param name="auxin"></param>
         /// <returns></returns>
-        private static int ind(AuxLatitudeType auxout, AuxLatitudeType auxin)
+        internal static int ind(AuxLatitudeType auxout, AuxLatitudeType auxin)
         {
             return (auxout >= 0 && (int)auxout < AUXNUMBER &&
                     auxin >= 0 && (int)auxin < AUXNUMBER) ?
@@ -1069,14 +1079,14 @@ namespace GeographicLib
         /// </summary>
         /// <param name="tphi"></param>
         /// <returns></returns>
-        private static double sc(double tphi) => Hypot(1, tphi);
+        internal static double sc(double tphi) => Hypot(1, tphi);
 
         /// <summary>
         /// the function tphi / sqrt(1 + tphi^2), convert tan to sin
         /// </summary>
         /// <param name="tphi"></param>
         /// <returns></returns>
-        private static double sn(double tphi) => double.IsInfinity(tphi) ? CopySign(1, tphi) : tphi / sc(tphi);
+        internal static double sn(double tphi) => double.IsInfinity(tphi) ? CopySign(1, tphi) : tphi / sc(tphi);
 
         /// <summary>
         /// Populate [_c[Lmax * k], _c[Lmax * (k + 1)])
@@ -1084,7 +1094,7 @@ namespace GeographicLib
         /// <param name="auxin"></param>
         /// <param name="auxout"></param>
         /// <param name="k"></param>
-        private void fillcoeff(AuxLatitudeType auxin, AuxLatitudeType auxout, int k)
+        internal void fillcoeff(AuxLatitudeType auxin, AuxLatitudeType auxout, int k)
         {
             if (k < 0) return;          // auxout or auxin out of range
             if (auxout == auxin)
@@ -1118,7 +1128,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// the function atanh(e * sphi)/e; works for e^2 = 0 and e^2 < 0
+        /// the function atanh(e * sphi)/e; works for e^2 = 0 and e^2 &lt; 0
         /// </summary>
         /// <param name="tphi"></param>
         /// <returns></returns>
