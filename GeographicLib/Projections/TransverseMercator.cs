@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Numerics;
-
-using static System.Math;
-using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
+using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib.Projections
 {
@@ -21,10 +18,43 @@ namespace GeographicLib.Projections
     /// <para>
     /// - C. F. F. Karney,
     /// <a href="https://doi.org/10.1007/s00190-011-0445-3">
-    /// Transverse Mercator with an accuracy of a few nanometers,</a>
+    /// Transverse Mercator with an accuracy of a few nanometers</a>,
     /// J. Geodesy 85(8), 475--485 (Aug. 2011);
     /// preprint
     /// <a href="https://arxiv.org/abs/1002.1417">arXiv:1002.1417</a>.
+    /// </para>
+    /// <para>
+    /// Krüger's method has been extended from 4th to 6th order.
+    /// The maximum error is 5 nm (5 nanometers), ground distance,
+    /// for all positions within 35 degrees of the central meridian.
+    /// The error in the convergence is 2 × 10^−15" and the relative error in the scale is 6 × 10^−12%%.
+    /// See Sec. 4 of <a href="https://arxiv.org/abs/1002.1417">arXiv:1002.1417</a> for details.
+    /// The speed penalty in going to 6th order is only about 1%.
+    /// </para>
+    /// <para>
+    /// There's a singularity in the projection at φ = 0°,
+    /// λ − λ0 = ±(1 − e)90° (≈ ±82.6° for the WGS84 ellipsoid),
+    /// where e is the eccentricity. Beyond this point,
+    /// the series ceases to converge and the results from this method will be garbage.
+    /// To be on the safe side, don't use this method if the angular distance from the central meridian exceeds (1 − 2e)90° (≈ 75° for the WGS84 ellipsoid)
+    /// </para>
+    /// <para>
+    /// <see cref="TransverseMercatorExact"/> is an alternative implementation of the projection using exact formulas which yield accurate(to 8 nm) results over the entire ellipsoid.
+    /// This formulation is accessible in this class by calling the constructor with <i>exact</i> = <see langword="true"/>.
+    /// </para>
+    /// <para>
+    /// The ellipsoid parameters and the central scale are set in the constructor.
+    /// The central meridian (which is a trivial shift of the longitude) is specified as the <i>lon0</i> argument
+    /// of the <see cref="Forward(double, double, double)"/> and <see cref="Reverse(double, double, double)"/> functions.
+    /// The latitude of origin is taken to be the equator. There is no provision in this class for specifying a false easting
+    /// or false northing or a different latitude of origin.
+    /// However these are can be simply included by the calling function.
+    /// For example, the <see cref="UTMUPS"/> class applies the false easting and false northing for the UTM projections.
+    /// A more complicated example is the British National Grid(<a href="https://www.spatialreference.org/ref/epsg/7405/">EPSG:7405</a>) which requires the use of a latitude of origin.
+    /// This is implemented by the <see cref="Geocodes.OSGB"/> class.
+    /// </para>
+    /// <para>
+    /// This class also returns the meridian convergence gamma and scale <i>k</i>.The meridian convergence is the bearing of grid north (the <i>y</i> axis) measured clockwise from true north.
     /// </para>
     /// </summary>
     public class TransverseMercator : IEllipsoid
@@ -33,9 +63,10 @@ namespace GeographicLib.Projections
         // private const int _numit = 5;
 
         private static readonly Memory<double> b1coeff, alpcoeff, betcoeff;
-
         private readonly double _a, _f, _k0, _e2, _es, _e2m, _c, _n;
         private readonly double _a1, _b1;
+        private readonly bool _exact;
+        private readonly TransverseMercatorExact _tmexact;
 
         internal readonly Memory<double> _alp = new double[_maxpow + 1], _bet = new double[_maxpow + 1];
 
@@ -249,6 +280,25 @@ namespace GeographicLib.Projections
         /// <param name="f">flattening of ellipsoid. Setting <i>f</i> = 0 gives a sphere. Negative <i>f</i> gives a prolate ellipsoid.</param>
         /// <param name="k0">central scale factor.</param>
         public TransverseMercator(double a, double f, double k0)
+            : this(a, f, k0, false, false)
+        {
+
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="TransverseMercator"/> instance with specified equatorial radius and flattening.
+        /// </summary>
+        /// <param name="a">equatorial radius (meters).</param>
+        /// <param name="f">flattening of ellipsoid. Setting <i>f</i> = 0 gives a sphere. Negative <i>f</i> gives a prolate ellipsoid.</param>
+        /// <param name="k0">central scale factor.</param>
+        /// <param name="exact">
+        /// If <see langword="true"/> use exact formulation in terms of elliptic functions instead of series expansions.
+        /// </param>
+        /// <param name="extendp">
+        /// Use extended domain; should only be used if <paramref name="exact"/> = <see langword="true"/>.
+        /// </param>
+        public TransverseMercator(double a, double f, double k0,
+                                  bool exact = false, bool extendp = false)
         {
             _a = a;
             _f = f;
@@ -263,12 +313,21 @@ namespace GeographicLib.Projections
 
             _n = _f / (2 - _f);
 
+            _exact = exact;
+            if (_exact)
+            {
+                _tmexact = new TransverseMercatorExact(a, f, k0, extendp);
+                return;
+            }
+
             if (!(IsFinite(_a) && _a > 0))
                 throw new GeographicException("Equatorial radius is not positive");
             if (!(IsFinite(_f) && _f < 1))
                 throw new GeographicException("Polar semi-axis is not positive");
             if (!(IsFinite(_k0) && _k0 > 0))
                 throw new GeographicException("Scale is not positive");
+            if (extendp)
+                throw new GeographicException("TransverseMercator extendp not allowed if !exact");
 
             var m = _maxpow / 2;
             _b1 = PolyVal(m, b1coeff, Sq(_n)) / (b1coeff.Span[m + 1] * (1 + _n));
@@ -298,6 +357,22 @@ namespace GeographicLib.Projections
         /// <param name="k0">central scale factor.</param>
         public TransverseMercator(IEllipsoid ellipsoid, double k0)
             : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, k0) { }
+
+        /// <summary>
+        /// Initialize a new <see cref="TransverseMercator"/> instance with specified equatorial radius and flattening.
+        /// </summary>
+        /// <param name="ellipsoid"><see cref="IEllipsoid"/> instance to be used in projection.</param>
+        /// <param name="k0">central scale factor.</param>
+        /// <param name="exact">
+        /// If <see langword="true"/> use exact formulation in terms of elliptic functions instead of series expansions.
+        /// </param>
+        /// <param name="extendp">
+        /// Use extended domain; should only be used if <paramref name="exact"/> = <see langword="true"/>.
+        /// </param>
+        public TransverseMercator(IEllipsoid ellipsoid, double k0,
+                                  bool exact = false, bool extendp = false)
+            : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening, k0, exact, extendp)
+        { }
 
         /// <summary>
         /// 
@@ -333,6 +408,9 @@ namespace GeographicLib.Projections
         /// </returns>
         public (double x, double y) Forward(double lon0, double lat, double lon, out double gamma, out double k)
         {
+            if (_exact)
+                return _tmexact.Forward(lon0, lat, lon, out gamma, out k);
+
             lat = LatFix(lat);
             lon = AngDiff(lon0, lon);
             // Explicitly enforce the parity
@@ -506,7 +584,7 @@ namespace GeographicLib.Projections
             gamma = AngNormalize(gamma);
             k *= _k0;
 
-            return (_a1 * _k0 * eta * lonsign, 
+            return (_a1 * _k0 * eta * lonsign,
                 _a1 * _k0 * (backside ? PI - xi : xi) * latsign);
         }
 
@@ -523,6 +601,9 @@ namespace GeographicLib.Projections
         /// </returns>
         public (double lat, double lon) Reverse(double lon0, double x, double y, out double gamma, out double k)
         {
+            if (_exact)
+                return _tmexact.Reverse(lon0, x, y, out gamma, out k);
+
             // This undoes the steps in Forward.  The wrinkles are: (1) Use of the
             // reverted series to express zeta' in terms of zeta. (2) Newton's method
             // to solve for phi in terms of tan(phi).
@@ -638,5 +719,10 @@ namespace GeographicLib.Projections
         /// <i>lat</i>, latitude of point (degrees) and <i>lon</i>, longitude of point (degrees).
         /// </returns>
         public (double lat, double lon) Reverse(double lon0, double x, double y) => Reverse(lon0, x, y, out _, out _);
+
+        /// <summary>
+        /// Whether the exact formulation is used.  This is the value used in the constructor.
+        /// </summary>
+        public bool Exact => _exact;
     }
 }

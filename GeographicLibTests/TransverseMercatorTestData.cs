@@ -6,10 +6,6 @@ namespace GeographicLib.Tests
 {
     class TransverseMercatorTestData
     {
-        /// <summary>
-        /// Parsing and process floating point numbers incur loss of accuracy.
-        /// We need to set a higher tolerance to allow tests to pass.
-        /// </summary>
         public const double Tolerance = 1E-7;
 
         public const double ToleranceReverse = 1E-6;
