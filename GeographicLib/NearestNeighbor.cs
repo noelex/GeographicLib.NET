@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib
 {
@@ -114,7 +111,7 @@ namespace GeographicLib
 
             // the pair contains distance+id
             var ids = Enumerable.Range(0, pts.Count())
-                .Select(k => new item(0,k)).ToList();
+                .Select(k => new Item(0, k)).ToList();
 
             int cost = 0;
             _tree = new List<Node>();
@@ -135,7 +132,7 @@ namespace GeographicLib
                 throw new GeographicException("pts array has wrong size");
 
             double d;
-            var results = new PriorityQueue<item>(Comparer, false);
+            var results = new PriorityQueue<Item>(Comparer, false);
             if (_numpoints > 0 && k > 0 && maxdist > mindist)
             {
                 // distance to the kth closest point so far
@@ -143,8 +140,8 @@ namespace GeographicLib
                 // first is negative of how far query is outside boundary of node
                 // +1 if on boundary or inside
                 // second is node index
-                var todo = new PriorityQueue<item>(Comparer, false);
-                todo.Enqueue(new item(1, _tree.Count - 1));
+                var todo = new PriorityQueue<Item>(Comparer, false);
+                todo.Enqueue(new Item(1, _tree.Count - 1));
                 int c = 0;
 
                 while (todo.Any())
@@ -168,7 +165,7 @@ namespace GeographicLib
                         if (dst > mindist && dst <= tau)
                         {
                             if (results.Count == k) results.Dequeue();
-                            results.Enqueue(new item(dst, index));
+                            results.Enqueue(new Item(dst, index));
                             if (results.Count == k)
                             {
                                 if (exhaustive)
@@ -196,16 +193,16 @@ namespace GeographicLib
                         {
                             d = current.Data.lower0 - dst;
                             if (tau1 >= d)
-                                todo.Enqueue(new item(-d, current.Data.child0));
+                                todo.Enqueue(new Item(-d, current.Data.child0));
                         }
                         else if (dst > current.Data.upper0)
                         {
                             d = dst - current.Data.upper0;
                             if (tau1 >= d)
-                                todo.Enqueue(new item(-d, current.Data.child0));
+                                todo.Enqueue(new Item(-d, current.Data.child0));
                         }
                         else
-                            todo.Enqueue(new item(1, current.Data.child0));
+                            todo.Enqueue(new Item(1, current.Data.child0));
                     }
 
                     if (current.Data.child1 >= 0 && dst + current.Data.upper1 >= mindist)
@@ -214,16 +211,16 @@ namespace GeographicLib
                         {
                             d = current.Data.lower1 - dst;
                             if (tau1 >= d)
-                                todo.Enqueue(new item(-d, current.Data.child1));
+                                todo.Enqueue(new Item(-d, current.Data.child1));
                         }
                         else if (dst > current.Data.upper1)
                         {
                             d = dst - current.Data.upper1;
                             if (tau1 >= d)
-                                todo.Enqueue(new item(-d, current.Data.child1));
+                                todo.Enqueue(new Item(-d, current.Data.child1));
                         }
                         else
-                            todo.Enqueue(new item(1, current.Data.child1));
+                            todo.Enqueue(new Item(1, current.Data.child1));
                     }
                 }
                 ++_k;
@@ -249,7 +246,7 @@ namespace GeographicLib
 
         public SearchStatistics Statistics =>
             new SearchStatistics
-            { 
+            {
                 SetupCost = _cost,
                 NumSearches = _k,
                 SearchCost = _c1,
@@ -267,7 +264,7 @@ namespace GeographicLib
         }
 
         private int Init(IList<TPoint> pts, Func<TPoint, TPoint, double> dist, int bucket,
-                IList<Node> tree, List<item> ids, ref int cost, int l, int u, int vp)
+                IList<Node> tree, List<Item> ids, ref int cost, int l, int u, int vp)
         {
             if (u == l)
                 return -1;
@@ -292,7 +289,7 @@ namespace GeographicLib
 
                 node.Index = ids[l].second;
 
-                item t;
+                Item t;
                 int ti;
 
                 if (m > l + 1)
@@ -398,21 +395,21 @@ namespace GeographicLib
             };
         }
 
-        private class item
+        private class Item
         {
             public double first;
             public int second;
 
-            public item(double f, int s)
+            public Item(double f, int s)
             {
                 first = f;
                 second = s;
             }
         }
 
-        private class ItemComparer : IComparer<item>
+        private class ItemComparer : IComparer<Item>
         {
-            public int Compare(item x, item y)
+            public int Compare(Item x, Item y)
             {
                 return x.first.CompareTo(y.first);
             }

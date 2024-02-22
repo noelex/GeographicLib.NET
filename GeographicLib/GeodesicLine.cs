@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using static System.Math;
 using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -34,9 +31,13 @@ namespace GeographicLib
     /// <para>
     /// The calculations are accurate to better than 15 nm (15 nanometers).
     /// See Sec. 9 of <a href="https://arxiv.org/abs/1102.1215v1">arXiv:1102.1215v1</a> for details.
-    /// The algorithms used by this class are based on series expansions using the flattening f as a small parameter.
-    /// These are only accurate for |<i>f</i>| &lt; 0.02; however reasonably accurate results will be obtained for
-    /// |<i>f</i>| &lt; 0.2. For very eccentric ellipsoids, use <see cref="GeodesicLineExact"/> instead.
+    /// With <i>exact</i> = <see langword="false"/> (the default) in the constructor for the
+    /// <see cref="Geodesic"/> object, the algorithms used by this class are based on series
+    /// expansions using the flattening <i>f</i> as a small parameter.These are only
+    /// accurate for |<i>f</i>| &lt; 0.02; however reasonably accurate results
+    /// will be obtained for |<i>f</i>| &lt; 0.2.  For very eccentric ellipsoids,
+    /// set <i>exact</i> = <see langword="true"/> in the constructor for the <see cref="Geodesic"/> object; this will
+    /// delegate the calculations to <see cref="GeodesicLineExact"/>.
     /// </para>
     /// <para>
     /// The algorithms are described in
@@ -60,6 +61,7 @@ namespace GeographicLib
         private const int nC3_ = Geodesic.nC3_;
         private const int nC4_ = Geodesic.nC4_;
 
+        private readonly bool _exact;
         private readonly double tiny_;
         private readonly double _lat1, _lon1, _azi1;
         private readonly double _a, _f, _b, _c2, _f1, _salp0, _calp0, _k2,
@@ -77,6 +79,7 @@ namespace GeographicLib
             _C4a = new double[nC4_];    // all the elements of _C4a are used
 
         private readonly GeodesicFlags _caps;
+        private readonly GeodesicLineExact _lineexact;
 
         internal GeodesicLine(Geodesic g,
                  double lat1, double lon1,
@@ -86,7 +89,7 @@ namespace GeographicLib
             LineInit(g, lat1, lon1, azi1, salp1, calp1, caps,
                 ref tiny_, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1, ref _a, ref _f, ref _b, ref _c2, ref _f1,
                 ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _somg1, ref _csig1, ref _comg1, ref _k2, ref _A1m1, ref _B11,
-                ref _stau1, ref _ctau1, ref _A2m1, ref _B21, ref _A3c, ref _B31, ref _A4, ref _B41, ref _caps);
+                ref _stau1, ref _ctau1, ref _A2m1, ref _B21, ref _A3c, ref _B31, ref _A4, ref _B41, ref _caps, ref _exact, ref _lineexact);
             SetDistance(arcmode, s13_a13);
         }
 
@@ -137,7 +140,7 @@ namespace GeographicLib
             LineInit(g, lat1, lon1, azi1, salp1, calp1, caps,
                 ref tiny_, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1, ref _a, ref _f, ref _b, ref _c2, ref _f1,
                 ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _somg1, ref _csig1, ref _comg1, ref _k2, ref _A1m1, ref _B11,
-                ref _stau1, ref _ctau1, ref _A2m1, ref _B21, ref _A3c, ref _B31, ref _A4, ref _B41, ref _caps);
+                ref _stau1, ref _ctau1, ref _A2m1, ref _B21, ref _A3c, ref _B31, ref _A4, ref _B41, ref _caps, ref _exact, ref _lineexact);
         }
 
         private void LineInit(Geodesic g,
@@ -148,7 +151,8 @@ namespace GeographicLib
                   ref double _a, ref double _f, ref double _b, ref double _c2, ref double _f1, ref double _dn1, ref double _salp0,
                   ref double _calp0, ref double _ssig1, ref double _somg1, ref double _csig1, ref double _comg1, ref double _k2,
                   ref double _A1m1, ref double _B11, ref double _stau1, ref double _ctau1, ref double _A2m1, ref double _B21,
-                  ref double _A3c, ref double _B31, ref double _A4, ref double _B41, ref GeodesicFlags _caps)
+                  ref double _A3c, ref double _B31, ref double _A4, ref double _B41, ref GeodesicFlags _caps, ref bool exact,
+                  ref GeodesicLineExact geodesicLineExact)
         {
             tiny_ = g.tiny_;
             _lat1 = LatFix(lat1);
@@ -191,6 +195,13 @@ namespace GeographicLib
             _csig1 = _comg1 = sbet1 != 0 || _calp1 != 0 ? cbet1 * _calp1 : 1;
             Norm(ref _ssig1, ref _csig1); // sig1 in (-pi, pi]
                                           // Math::norm(_somg1, _comg1); -- don't need to normalize!
+
+            exact = g.Exact;
+            if (_exact)
+            {
+                geodesicLineExact = new GeodesicLineExact(g.GeodesicExact, lat1, lon1, azi1, salp1, calp1, caps);
+                return;
+            }
 
             _k2 = Sq(_calp0) * g._ep2;
             var eps = _k2 / (2 * (1 + Sqrt(1 + _k2)) + _k2);
@@ -242,6 +253,11 @@ namespace GeographicLib
                            out double s12, out double m12, out double M12, out double M21,
                            out double S12)
         {
+            if (_exact)
+                return _lineexact.GenPosition(arcmode, s12_a12, outmask,
+                                              out lat2, out lon2, out azi2,
+                                              out s12, out m12, out M12, out M21, out S12);
+
             lat2 = lon2 = azi2 = s12 = m12 = M12 = M21 = S12 = double.NaN;
             outmask &= _caps & (GeodesicFlags)GeodesicCapability.OutMask;
             if (!(arcmode || _caps.HasAny(GeodesicFlags.DistanceIn)))

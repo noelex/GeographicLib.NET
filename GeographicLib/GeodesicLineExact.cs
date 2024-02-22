@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using static System.Math;
 using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -38,12 +35,20 @@ namespace GeographicLib
                 double lat1, double lon1,
                 double azi1, double salp1, double calp1,
                 GeodesicFlags caps, bool arcmode, double s13_a13)
+            : this(g, lat1, lon1, azi1, salp1, calp1, caps)
+        {
+            SetDistance(arcmode, s13_a13);
+        }
+
+        internal GeodesicLineExact(GeodesicExact g,
+                double lat1, double lon1,
+                double azi1, double salp1, double calp1,
+                GeodesicFlags caps)
         {
             LineInit(g, lat1, lon1, azi1, salp1, calp1, caps, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1,
                 ref _a, ref _f, ref _b, ref _c2, ref _f1, ref _e2, ref _caps, ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _csig1,
                 ref _somg1, ref _comg1, ref _cchi1, ref _k2, ref _E0, ref _E1, ref _stau1, ref _ctau1, ref _D0, ref _D1, ref _H0, ref _H1,
                 ref _A4, ref _B41, ref _s13, ref _a13, ref _C4a, ref _nC4);
-            SetDistance(arcmode, s13_a13);
         }
 
         /// <summary>

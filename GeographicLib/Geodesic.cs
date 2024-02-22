@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using static System.Math;
-using static GeographicLib.MathEx;
-using static GeographicLib.Macros;
 using System.Diagnostics;
+using static GeographicLib.Macros;
+using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -117,7 +114,8 @@ namespace GeographicLib
     /// <para>
     /// The calculations are accurate to better than 15 nm (15 nanometers) for the WGS84 ellipsoid.
     /// See Sec. 9 of <a href="https://arxiv.org/abs/1102.1215v1">arXiv:1102.1215v1</a> for details.
-    /// The algorithms used by this class are based on series expansions using the flattening f as a small parameter.
+    /// With <i>exact</i> = <see langword="false"/> (the default) in the constructor,
+    /// the algorithms used by this class are based on series expansions using the flattening f as a small parameter.
     /// These are only accurate for |<i>f</i>| &lt; 0.02; however reasonably accurate results will be obtained for |<i>f</i>| &lt; 0.2.
     /// Here is a table of the approximate maximum error (expressed as a distance) for an ellipsoid with the same equatorial 
     /// radius as the WGS84 ellipsoid and different values of the flattening.
@@ -132,7 +130,8 @@ namespace GeographicLib
     /// <item>0.2 300 mm</item>
     /// </list>
     /// </para>
-    /// <para>For very eccentric ellipsoids, use <see cref="GeodesicExact"/> instead.</para>
+    /// <para>For very eccentric ellipsoids, set <i>exact</i> to <see langword="true"/> in the constructor;
+    /// this will delegate the calculations to the <see cref="GeodesicExact"/> class.</para>
     /// <para>The algorithms are described in
     /// <list type="bullet">
     /// <item>
@@ -167,6 +166,9 @@ namespace GeographicLib
 
         internal readonly double _a, _f, _f1, _e2, _ep2, _n, _b, _c2, _etol2;
 
+        private readonly bool _exact;
+        private readonly GeodesicExact _geodexact;
+
         private readonly Memory<double>
             _A3x = new double[nA3x_],
             _C3x = new double[nC3x_],
@@ -192,6 +194,27 @@ namespace GeographicLib
         /// <param name="a">equatorial radius (meters).</param>
         /// <param name="f">flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
         public Geodesic(double a, double f)
+            : this(a, f, false)
+        {
+
+        }
+
+        /// <summary>
+        /// Constructor for an ellipsoid with equatorial radius and its flattening.
+        /// </summary>
+        /// <param name="a">equatorial radius (meters).</param>
+        /// <param name="f">flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
+        /// <param name="exact">
+        /// If <see langword="true"/> use exact formulation in terms of elliptic
+        /// integrals instead of series expansions (default <see langword="false"/>).
+        /// </param>
+        /// <exception cref="GeographicException"></exception>
+        /// <remarks>
+        /// With <paramref name="exact"/> = <see langword="true"/>, this class delegates the calculations to the
+        /// <see cref="GeodesicExact"/> and <see cref="GeodesicLineExact"/> classes which solve the geodesic
+        /// problems in terms of elliptic integrals.
+        /// </remarks>
+        public Geodesic(double a, double f, bool exact = false)
         {
             maxit2_ = maxit1_ + DBL_MANT_DIG + 10;
 
@@ -210,6 +233,7 @@ namespace GeographicLib
             xthresh_ = 1000 * tol2_;
             _a = a;
             _f = f;
+            _exact = exact;
             _f1 = 1 - _f;
             _e2 = _f * (2 - _f);
             _ep2 = _e2 / Sq(_f1); // e2 / (1 - e2)
@@ -233,14 +257,23 @@ namespace GeographicLib
             _etol2 = 0.1 * tol2_ /
                 Sqrt(Max(0.001, Abs(_f)) * Min(1, 1 - _f / 2) / 2);
 
-            if (!(IsFinite(_a) && _a > 0))
-                throw new GeographicException("Equatorial radius is not positive");
-            if (!(IsFinite(_b) && _b > 0))
-                throw new GeographicException("Polar semi-axis is not positive");
+            _geodexact = _exact ? new GeodesicExact(a, f) : null;
 
-            A3coeff();
-            C3coeff();
-            C4coeff();
+            if (_exact)
+            {
+                _c2 = _geodexact._c2;
+            }
+            else
+            {
+                if (!(IsFinite(_a) && _a > 0))
+                    throw new GeographicException("Equatorial radius is not positive");
+                if (!(IsFinite(_b) && _b > 0))
+                    throw new GeographicException("Polar semi-axis is not positive");
+
+                A3coeff();
+                C3coeff();
+                C4coeff();
+            }
         }
 
         /// <summary>
@@ -1258,6 +1291,12 @@ namespace GeographicLib
                     out double salp1, out double calp1, out double salp2, out double calp2,
                     out double m12, out double M12, out double M21, out double S12)
         {
+            if (_exact)
+                return _geodexact.GenInverse(lat1, lon1, lat2, lon2,
+                                             outmask, out s12,
+                                             out salp1, out calp1, out salp2, out calp2,
+                                             out m12, out M12, out M21, out S12);
+
             salp1 = salp2 = calp1 = calp2 = double.NaN;
             s12 = S12 = m12 = M12 = M21 = double.NaN;
 
@@ -1274,7 +1313,7 @@ namespace GeographicLib
             // Calculate sincos of lon12 + error (this applies AngRound internally).
             SinCosde(lon12, lon12s, out slam12, out clam12);
             // the supplementary longitude difference
-            lon12s = (HD - lon12) - lon12s; 
+            lon12s = (HD - lon12) - lon12s;
 
             // If really close to the equator, treat as on equator.
             lat1 = AngRound(LatFix(lat1));
@@ -1641,6 +1680,11 @@ namespace GeographicLib
                                      out double s12, out double m12, out double M12, out double M21,
                                      out double S12)
         {
+            if (_exact)
+                return _geodexact.GenDirect(lat1, lon1, azi1, arcmode, s12_a12, outmask,
+                                            out lat2, out lon2, out azi2,
+                                             out s12, out m12, out M12, out M21, out S12);
+
             // Automatically supply DISTANCE_IN if necessary
             if (!arcmode) outmask |= GeodesicFlags.DistanceIn;
 
@@ -1709,5 +1753,13 @@ namespace GeographicLib
             return new GeodesicLine(this, lat1, lon1, azi1, salp1, calp1,
                                 caps, arcmode, s12_a12);
         }
+
+        /// <summary>
+        /// Whether the exact formulation is used. This is the
+        /// value used in the constructor.
+        /// </summary>
+        public bool Exact => _exact;
+
+        internal GeodesicExact GeodesicExact => _geodexact;
     }
 }

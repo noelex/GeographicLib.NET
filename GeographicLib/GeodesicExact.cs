@@ -767,7 +767,7 @@ namespace GeographicLib
             return lam12;
         }
 
-        private double GenInverse(double lat1, double lon1, double lat2, double lon2,
+        internal double GenInverse(double lat1, double lon1, double lat2, double lon2,
                         GeodesicFlags outmask, out double s12,
                         out double salp1, out double calp1, out double salp2, out double calp2,
                         out double m12, out double M12, out double M21, out double S12)
