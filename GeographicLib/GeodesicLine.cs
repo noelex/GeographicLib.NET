@@ -196,7 +196,7 @@ namespace GeographicLib
             Norm(ref _ssig1, ref _csig1); // sig1 in (-pi, pi]
                                           // Math::norm(_somg1, _comg1); -- don't need to normalize!
 
-            exact = g.Exact;
+            exact = g.IsExact;
             if (_exact)
             {
                 geodesicLineExact = new GeodesicLineExact(g.GeodesicExact, lat1, lon1, azi1, salp1, calp1, caps);

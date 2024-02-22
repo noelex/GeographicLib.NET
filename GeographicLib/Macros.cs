@@ -37,7 +37,7 @@ namespace GeographicLib
 
         /// <summary>
         /// The order of the series approximation used in rhumb area calculations.
-        /// <see cref="GEOGRAPHICLIB_RHUMBAREA_ORDER"/> can be set to any integer in [4, 8].
+        /// <see cref="GEOGRAPHICLIB_RHUMBAREA_ORDER"/> can be set to one of [4, 5, 6, 7, 8].
         /// </summary>
         public const int GEOGRAPHICLIB_RHUMBAREA_ORDER = GEOGRAPHICLIB_PRECISION == 2 ? 6 : (GEOGRAPHICLIB_PRECISION == 1 ? 4 : 8);
 

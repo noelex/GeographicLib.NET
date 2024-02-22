@@ -723,6 +723,6 @@ namespace GeographicLib.Projections
         /// <summary>
         /// Whether the exact formulation is used.  This is the value used in the constructor.
         /// </summary>
-        public bool Exact => _exact;
+        public bool IsExact => _exact;
     }
 }

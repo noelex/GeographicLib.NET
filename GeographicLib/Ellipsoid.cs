@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using GeographicLib.Projections;
-
+﻿using static GeographicLib.MathEx;
 using static System.Math;
-using static GeographicLib.MathEx;
 
 namespace GeographicLib
 {
@@ -13,27 +8,16 @@ namespace GeographicLib
     /// </summary>
     /// <remarks>
     /// This class returns various properties of the ellipsoid and converts
-    /// between various types of latitudes.The latitude conversions are also
-    /// possible using the various projections supported by GeographicLib; but
-    /// <see cref="Ellipsoid"/> provides more direct access(sometimes using private functions
-    /// of the projection classes).  <see cref="RectifyingLatitude(double)"/>,
-    /// <see cref="InverseRectifyingLatitude(double)"/>, and <see cref="MeridianDistance(double)"/>
-    /// provide functionality which can be provided by the <see cref="Geodesic"/> class.
-    /// However <see cref="Geodesic"/> uses a series approximation(valid for abs <i>f</i> &lt; 1/150),
-    /// whereas <see cref="Ellipsoid"/> computes these quantities using EllipticFunction which
-    /// provides accurate results even when <i>f</i> is large.Use of this class
-    /// should be limited to -3 &lt; <i>f</i> &lt; 3/4 (i.e., 1/4 &lt; b/a &lt; 4).
+    /// between various types of latitudes. This is for the most part a thin
+    /// wrapper on top of the <see cref="AuxLatitude"/> class which is called with <i>exact</i> =
+    /// <see langword="true"/> so that the results are valid for arbitrary flattenings -100 &lt;
+    /// <i>f</i> &lt; 99/100 (i.e., 1/100 &lt; b/a &lt; 100).
     /// </remarks>
     public class Ellipsoid : IEllipsoid
     {
-        private const int _numit = 10;
-
-        private readonly double stol_;
-        internal readonly double _a, _f, _f1, _f12, _e2, _es, _e12, _n, _b;
-
-        private readonly TransverseMercator _tm;
-        private readonly AlbersEqualArea _au;
-        internal readonly EllipticFunction _ell;
+        internal readonly double _a, _f, _b, _e2, _e12, _n;
+        private readonly AuxLatitude _aux;
+        private readonly double _rm, _c2;
 
         /// <summary>
         /// Constructor for an ellipsoid with equatorial radius and flattening.
@@ -42,27 +26,18 @@ namespace GeographicLib
         /// <param name="f">Flattening of ellipsoid.  Setting <i>f</i> = 0 gives a sphere.</param>
         public Ellipsoid(double a, double f)
         {
-            stol_ = 0.01 * Sqrt(DBL_EPSILON);
             _a = a;
             _f = f;
-            _f1 = 1 - _f;
-            _f12 = Sq(_f1);
+            _b = _a * (1 - _f);
             _e2 = _f * (2 - _f);
-            _es = (_f < 0 ? -1 : 1) * Sqrt(Abs(_e2));
             _e12 = _e2 / (1 - _e2);
             _n = _f / (2 - _f);
-            _b = _a * _f1;
-
-            _tm = new TransverseMercator(_a, _f, 1d);
-            _ell = new EllipticFunction(-_e12);
-            _au = new AlbersEqualArea(_a, _f, 0d, 1d, 0d, 1d, 1d);
+            _aux = new AuxLatitude(_a, _f);
+            _rm = _aux.RectifyingRadius(true);
+            _c2 = _aux.AuthalicRadiusSquared(true);
         }
 
         #region Properties
-
-        internal Memory<double> ConformalToRectifyingCoeffs => _tm._alp;
-
-        internal Memory<double> RectifyingToConformalCoeffs => _tm._bet;
 
         /// <summary>
         /// Gets a value representing the equatorial radius of the ellipsoid (meters).  This is the value used in the constructor.
@@ -79,19 +54,14 @@ namespace GeographicLib
         /// meridian(meters).  For a sphere <i>L</i> = (φ/2) <i>a</i>.The radius
         /// of a sphere with the same meridian length is <i>L</i> / (φ/2).
         /// </summary>
-        public double QuarterMeridian => _b * _ell.E();
+        public double QuarterMeridian => PI / 2 * _rm;
 
         /// <summary>
         /// Gets a value representing the total area of the ellipsoid (meters^2).  For
         /// a sphere <i>A</i> = 4π <i>a</i>^2.  The radius of a sphere
         /// with the same area is sqrt(<i>A</i> / (4π))
         /// </summary>
-        public double Area
-            => 4 * PI *
-              ((Sq(_a) + Sq(_b) *
-                (_e2 == 0 ? 1 :
-                 (_e2 > 0 ? Atanh(Sqrt(_e2)) : Atan(Sqrt(-_e2))) /
-                 Sqrt(Abs(_e2)))) / 2);
+        public double Area => 4 * PI * _c2;
 
         /// <summary>
         /// Gets a value representing the total volume of the ellipsoid (meters^3).
@@ -177,7 +147,9 @@ namespace GeographicLib
         /// β lies in [-90°, 90°].
         /// </para>
         /// </remarks>
-        public double ParametricLatitude(double phi) => Atand(_f1 * Tand(LatFix(phi)));
+        public double ParametricLatitude(double phi)
+            => _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Beta,
+                        LatFix(phi), true);
 
         /// <summary>
         /// Inverse of <see cref="ParametricLatitude(double)"/>.
@@ -189,7 +161,9 @@ namespace GeographicLib
         /// </remarks>
         /// <param name="beta">the parametric latitude (degrees).</param>
         /// <returns>φ, the geographic latitude (degrees).</returns>
-        public double InverseParametricLatitude(double beta) => Atand(Tand(LatFix(beta)) / _f1);
+        public double InverseParametricLatitude(double beta)
+            => _aux.Convert(AuxLatitudeType.Beta, AuxLatitudeType.Phi,
+                        LatFix(beta), true);
 
         /// <summary>
         /// Geocentric latitude conversion.
@@ -208,7 +182,9 @@ namespace GeographicLib
         /// </remarks>
         /// <param name="phi">the geographic latitude (degrees).</param>
         /// <returns>θ, the geocentric latitude (degrees).</returns>
-        public double GeocentricLatitude(double phi) => Atand(_f12 * Tand(LatFix(phi)));
+        public double GeocentricLatitude(double phi)
+            => _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Theta,
+                        LatFix(phi), true);
 
         /// <summary>
         /// Inverse of <see cref="GeocentricLatitude(double)"/>.
@@ -220,7 +196,9 @@ namespace GeographicLib
         /// result is undefined if this condition does not hold.The returned value
         /// φ lies in [-90°, 90°].
         /// </remarks>
-        public double InverseGeocentricLatitude(double theta) => Atand(Tand(LatFix(theta)) / _f12);
+        public double InverseGeocentricLatitude(double theta)
+            => _aux.Convert(AuxLatitudeType.Theta, AuxLatitudeType.Phi,
+                        LatFix(theta), true);
 
         /// <summary>
         /// Rectifying latitude conversion.
@@ -241,7 +219,9 @@ namespace GeographicLib
         /// µ lies in [-90°, 90°].
         /// </para>
         /// </remarks>
-        public double RectifyingLatitude(double phi) => Abs(phi) == QD ? phi : QD * MeridianDistance(phi) / QuarterMeridian;
+        public double RectifyingLatitude(double phi)
+            => _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Mu,
+                        LatFix(phi), true);
 
         /// <summary>
         /// Inverse of <see cref="RectifyingLatitude(double)"/>.
@@ -254,8 +234,8 @@ namespace GeographicLib
         /// φ lies in [-90°, 90°].
         /// </remarks>
         public double InverseRectifyingLatitude(double mu)
-            => Abs(mu) == QD ? mu
-                : InverseParametricLatitude(_ell.Einv(mu * _ell.E() / QD) / Degree);
+            => _aux.Convert(AuxLatitudeType.Mu, AuxLatitudeType.Phi,
+                        LatFix(mu), true);
 
         /// <summary>
         /// Authalic latitude conversion.
@@ -273,7 +253,9 @@ namespace GeographicLib
         /// ξ lies in [-90°, 90°].
         /// </para>
         /// </remarks>
-        public double AuthalicLatitude(double phi) => Atand(_au.Txif(Tand(LatFix(phi))));
+        public double AuthalicLatitude(double phi)
+            => _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Xi,
+                        LatFix(phi), true);
 
         /// <summary>
         /// Inverse of <see cref="AuthalicLatitude(double)"/>.
@@ -285,7 +267,9 @@ namespace GeographicLib
         /// result is undefined if this condition does not hold.The returned value
         /// φ lies in [-90°, 90°].
         /// </remarks>
-        public double InverseAuthalicLatitude(double xi) => Atand(_au.Tphif(Tand(LatFix(xi))));
+        public double InverseAuthalicLatitude(double xi)
+            => _aux.Convert(AuxLatitudeType.Xi, AuxLatitudeType.Phi,
+                        LatFix(xi), true);
 
         /// <summary>
         /// Conformal latitude conversion.
@@ -303,7 +287,9 @@ namespace GeographicLib
         /// χ lies in [-90°, 90°].
         /// </para>
         /// </remarks>
-        public double ConformalLatitude(double phi) => Atand(Taupf(Tand(LatFix(phi)), _es));
+        public double ConformalLatitude(double phi)
+            => _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Chi,
+                        LatFix(phi), true);
 
         /// <summary>
         /// Inverse of <see cref="ConformalLatitude(double)"/>.
@@ -315,7 +301,9 @@ namespace GeographicLib
         /// result is undefined if this condition does not hold.The returned value
         /// φ lies in [-90°, 90°].
         /// </remarks>
-        public double InverseConformalLatitude(double chi) => Atand(Tauf(Tand(LatFix(chi)), _es));
+        public double InverseConformalLatitude(double chi)
+            => _aux.Convert(AuxLatitudeType.Chi, AuxLatitudeType.Phi,
+                        LatFix(chi), true);
 
         /// <summary>
         /// Isometric latitude conversion.
@@ -337,7 +325,9 @@ namespace GeographicLib
         /// such that <see cref="InverseIsometricLatitude"/> returns the original value of φ.
         /// </para>
         /// </remarks>
-        public double IsometricLatitude(double phi) => Asinh(Taupf(Tand(LatFix(phi)), _es)) / Degree;
+        public double IsometricLatitude(double phi)
+            => _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Chi,
+                        AuxAngle.FromDegrees(LatFix(phi)), true).Lamd;
 
         /// <summary>
         /// Inverse of <see cref="IsometricLatitude(double)"/>.
@@ -348,7 +338,9 @@ namespace GeographicLib
         /// The returned value φ lies in [-90°, 90°].  For a
         /// sphere φ = tan^-1 sinh Ψ.
         /// </remarks>
-        public double InverseIsometricLatitude(double psi) => Atand(Tauf(Sinh(psi * Degree), _es));
+        public double InverseIsometricLatitude(double psi)
+            => _aux.Convert(AuxLatitudeType.Chi, AuxLatitudeType.Phi,
+                         AuxAngle.FromLamd(psi), true).Degrees;
 
         #endregion
 
@@ -366,10 +358,14 @@ namespace GeographicLib
         /// <remarks>
         /// φ must lie in the range [-90°, 90°]; the result is undefined if this condition does not hold.
         /// </remarks>
-        public double CircleRadius(double phi) =>
-            Abs(phi) == QD ? 0 :
-              // a * cos(beta)
-              _a / Hypot(1d, _f1 * Tand(LatFix(phi)));
+        public double CircleRadius(double phi)
+        {
+            // a * cos(beta)
+            AuxAngle beta = _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Beta,
+                              AuxAngle.FromDegrees(LatFix(phi)),
+                               true).Normalized();
+            return _a * beta.X;
+        }
 
         /// <summary>
         /// Calculates the distance of a circle of specified latitude from the equator measured parallel to the ellipsoid axis.
@@ -383,9 +379,14 @@ namespace GeographicLib
         /// <remarks>
         /// φ must lie in the range [-90°, 90°]; the result is undefined if this condition does not hold.
         /// </remarks>
-        public double CircleHeight(double phi) =>
-             // b * sin(beta)
-             _b * (_f1 * Tand(phi)) / Hypot(1d, _f1 * Tand(LatFix(phi)));
+        public double CircleHeight(double phi)
+        {
+            // b * sin(beta)
+            AuxAngle beta = _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Beta,
+                               AuxAngle.FromDegrees(LatFix(phi)),
+                               true).Normalized();
+            return _b * beta.Y;
+        }
 
         /// <summary>
         /// Calculates the distance along a meridian between the equator and a point of specified latitude.
@@ -399,7 +400,10 @@ namespace GeographicLib
         /// <remarks>
         /// φ must lie in the range [-90°, 90°]; the result is undefined if this condition does not hold.
         /// </remarks>
-        public double MeridianDistance(double phi) => _b * _ell.Ed(ParametricLatitude(phi));
+        public double MeridianDistance(double phi)
+            => _rm * _aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Mu,
+                              AuxAngle.FromDegrees(LatFix(phi)),
+                              true).Radians;
 
         /// <summary>
         /// Calculates the meridional radius of curvature of the ellipsoid at specified latitude.

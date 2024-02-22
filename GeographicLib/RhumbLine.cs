@@ -20,16 +20,20 @@ namespace GeographicLib
     public class RhumbLine : IEllipsoid
     {
         private readonly Rhumb _rh;
-        private readonly double _lat1, _lon1, _azi12, _salp, _calp, _mu1, _psi1, _r1;
+        private readonly double _lat1, _lon1, _azi12, _salp, _calp, _mu1, _psi1;
+        private readonly AuxAngle _phi1, _chi1;
 
         internal RhumbLine(Rhumb rh, double lat1, double lon1, double azi12)
         {
             (_rh, _lat1, _lon1, _azi12) = (rh, LatFix(lat1), lon1, AngNormalize(azi12));
 
             SinCosd(_azi12, out _salp, out _calp);
-            _mu1 = _rh._ell.RectifyingLatitude(lat1);
-            _psi1 = _rh._ell.IsometricLatitude(lat1);
-            _r1 = _rh._ell.CircleRadius(lat1);
+            _phi1 = AuxAngle.FromDegrees(lat1);
+            _mu1 = _rh._aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Mu,
+                                    _phi1, _rh.IsExact).Degrees;
+            _chi1 = _rh._aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Chi,
+                                     _phi1, _rh.IsExact);
+            _psi1 = _chi1.Lam;
         }
 
         /// <summary>
@@ -58,32 +62,28 @@ namespace GeographicLib
         /// </remarks>
         public void GenPosition(double s12, GeodesicFlags outmask, out double lat2, out double lon2, out double S12)
         {
-            double
-              mu12 = s12 * _calp * QD / _rh._ell.QuarterMeridian,
-              mu2 = _mu1 + mu12;
-            double psi2, lat2x, lon2x;
-
             lat2 = lon2 = S12 = double.NaN;
 
+            double
+              r12 = s12 / (_rh._rm * Degree), // scaled distance in degrees
+              mu12 = r12 * _calp,
+              mu2 = _mu1 + mu12;
+            double lat2x, lon2x;
             if (Abs(mu2) <= QD)
             {
-                if (_calp != 0)
-                {
-                    lat2x = _rh._ell.InverseRectifyingLatitude(mu2);
-                    var psi12 = _rh.DRectifyingToIsometric(mu2 * Degree,
-                                                             _mu1 * Degree) * mu12;
-                    lon2x = _salp * psi12 / _calp;
-                    psi2 = _psi1 + psi12;
-                }
-                else
-                {
-                    lat2x = _lat1;
-                    lon2x = _salp * s12 / (_r1 * Degree);
-                    psi2 = _psi1;
-                }
+                AuxAngle mu2a = AuxAngle.FromDegrees(mu2),
+                         phi2 = _rh._aux.Convert(AuxLatitudeType.Mu, AuxLatitudeType.Phi,
+                                              mu2a, _rh.IsExact),
+                         chi2 = _rh._aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Chi,
+                                              phi2, _rh.IsExact);
+                lat2x = phi2.Degrees;
+                double dmudpsi = _rh.IsExact ?
+                  _rh._aux.DRectifying(_phi1, phi2) / _rh._aux.DIsometric(_phi1, phi2) :
+                  _rh._aux.DConvert(AuxLatitudeType.Chi, AuxLatitudeType.Mu, _chi1, chi2)
+                  / DAuxLatitude.Dlam(_chi1.Tan, chi2.Tan);
+                lon2x = r12 * _salp / dmudpsi;
                 if (outmask.HasFlag(GeodesicFlags.Area))
-                    S12 = _rh._c2 * lon2x *
-                      _rh.MeanSinXi(_psi1 * Degree, psi2 * Degree);
+                    S12 = _rh._c2 * lon2x * _rh.MeanSinXi(_chi1, chi2);
                 lon2x = outmask.HasFlag(GeodesicFlags.LongUnroll) ? _lon1 + lon2x :
                   AngNormalize(AngNormalize(_lon1) + lon2x);
             }
@@ -93,7 +93,8 @@ namespace GeographicLib
                 mu2 = AngNormalize(mu2);
                 // Deal with points on the anti-meridian
                 if (Abs(mu2) > QD) mu2 = AngNormalize(HD - mu2);
-                lat2x = _rh._ell.InverseRectifyingLatitude(mu2);
+                lat2x = _rh._aux.Convert(AuxLatitudeType.Mu, AuxLatitudeType.Phi,
+                                         AuxAngle.FromDegrees(mu2), _rh.IsExact).Degrees;
                 lon2x = double.NaN;
                 if (outmask.HasFlag(GeodesicFlags.Area))
                     S12 = double.NaN;
