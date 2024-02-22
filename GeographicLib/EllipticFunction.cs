@@ -1051,9 +1051,12 @@ namespace GeographicLib
                 // using https://dlmf.nist.gov/19.20.E18
                 // Equivalently
                 //   RF(x, 1) - RD(0, x, 1)/3 = x * RD(0, 1, x)/3 for x > 0
+                // For k2 = 0 and alpha2 = 0, we have
+                //   Hc = int(cos(phi)^2,...) = pi/4
                 // For k2 = 1 and alpha2 = 0, we have
                 //   Hc = int(cos(phi),...) = 1
-                _Hc = _kp2 != 0 ? _kp2 * RD(0, 1, _kp2) / 3 : 1;
+                _Hc = _kp2 == 1 ? PI / 4 :
+                    (_kp2 == 0 ? 1 : _kp2 * RD(0, 1, _kp2) / 3);
             }
         }
 
