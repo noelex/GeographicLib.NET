@@ -18,14 +18,14 @@
 
 GeographicLib.NET is a native .NET implementation of GeographicLib written in pure C#.]]>
 		</Description>
-		<Copyright>Copyright (c) 2021-2022, GeographicLib.NET contributors</Copyright>
+		<Copyright>Copyright (c) 2021-2024, GeographicLib.NET contributors</Copyright>
 		<PackageTags>gis, geodesic, geographic, geoid, geomagnetic, gravity, projection, rhumb</PackageTags>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
 		<PublicSign>True</PublicSign>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0'">
+	<PropertyGroup Condition="'$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0' or '$(TargetFramework)'=='net8.0'">
 		<IsTrimmable>true</IsTrimmable>
 		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
@@ -62,6 +62,5 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 			<PackagePath>\</PackagePath>
 			<Visible>false</Visible>
 		</None>
-		<None Include="CMathManaged.Exp2.cs" />
 	</ItemGroup>
 </Project>
