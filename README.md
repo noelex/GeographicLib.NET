@@ -119,7 +119,7 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
-### Version 2.3.0 (unreleased)
+### Version 2.3.0 (released 2024/02/23)
 - **NEW**
   - Target .NET 7.0 and .NET 8.0.
   - Add managed implementation and libc wrapper for exp2.
