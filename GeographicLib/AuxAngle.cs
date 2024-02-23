@@ -234,5 +234,14 @@ namespace GeographicLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static AuxAngle FromLamd(double psid)
             => new AuxAngle(Sinh(psid * Degree));
+
+        /// <summary>
+        /// Gets the string representation of current <see cref="AuxAngle"/> instance.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"X = {X}, Y = {Y}, {Degrees:F2} degs, {Radians:F2} rads";
+        }
     }
 }

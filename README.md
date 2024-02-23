@@ -122,7 +122,7 @@ For changes adopted from GeographicLib, please refer the its change log [here](h
 ### Version 2.3.0 (unreleased)
 - **NEW**
   - Target .NET 7.0 and .NET 8.0.
-  - Add managed implementations and libc wrappers for exp2.
+  - Add managed implementation and libc wrapper for exp2.
   - Managed implementations and libc wrappers for log1p, expm1 and exp2 are now used for all versions of .NET, because the implementations provided by .NET runtime are just wrappers over `Math.Log` and `Math.Pow`.
 - **FIX**
   - [PolygonAreaExact seems to give incorrect results](https://github.com/noelex/GeographicLib.NET/issues/29).
