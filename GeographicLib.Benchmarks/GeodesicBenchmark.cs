@@ -1,14 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GeographicLib.Benchmarks
 {
-    [SimpleJob(RuntimeMoniker.Net60)]
+    [SimpleJob(RuntimeMoniker.Net80)]
+    [SimpleJob(RuntimeMoniker.Net70)]
+    [SimpleJob(RuntimeMoniker.Net60, baseline: true)]
     [SimpleJob(RuntimeMoniker.Net50)]
-    [SimpleJob(RuntimeMoniker.NetCoreApp31, baseline: true)]
+    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
     [SimpleJob(RuntimeMoniker.NetCoreApp21)]
     public class GeodesicBenchmark
     {
@@ -18,12 +17,12 @@ namespace GeographicLib.Benchmarks
 
         [Benchmark]
         public double Direct()
-            => Geodesic.WGS84.GenDirect(1, 2, 3, false, 4, 
+            => Geodesic.WGS84.GenDirect(1, 2, 3, false, 4,
                 GeodesicFlags.Standard, out _, out _, out _, out _, out _, out _, out _, out _);
 
         [Benchmark]
         public double Inverse()
-            => Geodesic.WGS84.GenInverse(1, 2, 3, 4, 
+            => Geodesic.WGS84.GenInverse(1, 2, 3, 4,
                 GeodesicFlags.Standard, out _, out _, out _, out _, out _, out _, out _);
     }
 }
