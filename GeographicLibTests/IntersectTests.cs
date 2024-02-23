@@ -81,6 +81,49 @@ namespace GeographicLib.Tests
         }
 
         [TestMethod]
+        public void TestNext()
+        {
+            var coord = new GeoCoords("50N 4W");
+            var aziX = DMS.DecodeAzimuth("147.7W");
+            var aziY = DMS.DecodeAzimuth("45");
+
+            var inter = new Intersect(Geodesic.WGS84);
+            var p = inter.Next(coord.Latitude, coord.Longitude, aziX, aziY, out var c);
+
+            Assert.AreEqual(-39901512.037, p.X, 1);
+            Assert.AreEqual(-117095.317, p.Y, 1);
+            Assert.AreEqual(0, c);
+        }
+
+        [DataTestMethod]
+        [DataRow(0, -40212385.966, -0.0, 0)]
+        [DataRow(-0.3, -21976861.924, 21975015.260, 0)]
+        [DataRow(0.3, -23840207.577, -11920024.164, 0)]
+        public void HiglyProlateOblateSphere(double f, double x, double y, double c)
+        {
+            var coord = new GeoCoords("50N 4W");
+            var aziX = DMS.DecodeAzimuth("147.7W");
+            var aziY = DMS.DecodeAzimuth("45");
+
+            var inter = new Intersect(new Geodesic(6.4e6, f));
+            var p = inter.Next(coord.Latitude, coord.Longitude, aziX, aziY, out var _c);
+
+            Assert.AreEqual(x, p.X, 1);
+            Assert.AreEqual(y, p.Y, 1);
+            Assert.AreEqual(c, _c);
+        }
+
+        [DataTestMethod]
+        [DataRow(-0.5)]
+        [DataRow(0.5)]
+        [ExpectedException(typeof(GeographicException))]
+        public void TooEccentric(double f)
+        {
+            new Intersect(new Geodesic(6.4e6, f));
+            Assert.Fail();
+        }
+
+        [TestMethod]
         public void Intersect1()
         {
             var (latX, lonX, aziX, latY, lonY, aziY) = Parse("50N 4W 147.7W 0 0 90");

@@ -1078,8 +1078,6 @@ namespace GeographicLib
             r.RemoveWhere(qp => !(qp.Dist(p0) <= maxdist));
             var rankPoint = p0.ToPoint() == Point.Zero ? s_defaultRankPoint : new RankPoint(p0);
             return r.OrderBy(x => x, rankPoint).ToArray();
-
-
         }
 
         private Point[] AllInternal(IGeodesicLine lineX, IGeodesicLine lineY,
