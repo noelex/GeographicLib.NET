@@ -22,12 +22,13 @@ Bellow is a list of implemented features.
  - [x] Coordinate conversions (`UTMUPS`, `Geocentric` and `LocalCartesian`)
  - [x] Coordinate parsing/formatting (`DMS` and `GeoCoords`)
  - [x] Geodesic (`Geodesic`, `GeodesicLine`, `GeodesicExact` and `GeodesicLineExact`)
+ - [x] Geodesic intersections (`Intersect`)
  - [x] Rhumb (`Rhumb` and `RhumbLine`)
  - [x] PolygonArea (`PolygonArea<T>`, `PolygonArea`, `PolygonAreaExact` and `PolygonAreaRhumb`)
  - [x] Geoid (`Geoid`)
  - [x] GravityModel (`GravityCircle`, `NormalGravity` and `GravityModel`)
  - [x] MagneticModel (`MagneticModel`, `MagneticCircle`)
- - [x] Auxilary classes (`MathEx`, `Ellipoid`, `EllipticFunction` and `SphericalHarmonic`)
+ - [x] Auxilary classes (`MathEx`, `Ellipoid`, `EllipticFunction`, `SphericalHarmonic`, `AuxAngle`, `AuxLatitude` and `DAuxLatitude`)
 
 `Geodesic` and `GeodesicExact` are tested with the [test set for geodesic](https://zenodo.org/record/32156#.YCFzsFBLQ_0).
 
@@ -57,8 +58,9 @@ GeographicLib uses several C mathematical functions that are not available in al
  - frexp
  - sincos (available since .NET 7.0, but not used due to [this issue](https://github.com/dotnet/runtime/issues/48776))
  - hypot (available since .NET 7.0, but not used due to [this issue](https://github.com/dotnet/runtime/issues/75651))
- - log1p (available since .NET 7.0)
- - expm1 (available since .NET 7.0)
+ - log1p (a naive implementation is available since .NET 7.0, not used by GeographicLib.NET)
+ - expm1 (a naive implementation is available since .NET 7.0, not used by GeographicLib.NET)
+ - exp2 (a naive implementation is available since .NET 7.0, not used by GeographicLib.NET)
  - log2 (available since .NET 5.0)
  - fma (available since .NET 5.0)
  - scalbn (available since .NET 5.0)
@@ -110,6 +112,14 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
+
+### Version 2.3.0 (unreleased)
+- **NEW**
+  - Target .NET 7.0 and .NET 8.0.
+  - Add managed implementations and libc wrappers for exp2.
+  - Managed implementations and libc wrappers for log1p, expm1 and exp2 are now used for all versions of .NET, because the implementations provided by .NET runtime are just wrappers over `Math.Log` and `Math.Pow`.
+- **FIX**
+  - [PolygonAreaExact seems to give incorrect results](https://github.com/noelex/GeographicLib.NET/issues/29).
 
 ### Version 2.1.2 (released 2023/01/17)
 - **FIX**
