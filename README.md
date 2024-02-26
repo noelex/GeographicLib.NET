@@ -52,6 +52,51 @@ You can install them using the following command:
 dotnet add package GeographicLib.NET --prerelease
 ```
 
+## Usage
+This section lists some common usage examples of GeographicLib.NET. For detailed documentation, please refer [GeographicLib's documentation](https://geographiclib.sourceforge.io/C++/doc/index.html).
+### Inverse calculation
+Distance from JFK to LHR.
+```csharp
+double
+  lat1 = 40.6, lon1 = -73.8, // JFK Airport
+  lat2 = 51.6, lon2 = -0.5;  // LHR Airport
+
+double arcLength = Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2, out double distance);
+```
+### Direct calculation
+The point 5500 km NE of JFK:
+```csharp
+double
+  lat1 = 40.6, lon1 = -73.8,
+  s12 = 5500e3, azi1 = 51;
+
+double arcLength = Geodesic.WGS84.Direct(lat1, lon1, azi1, s12, out double lat2, out double lon2);
+```
+### Geodesic intersection
+Find closest intersection of two geodesics:
+```csharp
+Geodesic geod = Geodesic.WGS84;
+Intersect inter = new Intersect(geod);
+IGeodesicLine
+    lineX = geod.Line(0, 0, 45),
+    lineY = geod.Line(45, 10, 135);
+
+// Find displacement to closest intersection.
+// Where point.X is the displacement from the starting point of lineX,
+// and point.Y is the displacement from the starting point of lineY.
+Point point = inter.Closest(lineX, lineY);
+
+// Get the position of the intersection point by using the displacement on lineX.
+lineX.Position(point.X, out double latx, out double lonx);
+
+// Get the position of the intersection point by using the displacement on lineY.
+lineY.Position(point.Y, out double laty, out double lony);
+
+// (latx, lonx) and (laty, lony) should be pointing to the same location.
+// Assert.AreEqual(latx, laty, 1e-12);
+// Assert.AreEqual(lonx, lony, 1e-12);
+```
+
 ## Mathematical Functions
 GeographicLib uses several C mathematical functions that are not available in all versions of .NET. These functions are:
  - remquo
@@ -108,10 +153,6 @@ Intel Xeon CPU E5-2689 0 2.60GHz, 1 CPU, 16 logical and 8 physical cores
 | Direct  | .NET Core 3.1 | .NET Core 3.1 | True            | 1,189.4 ns | 12.68 ns | 10.58 ns |  1.26 |    0.02 |
 
 Thus it's recommended to stick with managed C math until it becomes a performance bottleneck of your application, as it's more consistent as compared to native C math on different platforms.
-## Documentation
-GeographicLib.NET includes a detailed XML documentation for all public APIs.
-Since the API surface of GeographicLib.NET is highly compatible with GeographicLib,
-you can also refer the its documentation [here](https://geographiclib.sourceforge.io/html/index.html) for usage and detailed explanation.
 
 ## Change Log
 GeographicLib.NET adopts changes made in GeographicLib and aligns its version number with GeographicLib releases.

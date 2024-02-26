@@ -47,6 +47,23 @@ namespace GeographicLib.Tests
             }
         }
 
+        [TestMethod]
+        public void TestClosest()
+        {
+            Geodesic geod = Geodesic.WGS84;
+            Intersect inter = new Intersect(geod);
+            IGeodesicLine
+                lineX = geod.Line(0, 0, 45),
+                lineY = geod.Line(45, 10, 135);
+
+            Point point = inter.Closest(lineX, lineY);
+            lineX.Position(point.X, out double latx, out double lonx);
+            lineY.Position(point.Y, out double laty, out double lony);
+
+            Assert.AreEqual(latx, laty, 1e-12);
+            Assert.AreEqual(lonx, lony, 1e-12);
+        }
+
         [DataTestMethod]
         [DynamicData(nameof(EquatorialSegmentData), typeof(IntersectTests))]
         public void EquatorialSegments(
