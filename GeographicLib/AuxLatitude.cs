@@ -50,7 +50,7 @@ namespace GeographicLib
     /// simple that the exact method should be used for such conversions and also
     /// for conversions with with abs(<i>f</i>) &gt; 1/150.
     /// </remarks>
-    public class AuxLatitude
+    public class AuxLatitude : IEllipsoid
     {
         /// <summary>
         /// The order of the series expansions.  This is set at compile time to
@@ -379,6 +379,15 @@ namespace GeographicLib
                 throw new GeographicException("Polar semi-axis is not positive");
 
             _c.AsSpan().Fill(double.NaN);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuxLatitude"/> class
+        /// with the given <see cref="IEllipsoid"/> object. 
+        /// </summary>
+        /// <param name="ellipsoid">Source <see cref="IEllipsoid"/> object.</param>
+        public AuxLatitude(IEllipsoid ellipsoid) : this(ellipsoid.EquatorialRadius, ellipsoid.Flattening)
+        {
         }
 
         private AuxLatitude((double a, double b) axes)
