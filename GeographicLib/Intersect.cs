@@ -216,7 +216,7 @@ namespace GeographicLib
         /// <param name="latY">Latitude of starting point for geodesic <i>Y</i> (degrees).</param>
         /// <param name="lonY">Longitude of starting point for geodesic <i>Y</i> (degrees).</param>
         /// <param name="aziY">Azimuth of starting point for geodesic <i>Y</i> (degrees).</param>
-        /// <param name="p0">Offset for the starting points (meters).</param>
+        /// <param name="p0">Offset for the starting points (meters), defaults to <see cref="Point.Zero"/>.</param>
         /// <returns>
         /// <i>p</i>, the intersection point closest to <i>p0</i>.
         /// </returns>
@@ -226,7 +226,7 @@ namespace GeographicLib
         public unsafe Point Closest(
             double latX, double lonX, double aziX,
             double latY, double lonY, double aziY,
-            Point p0)
+            Point p0 = default)
         {
             return Closest(
                         _geod.Line(latX, lonX, aziX),
@@ -265,7 +265,7 @@ namespace GeographicLib
         /// </summary>
         /// <param name="lineX">Geodesic <i>X</i>.</param>
         /// <param name="lineY">Geodesic <i>Y</i></param>
-        /// <param name="p0">Offset for the starting points (meters).</param>
+        /// <param name="p0">Offset for the starting points (meters), defaults to <see cref="Point.Zero"/>.</param>
         /// <returns>
         /// <i>p</i>, the intersection point closest to <i>p0</i>.
         /// </returns>
@@ -276,7 +276,7 @@ namespace GeographicLib
         /// </remarks>
         public unsafe Point Closest(
                 IGeodesicLine lineX, IGeodesicLine lineY,
-                Point p0)
+                Point p0 = default)
         {
             return Closest(lineX, lineY, p0, null);
         }
