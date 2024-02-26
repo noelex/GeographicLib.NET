@@ -1,11 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib.Tests
 {
@@ -36,6 +32,58 @@ namespace GeographicLib.Tests
                 Assert.AreEqual("egm96", model.GravityModelName);
                 Assert.AreEqual(3986004.418e8, model.MassConstant);
                 Assert.AreEqual(7292115e-11, model.AngularVelocity);
+            }
+        }
+
+        [TestMethod]
+        public void Test_GravityCircle()
+        {
+            var model = new GravityModel("egm96",
+                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "gravity"));
+            {
+                var circle = model.Circle(0, 0, GravityFlags.All);
+
+                var (V, GX, GY, GZ) = circle.V(0);
+                Assert.IsFalse(double.IsNaN(V));
+                Assert.IsFalse(double.IsNaN(GX));
+                Assert.IsFalse(double.IsNaN(GY));
+                Assert.IsFalse(double.IsNaN(GZ));
+
+                var (T, dX, dY, dZ) = circle.Td(0);
+                Assert.IsFalse(double.IsNaN(T));
+                Assert.IsFalse(double.IsNaN(dX));
+                Assert.IsFalse(double.IsNaN(dY));
+                Assert.IsFalse(double.IsNaN(dZ));
+
+                var h = circle.GeoidHeight(0);
+                Assert.IsFalse(double.IsNaN(h));
+
+                var (Dg01, xi, eta) = circle.SphericalAnomaly(0);
+                Assert.IsFalse(double.IsNaN(Dg01));
+                Assert.IsFalse(double.IsNaN(xi));
+                Assert.IsFalse(double.IsNaN(eta));
+
+                circle = model.Circle(0, 0, GravityFlags.None);
+
+                (V, GX, GY, GZ) = circle.V(0);
+                Assert.IsTrue(double.IsNaN(V));
+                Assert.IsTrue(double.IsNaN(GX));
+                Assert.IsTrue(double.IsNaN(GY));
+                Assert.IsTrue(double.IsNaN(GZ));
+
+                (T, dX, dY, dZ) = circle.Td(0);
+                Assert.IsTrue(double.IsNaN(T));
+                Assert.IsTrue(double.IsNaN(dX));
+                Assert.IsTrue(double.IsNaN(dY));
+                Assert.IsTrue(double.IsNaN(dZ));
+
+                h = circle.GeoidHeight(0);
+                Assert.IsTrue(double.IsNaN(h));
+
+                (Dg01, xi, eta) = circle.SphericalAnomaly(0);
+                Assert.IsTrue(double.IsNaN(Dg01));
+                Assert.IsTrue(double.IsNaN(xi));
+                Assert.IsTrue(double.IsNaN(eta));
             }
         }
 

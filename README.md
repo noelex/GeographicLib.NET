@@ -28,7 +28,7 @@ Bellow is a list of implemented features.
  - [x] Geoid (`Geoid`)
  - [x] GravityModel (`GravityCircle`, `NormalGravity` and `GravityModel`)
  - [x] MagneticModel (`MagneticModel`, `MagneticCircle`)
- - [x] Auxilary classes (`MathEx`, `Ellipoid`, `EllipticFunction`, `SphericalHarmonic`, `AuxAngle`, `AuxLatitude` and `DAuxLatitude`)
+ - [x] Auxiliary classes (`MathEx`, `Ellipoid`, `EllipticFunction`, `SphericalHarmonic`, `AuxAngle`, `AuxLatitude` and `DAuxLatitude`)
 
 `Geodesic` and `GeodesicExact` are tested with the [test set for geodesic](https://zenodo.org/record/32156#.YCFzsFBLQ_0).
 

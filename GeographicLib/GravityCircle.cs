@@ -1,9 +1,5 @@
 ﻿using GeographicLib.SphericalHarmonics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using static GeographicLib.MathEx;
 
@@ -152,7 +148,7 @@ namespace GeographicLib
         /// </remarks>
         public double GeoidHeight(double lon)
         {
-            if (_caps.HasFlag(GravityFlags.GeoidHeight))
+            if (!_caps.HasFlag(GravityFlags.GeoidHeight))
                 return double.NaN;
 
             SinCosd(lon, out var slam, out var clam);
@@ -180,7 +176,7 @@ namespace GeographicLib
         /// </remarks>
         public (double Dg01, double xi, double eta) SphericalAnomaly(double lon)
         {
-            if (_caps.HasFlag(GravityFlags.SphericalAnomaly))
+            if (!_caps.HasFlag(GravityFlags.SphericalAnomaly))
             {
                 return (double.NaN, double.NaN, double.NaN);
             }
@@ -280,7 +276,7 @@ namespace GeographicLib
 
         private (double V, double GX, double GY, double GZ) V(double slam, double clam)
         {
-            if (_caps.HasFlag(GravityFlags.Gravity))
+            if (!_caps.HasFlag(GravityFlags.Gravity))
             {
                 return (double.NaN, double.NaN, double.NaN, double.NaN);
             }
@@ -301,14 +297,14 @@ namespace GeographicLib
             deltaX = deltaY = deltaZ = double.NaN;
             if (gradp)
             {
-                if (_caps.HasFlag(GravityFlags.Disturbance))
+                if (!_caps.HasFlag(GravityFlags.Disturbance))
                 {
                     return double.NaN;
                 }
             }
             else
             {
-                if (_caps.HasFlag(GravityFlags.DisturbingPotential))
+                if (!_caps.HasFlag(GravityFlags.DisturbingPotential))
                     return double.NaN;
             }
 
