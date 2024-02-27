@@ -5,11 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-
-using static System.Math;
-using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
+using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -105,9 +103,127 @@ namespace GeographicLib
         /// </para>
         /// </remarks>
         public GravityModel(string name, string path = "", int Nmax = -1, int Mmax = -1)
+            : this()
         {
+            bool truncate = Nmax >= 0 || Mmax >= 0;
+            if (truncate)
+            {
+                if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
+                if (Nmax < 0) Nmax = int.MaxValue;
+                if (Mmax < 0) Mmax = int.MaxValue;
+            }
+
             _name = name;
-            _dir = path;
+            _dir = string.IsNullOrEmpty(path) ? DefaultGravityPath : path;
+            _filename = _dir + "/" + name + ".egm";
+
+            using (var metadata = File.OpenRead(_filename))
+            {
+                ReadMetadata(_filename, metadata, ref _name, ref _description, ref _date, ref _amodel, ref _GMmodel,
+                    ref _zeta0, ref _corrmult, ref _norm, ref _id, ref _earth);
+            }
+
+            string coeff = _filename + ".cof";
+            using (var coeffstr = File.OpenRead(coeff))
+            {
+                ReadCoefficients(
+                    coeff, coeffstr, truncate, Nmax, Mmax,
+                    ref _gravitational,
+                    ref _correction,
+                    ref _disturbing,
+                    ref _nmx,
+                    ref _mmx,
+                    ref _dzonal0);
+            }
+        }
+
+        /// <summary>
+        /// Construct a gravity model form the given <paramref name="metadataStream"/> and <paramref name="coefficientsStream"/>.
+        /// </summary>
+        /// <param name="metadataStream">A <see cref="Stream"/> which contains the metadata of the gravity model.</param>
+        /// <param name="coefficientsStream">A <see cref="Stream"/> which contains the coefficients of the gravity model.</param>
+        /// <param name="Nmax">if non-negative, truncate the degree of the model this value.</param>
+        /// <param name="Mmax">if non-negative, truncate the order of the model this value.</param>
+        /// <param name="leaveOpen">
+        /// <see langword="true"/> to leave the streams open after the constructor returns; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <remarks>
+        /// <para>
+        /// If <paramref name="Nmax"/> ≥ 0 and <paramref name="Mmax"/> &lt; 0, then <paramref name="Mmax"/> is set to <paramref name="Nmax"/>.
+        /// After the model is loaded, the maximum degree and order of the model can be found by the <see cref="Degree"/> and <see cref="Order"/> methods.
+        /// </para>
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"></exception>
+        public GravityModel(Stream metadataStream, Stream coefficientsStream, int Nmax = -1, int Mmax = -1, bool leaveOpen = false)
+            : this()
+        {
+            if (metadataStream == null)
+            {
+                throw new ArgumentNullException(nameof(metadataStream));
+            }
+
+            if (coefficientsStream == null)
+            {
+                throw new ArgumentNullException(nameof(coefficientsStream));
+            }
+
+            bool truncate = Nmax >= 0 || Mmax >= 0;
+            if (truncate)
+            {
+                if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
+                if (Nmax < 0) Nmax = int.MaxValue;
+                if (Mmax < 0) Mmax = int.MaxValue;
+            }
+
+            _dir = null;
+            _filename = null;
+            _name = null;
+
+            try
+            {
+                ReadMetadata(null, metadataStream, ref _name, ref _description, ref _date, ref _amodel, ref _GMmodel,
+                    ref _zeta0, ref _corrmult, ref _norm, ref _id, ref _earth);
+
+                ReadCoefficients(
+                    null, coefficientsStream, truncate, Nmax, Mmax,
+                    ref _gravitational,
+                    ref _correction,
+                    ref _disturbing,
+                    ref _nmx,
+                    ref _mmx,
+                    ref _dzonal0);
+            }
+            finally
+            {
+                if (!leaveOpen)
+                {
+                    metadataStream.Dispose();
+                    coefficientsStream.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Construct a gravity model form the given <paramref name="metadataBytes"/> and <paramref name="coefficientsBytes"/>.
+        /// </summary>
+        /// <param name="metadataBytes">A <see cref="Byte"/> array which contains the metadata of the gravity model.</param>
+        /// <param name="coefficientsBytes">A <see cref="Byte"/> array which contains the coefficients of the gravity model.</param>
+        /// <param name="Nmax">if non-negative, truncate the degree of the model this value.</param>
+        /// <param name="Mmax">if non-negative, truncate the order of the model this value.</param>
+        /// <remarks>
+        /// <para>
+        /// If <paramref name="Nmax"/> ≥ 0 and <paramref name="Mmax"/> &lt; 0, then <paramref name="Mmax"/> is set to <paramref name="Nmax"/>.
+        /// After the model is loaded, the maximum degree and order of the model can be found by the <see cref="Degree"/> and <see cref="Order"/> methods.
+        /// </para>
+        /// </remarks>
+        public GravityModel(byte[] metadataBytes, byte[] coefficientsBytes, int Nmax = -1, int Mmax = -1)
+            : this(new MemoryStream(metadataBytes), new MemoryStream(coefficientsBytes), Nmax, Mmax, leaveOpen: false)
+        {
+
+        }
+
+        private GravityModel()
+        {
             _description = "NONE";
             _amodel = double.NaN;
             _GMmodel = double.NaN;
@@ -116,110 +232,6 @@ namespace GeographicLib
             _nmx = -1;
             _mmx = -1;
             _norm = Normalization.Full;
-
-            if (string.IsNullOrWhiteSpace(path))
-                _dir = DefaultGravityPath;
-            bool truncate = Nmax >= 0 || Mmax >= 0;
-            if (truncate)
-            {
-                if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
-                if (Nmax < 0) Nmax = int.MaxValue;
-                if (Mmax < 0) Mmax = int.MaxValue;
-            }
-            ReadMetadata(_name, ref _filename, ref _name, ref _description, ref _date, ref _amodel, ref _GMmodel,
-                ref _zeta0, ref _corrmult, ref _norm, ref _id, ref _earth);
-
-            double[] _Cx, _Sx;
-            string coeff = _filename + ".cof";
-            using (var coeffstr = File.OpenRead(coeff))
-            {
-                Span<byte> id = stackalloc byte[idlength_];
-                if (coeffstr.Read(id) != idlength_)
-                    throw new GeographicException("No header in " + coeff);
-                if (MemoryMarshal.Cast<char, byte>(_id.AsSpan()).SequenceEqual(id))
-                    throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
-                int N = 0, M = 0;
-                if (truncate) { N = Nmax; M = Mmax; }
-
-                var scoeff = SphericalEngine.Coeff.FromStream(coeffstr, ref N, ref M, truncate);
-                _Cx = new double[scoeff.Cnm.Length];
-                _Sx = new double[scoeff.Snm.Length];
-                scoeff.Cnm.CopyTo(_Cx);
-                scoeff.Snm.CopyTo(_Sx);
-
-                if (!(N >= 0 && M >= 0))
-                    throw new GeographicException("Degree and order must be at least 0");
-                if (_Cx[0] != 0)
-                    throw new GeographicException("The degree 0 term should be zero");
-
-                _Cx[0] = 1;               // Include the 1/r term in the sum
-                _gravitational = new SphericalHarmonic(_Cx, _Sx, N, N, M, _amodel, _norm);
-                if (truncate) { N = Nmax; M = Mmax; }
-
-
-                scoeff = SphericalEngine.Coeff.FromStream(coeffstr, ref N, ref M, truncate);
-                double[] _CC, _CS;
-                if (N < 0)
-                {
-                    N = M = 0;
-                    _CC = new[] { 0d };
-                }
-                else
-                {
-                    _CC = new double[scoeff.Cnm.Length];
-                    scoeff.Cnm.CopyTo(_CC);
-                }
-
-                _CS = new double[scoeff.Snm.Length];
-                scoeff.Snm.CopyTo(_CS);
-
-                _CC[0] += _zeta0 / _corrmult;
-                _correction = new SphericalHarmonic(_CC, _CS, N, N, M, 1, _norm);
-                var pos = (int)coeffstr.Position;
-                coeffstr.Seek(0, SeekOrigin.End);
-                if (pos != coeffstr.Position)
-                    throw new GeographicException("Extra data in " + coeff);
-
-            }
-            int nmx = _gravitational.Coefficients.Nmx;
-            _nmx = Max(nmx, _correction.Coefficients.Nmx);
-            _mmx = Max(_gravitational.Coefficients.Mmx,
-                       _correction.Coefficients.Mmx);
-            // Adjust the normalization of the normal potential to match the model.
-            var mult = _earth._GM / _GMmodel;
-            var amult = Sq(_earth._a / _amodel);
-            // The 0th term in _zonal should be is 1 + _dzonal0.  Instead set it to 1
-            // to give exact cancellation with the (0,0) term in the model and account
-            // for _dzonal0 separately.
-            var _zonal = new List<double> { 1 };
-            _dzonal0 = (_earth.MassConstant - _GMmodel) / _GMmodel;
-            for (int n = 2; n <= nmx; n += 2)
-            {
-                // Only include as many normal zonal terms as matter.  Figuring the limit
-                // in this way works because the coefficients of the normal potential
-                // (which is smooth) decay much more rapidly that the corresponding
-                // coefficient of the model potential (which is bumpy).  Typically this
-                // goes out to n = 18.
-                mult *= amult;
-                double
-                  r = _Cx[n],                                        // the model term
-                  s = -mult * _earth.Jn(n) / Sqrt(2 * n + 1), // the normal term
-                  t = r - s;                                         // the difference
-                if (t == r)               // the normal term is negligible
-                    break;
-                _zonal.Add(0);      // index = n - 1; the odd terms are 0
-                _zonal.Add(s);
-            }
-            int nmx1 = _zonal.Count - 1;
-            var za = _zonal.ToArray();
-            _disturbing = new SphericalHarmonic1(_Cx, _Sx,
-                                             _gravitational.Coefficients.N,
-                                             nmx, _gravitational.Coefficients.Mmx,
-                                             za,
-                                             za, // This is not accessed!
-                                             nmx1, nmx1, 0,
-                                             _amodel,
-                                             _norm);
         }
 
         /// <summary>
@@ -243,9 +255,9 @@ namespace GeographicLib
         {
             Span<double> M = stackalloc double[Geocentric.dim2_];
             var (X, Y, Z) = _earth.Earth.IntForward(lat, lon, h, M);
-            var (Wres, gx,gy,gz) = W(X, Y, Z);
+            var (Wres, gx, gy, gz) = W(X, Y, Z);
             Geocentric.Unrotate(M, gx, gy, gz, out gx, out gy, out gz);
-            return (Wres, gx, gy,gz);
+            return (Wres, gx, gy, gz);
         }
 
         /// <summary>
@@ -547,17 +559,30 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing full file name used to load the gravity model.
         /// </summary>
+        /// <remarks>
+        /// This property returns <see langword="null"/> if the <see cref="GravityModel"/> object
+        /// is constructed from <see cref="Stream"/> or <see cref="Byte"/> array.
+        /// </remarks>
         public string GravityFile => _filename;
 
         /// <summary>
         /// Gets a value representing "name" used to load the gravity model
         /// (from the first argument of the constructor, but this may be overridden by the model file).
         /// </summary>
+        /// <remarks>
+        /// This property returns <see langword="null"/> if the <see cref="GravityModel"/> object
+        /// is constructed from <see cref="Stream"/> or <see cref="Byte"/> array, and the model file doesn't
+        /// define <c>Name</c> attribute.
+        /// </remarks>
         public string GravityModelName => _name;
 
         /// <summary>
         /// Gets a value representing directory used to load the gravity model.
         /// </summary>
+        ///  <remarks>
+        /// This property returns <see langword="null"/> if the <see cref="GravityModel"/> object
+        /// is constructed from <see cref="Stream"/> or <see cref="Byte"/> array.
+        /// </remarks>
         public string GravityModelDirectory => _dir;
 
         /// <inheritdoc/>
@@ -614,20 +639,20 @@ namespace GeographicLib
         /// </remarks>
         public static string DefaultGravityName { get; } = Environment.GetEnvironmentVariable("GEOGRAPHICLIB_GRAVITY_NAME") ?? "egm96";
 
-        private void ReadMetadata(string name, ref string _filename, ref string _name, ref string _description,
+        private void ReadMetadata(string name, Stream stream, ref string _name, ref string _description,
             ref DateTime? _date, ref double _amodel, ref double _GMmodel, ref double _zeta0, ref double _corrmult,
             ref Normalization _norm, ref string _id, ref NormalGravity _earth)
         {
-            _filename = _dir + "/" + name + ".egm";
-            using (var metastr = File.OpenText(_filename))
+            name = name == null ? "metadata stream" : name;
+            using (var metastr = new StreamReader(stream, Encoding.UTF8, true, bufferSize: 1024, leaveOpen: true))
             {
                 var line = metastr.ReadLine();
                 if (!(line.Length >= 6 && line.StartsWith("EGMF-")))
-                    throw new GeographicException(_filename + " does not contain EGMF-n signature");
+                    throw new GeographicException(name + " does not contain EGMF-n signature");
 
                 var parts = line.TrimEnd().Split(new[] { "EGMF-" }, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 0 || parts[0] != "1")
-                    throw new GeographicException("Unknown version in " + _filename + ": " + parts[0]);
+                    throw new GeographicException("Unknown version in " + name + ": " + parts[0]);
                 double a = double.NaN, GM = a, omega = a, f = a, J2 = a;
                 while ((line = metastr.ReadLine()) != null)
                 {
@@ -696,6 +721,108 @@ namespace GeographicLib
                 _earth = new NormalGravity(a, GM, omega,
                                        IsFinite(f) ? f : J2, IsFinite(f));
             }
+        }
+
+        private void ReadCoefficients(
+            string name,
+            Stream coeffstr,
+            bool truncate, int Nmax, int Mmax,
+            ref SphericalHarmonic _gravitational,
+            ref SphericalHarmonic _correction,
+            ref SphericalHarmonic1 _disturbing,
+            ref int _nmx,
+            ref int _mmx,
+            ref double _dzonal0)
+        {
+            name = name == null ? "coefficients stream" : name;
+
+            double[] _Cx, _Sx;
+            Span<byte> id = stackalloc byte[idlength_];
+            if (coeffstr.Read(id) != idlength_)
+                throw new GeographicException("No header in " + name);
+            if (MemoryMarshal.Cast<char, byte>(_id.AsSpan()).SequenceEqual(id))
+                throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
+            int N = 0, M = 0;
+            if (truncate) { N = Nmax; M = Mmax; }
+
+            var scoeff = SphericalEngine.Coeff.FromStream(coeffstr, ref N, ref M, truncate);
+            _Cx = new double[scoeff.Cnm.Length];
+            _Sx = new double[scoeff.Snm.Length];
+            scoeff.Cnm.CopyTo(_Cx);
+            scoeff.Snm.CopyTo(_Sx);
+
+            if (!(N >= 0 && M >= 0))
+                throw new GeographicException("Degree and order must be at least 0");
+            if (_Cx[0] != 0)
+                throw new GeographicException("The degree 0 term should be zero");
+
+            _Cx[0] = 1;               // Include the 1/r term in the sum
+            _gravitational = new SphericalHarmonic(_Cx, _Sx, N, N, M, _amodel, _norm);
+            if (truncate) { N = Nmax; M = Mmax; }
+
+
+            scoeff = SphericalEngine.Coeff.FromStream(coeffstr, ref N, ref M, truncate);
+            double[] _CC, _CS;
+            if (N < 0)
+            {
+                N = M = 0;
+                _CC = new[] { 0d };
+            }
+            else
+            {
+                _CC = new double[scoeff.Cnm.Length];
+                scoeff.Cnm.CopyTo(_CC);
+            }
+
+            _CS = new double[scoeff.Snm.Length];
+            scoeff.Snm.CopyTo(_CS);
+
+            _CC[0] += _zeta0 / _corrmult;
+            _correction = new SphericalHarmonic(_CC, _CS, N, N, M, 1, _norm);
+            var pos = (int)coeffstr.Position;
+            coeffstr.Seek(0, SeekOrigin.End);
+            if (pos != coeffstr.Position)
+                throw new GeographicException("Extra data in " + name);
+
+            int nmx = _gravitational.Coefficients.Nmx;
+            _nmx = Max(nmx, _correction.Coefficients.Nmx);
+            _mmx = Max(_gravitational.Coefficients.Mmx,
+                       _correction.Coefficients.Mmx);
+            // Adjust the normalization of the normal potential to match the model.
+            var mult = _earth._GM / _GMmodel;
+            var amult = Sq(_earth._a / _amodel);
+            // The 0th term in _zonal should be is 1 + _dzonal0.  Instead set it to 1
+            // to give exact cancellation with the (0,0) term in the model and account
+            // for _dzonal0 separately.
+            var _zonal = new List<double> { 1 };
+            _dzonal0 = (_earth.MassConstant - _GMmodel) / _GMmodel;
+            for (int n = 2; n <= nmx; n += 2)
+            {
+                // Only include as many normal zonal terms as matter.  Figuring the limit
+                // in this way works because the coefficients of the normal potential
+                // (which is smooth) decay much more rapidly that the corresponding
+                // coefficient of the model potential (which is bumpy).  Typically this
+                // goes out to n = 18.
+                mult *= amult;
+                double
+                  r = _Cx[n],                                        // the model term
+                  s = -mult * _earth.Jn(n) / Sqrt(2 * n + 1), // the normal term
+                  t = r - s;                                         // the difference
+                if (t == r)               // the normal term is negligible
+                    break;
+                _zonal.Add(0);      // index = n - 1; the odd terms are 0
+                _zonal.Add(s);
+            }
+            int nmx1 = _zonal.Count - 1;
+            var za = _zonal.ToArray();
+            _disturbing = new SphericalHarmonic1(_Cx, _Sx,
+                                             _gravitational.Coefficients.N,
+                                             nmx, _gravitational.Coefficients.Mmx,
+                                             za,
+                                             za, // This is not accessed!
+                                             nmx1, nmx1, 0,
+                                             _amodel,
+                                             _norm);
         }
 
         private double InternalT(double X, double Y, double Z,

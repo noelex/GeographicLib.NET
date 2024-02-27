@@ -32,7 +32,84 @@ namespace GeographicLib.Tests
                 Assert.AreEqual("egm96", model.GravityModelName);
                 Assert.AreEqual(3986004.418e8, model.MassConstant);
                 Assert.AreEqual(7292115e-11, model.AngularVelocity);
+
+                Assert.IsNotNull(model.GravityFile);
+                Assert.IsNotNull(model.GravityModelDirectory);
             }
+        }
+
+        [TestMethod]
+        public void Test_LoadModelFromStream()
+        {
+            var metadataFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "gravity", "egm96.egm");
+            var coeffFile = metadataFile + ".cof";
+
+            var metadataStream = File.OpenRead(metadataFile);
+            var coeffStream = File.OpenRead(coeffFile);
+            var model = new GravityModel(metadataStream, coeffStream);
+
+            try
+            {
+                _ = metadataStream.Length;
+                Assert.Fail("Expects ObjectDisposedException to be thrown.");
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+
+            try
+            {
+                _ = coeffStream.Length;
+                Assert.Fail("Expects ObjectDisposedException to be thrown.");
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+
+            Assert.AreEqual("Earth Gravity Model 1996", model.Description);
+            Assert.AreEqual(DateTime.Parse("1997-01-01"), model.DateTime);
+            Assert.AreEqual("egm96", model.GravityModelName);
+            Assert.AreEqual(3986004.418e8, model.MassConstant);
+            Assert.AreEqual(7292115e-11, model.AngularVelocity);
+
+            Assert.IsNull(model.GravityFile);
+            Assert.IsNull(model.GravityModelDirectory);
+        }
+
+        [TestMethod]
+        public void Test_LoadModelFromStream_LeaveOpen()
+        {
+            var metadataFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "gravity", "egm96.egm");
+            var coeffFile = metadataFile + ".cof";
+
+            var metadataStream = File.OpenRead(metadataFile);
+            var coeffStream = File.OpenRead(coeffFile);
+            _ = new GravityModel(metadataStream, coeffStream, leaveOpen: true);
+
+            _ = metadataStream.Length;
+            _ = coeffStream.Length;
+        }
+
+        [TestMethod]
+        public void Test_LoadModelFromByteArray()
+        {
+            var metadataFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "gravity", "egm96.egm");
+            var coeffFile = metadataFile + ".cof";
+
+            var metadataBytes = File.ReadAllBytes(metadataFile);
+            var coeffBytes = File.ReadAllBytes(coeffFile);
+            var model = new GravityModel(metadataBytes, coeffBytes);
+
+            Assert.AreEqual("Earth Gravity Model 1996", model.Description);
+            Assert.AreEqual(DateTime.Parse("1997-01-01"), model.DateTime);
+            Assert.AreEqual("egm96", model.GravityModelName);
+            Assert.AreEqual(3986004.418e8, model.MassConstant);
+            Assert.AreEqual(7292115e-11, model.AngularVelocity);
+
+            Assert.IsNull(model.GravityFile);
+            Assert.IsNull(model.GravityModelDirectory);
         }
 
         [TestMethod]

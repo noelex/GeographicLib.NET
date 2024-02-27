@@ -153,10 +153,9 @@ namespace GeographicLib
                 if (Mmax < 0) Mmax = int.MaxValue;
             }
 
-            if (string.IsNullOrEmpty(path))
-                _dir = DefaultMagneticPath;
-            _dir = path;
+            _dir = string.IsNullOrEmpty(path) ? DefaultMagneticPath : path;
             _filename = _dir + "/" + name + ".wmm";
+            _name = name;
 
             using (var stream = File.OpenRead(_filename))
             {
@@ -196,6 +195,7 @@ namespace GeographicLib
         /// After the model is loaded, the maximum degree and order of the model can be found by the <see cref="Degree"/> and <see cref="Order"/> methods.
         /// </para>
         /// </remarks>
+        /// <exception cref="ArgumentNullException"/>
         public MagneticModel(
             Stream metadataStream,
             Stream coefficientsStream,
@@ -217,6 +217,7 @@ namespace GeographicLib
 
             _dir = null;
             _filename = null;
+            _name = null;
 
             bool truncate = Nmax >= 0 || Mmax >= 0;
             if (truncate)
@@ -741,6 +742,11 @@ namespace GeographicLib
         /// Gets a value representing the "name" used to load the magnetic model
         /// (from the first argument of the constructor, but this may be overridden by the model file).
         /// </summary>
+        /// <remarks>
+        /// This property returns <see langword="null"/> if the <see cref="MagneticModel"/> object
+        /// is constructed from <see cref="Stream"/> or <see cref="Byte"/> array, and the model file doesn't
+        /// define <c>Name</c> attribute.
+        /// </remarks>
         public string MagneticModelName => _name;
 
         /// <summary>
