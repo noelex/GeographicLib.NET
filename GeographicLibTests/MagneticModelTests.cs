@@ -1,11 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeographicLib.Tests
 {
@@ -38,6 +34,87 @@ namespace GeographicLib.Tests
             Assert.AreEqual(2025, model.MaxTime);
             Assert.AreEqual(-1000, model.MinHeight);
             Assert.AreEqual(850000, model.MaxHeight);
+
+            Assert.IsNotNull(model.MagneticFile);
+            Assert.IsNotNull(model.MagneticModelDirectory);
+        }
+
+        [TestMethod]
+        public void Test_LoadModelFromStream()
+        {
+            var metadataFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "magnetic", "wmm2020.wmm");
+            var coeffFile = metadataFile + ".cof";
+
+            var metadataStream = File.OpenRead(metadataFile);
+            var coeffStream = File.OpenRead(coeffFile);
+            var model = new MagneticModel(metadataStream, coeffStream);
+
+            try
+            {
+                _ = metadataStream.Length;
+                Assert.Fail("Expects ObjectDisposedException to be thrown.");
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+
+            try
+            {
+                _ = coeffStream.Length;
+                Assert.Fail("Expects ObjectDisposedException to be thrown.");
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+
+            Assert.AreEqual("World Magnetic Model 2020", model.Description);
+            Assert.AreEqual(DateTime.Parse("2019-12-10"), model.DateTime);
+            Assert.AreEqual("wmm2020", model.MagneticModelName);
+            Assert.AreEqual(2020, model.MinTime);
+            Assert.AreEqual(2025, model.MaxTime);
+            Assert.AreEqual(-1000, model.MinHeight);
+            Assert.AreEqual(850000, model.MaxHeight);
+
+            Assert.IsNull(model.MagneticFile);
+            Assert.IsNull(model.MagneticModelDirectory);
+        }
+
+        [TestMethod]
+        public void Test_LoadModelFromStream_LeaveOpen()
+        {
+            var metadataFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "magnetic", "wmm2020.wmm");
+            var coeffFile = metadataFile + ".cof";
+
+            var metadataStream = File.OpenRead(metadataFile);
+            var coeffStream = File.OpenRead(coeffFile);
+            _ = new MagneticModel(metadataStream, coeffStream, leaveOpen: true);
+
+            _ = metadataStream.Length;
+            _ = coeffStream.Length;
+        }
+
+        [TestMethod]
+        public void Test_LoadModelFromByteArray()
+        {
+            var metadataFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "magnetic", "wmm2020.wmm");
+            var coeffFile = metadataFile + ".cof";
+
+            var metadataBytes = File.ReadAllBytes(metadataFile);
+            var coeffBytes = File.ReadAllBytes(coeffFile);
+            var model = new MagneticModel(metadataBytes, coeffBytes);
+
+            Assert.AreEqual("World Magnetic Model 2020", model.Description);
+            Assert.AreEqual(DateTime.Parse("2019-12-10"), model.DateTime);
+            Assert.AreEqual("wmm2020", model.MagneticModelName);
+            Assert.AreEqual(2020, model.MinTime);
+            Assert.AreEqual(2025, model.MaxTime);
+            Assert.AreEqual(-1000, model.MinHeight);
+            Assert.AreEqual(850000, model.MaxHeight);
+
+            Assert.IsNull(model.MagneticFile);
+            Assert.IsNull(model.MagneticModelDirectory);
         }
 
         [TestMethod]

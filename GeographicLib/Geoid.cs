@@ -1,19 +1,15 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using static System.Math;
-using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
-using System.Buffers;
-using System.Runtime.InteropServices;
-using System.Globalization;
+using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -234,7 +230,7 @@ namespace GeographicLib
                 _file = File.OpenRead(_filename);
             }
 
-            using (var sr = new StreamReader(_file, Encoding.UTF8, true, bufferSize: 1, leaveOpen: true))
+            using (var sr = new StreamReader(_file, Encoding.UTF8, true, bufferSize: 1024, leaveOpen: true))
             {
                 var s = sr.ReadLine();
 

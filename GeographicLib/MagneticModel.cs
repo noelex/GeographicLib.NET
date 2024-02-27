@@ -1,13 +1,12 @@
-﻿using System;
+﻿using GeographicLib.SphericalHarmonics;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using GeographicLib.SphericalHarmonics;
-
-using static System.Math;
-using static GeographicLib.MathEx;
 using static GeographicLib.Macros;
+using static GeographicLib.MathEx;
+using static System.Math;
 
 namespace GeographicLib
 {
@@ -144,11 +143,148 @@ namespace GeographicLib
         /// </para>
         /// </remarks>
         public MagneticModel(string name, string path = "", Geocentric earth = null, int Nmax = -1, int Mmax = -1)
+            : this(earth)
         {
-            earth = earth ?? Geocentric.WGS84;
+            bool truncate = Nmax >= 0 || Mmax >= 0;
+            if (truncate)
+            {
+                if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
+                if (Nmax < 0) Nmax = int.MaxValue;
+                if (Mmax < 0) Mmax = int.MaxValue;
+            }
 
-            _name = name;
+            if (string.IsNullOrEmpty(path))
+                _dir = DefaultMagneticPath;
             _dir = path;
+            _filename = _dir + "/" + name + ".wmm";
+
+            using (var stream = File.OpenRead(_filename))
+            {
+                ReadMetadata(
+                    _filename,
+                    stream, ref _id, ref _name, ref _description, ref _date,
+                    ref _a, ref _t0, ref _dt0, ref _tmin, ref _tmax, ref _hmin, ref _hmax,
+                    ref _Nmodels, ref _Nconstants, ref _norm);
+            }
+
+            string coeff = _filename + ".cof";
+            using (var stream = File.OpenRead(coeff))
+            {
+                ReadCoefficients(coeff, stream, truncate, Nmax, Mmax, ref _nmx, ref _mmx);
+            }
+        }
+
+        /// <summary>
+        /// Construct a magnetic model from the given <paramref name="metadataStream"/> and <paramref name="coefficientsStream"/>.
+        /// </summary>
+        /// <param name="metadataStream">A <see cref="Stream"/> which contains the metadata of the magnetic model.</param>
+        /// <param name="coefficientsStream">A <see cref="Stream"/> which contains the coefficients of the magnetic model.</param>
+        /// <param name="earth">(optional) <see cref="Geocentric"/> object for converting coordinates; default <see cref="Geocentric.WGS84"/>.</param>
+        /// <param name="Nmax">(optional) if non-negative, truncate the degree of the model this value.</param>
+        /// <param name="Mmax">(optional) if non-negative, truncate the order of the model this value.</param>
+        /// <param name="leaveOpen">
+        /// <see langword="true"/> to leave the streams open after the constructor returns; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <remarks>
+        /// <para>
+        /// The model is not tied to a particular ellipsoidal model of the earth.
+        /// The final earth argument to the constructor specifies an ellipsoid to allow geodetic coordinates to the 
+        /// transformed into the spherical coordinates used in the spherical harmonic sum.
+        /// </para>
+        /// <para>
+        /// If <paramref name="Nmax"/> ≥ 0 and <paramref name="Mmax"/> &lt; 0, then <paramref name="Mmax"/> is set to <paramref name="Nmax"/>.
+        /// After the model is loaded, the maximum degree and order of the model can be found by the <see cref="Degree"/> and <see cref="Order"/> methods.
+        /// </para>
+        /// </remarks>
+        public MagneticModel(
+            Stream metadataStream,
+            Stream coefficientsStream,
+            Geocentric earth = null,
+            int Nmax = -1,
+            int Mmax = -1,
+            bool leaveOpen = false)
+            : this(earth)
+        {
+            if (metadataStream == null)
+            {
+                throw new ArgumentNullException(nameof(metadataStream));
+            }
+
+            if (coefficientsStream == null)
+            {
+                throw new ArgumentNullException(nameof(coefficientsStream));
+            }
+
+            _dir = null;
+            _filename = null;
+
+            bool truncate = Nmax >= 0 || Mmax >= 0;
+            if (truncate)
+            {
+                if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
+                if (Nmax < 0) Nmax = int.MaxValue;
+                if (Mmax < 0) Mmax = int.MaxValue;
+            }
+
+            try
+            {
+                ReadMetadata(
+                    null,
+                    metadataStream,
+                    ref _id, ref _name, ref _description, ref _date,
+                    ref _a, ref _t0, ref _dt0, ref _tmin, ref _tmax, ref _hmin, ref _hmax,
+                    ref _Nmodels, ref _Nconstants, ref _norm);
+
+                ReadCoefficients(
+                    null,
+                    coefficientsStream,
+                    truncate, Nmax, Mmax, ref _nmx, ref _mmx);
+            }
+            finally
+            {
+                if (!leaveOpen)
+                {
+                    metadataStream.Dispose();
+                    coefficientsStream.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Construct a magnetic model from the given <paramref name="metadataBytes"/> and <paramref name="coefficientsBytes"/>.
+        /// </summary>
+        /// <param name="metadataBytes">A <see cref="Byte"/> array which contains the metadata of the magnetic model.</param>
+        /// <param name="coefficientsBytes">A <see cref="Byte"/> array which contains the coefficients of the magnetic model.</param>
+        /// <param name="earth">(optional) <see cref="Geocentric"/> object for converting coordinates; default <see cref="Geocentric.WGS84"/>.</param>
+        /// <param name="Nmax">(optional) if non-negative, truncate the degree of the model this value.</param>
+        /// <param name="Mmax">(optional) if non-negative, truncate the order of the model this value.</param>
+        /// <remarks>
+        /// <para>
+        /// The model is not tied to a particular ellipsoidal model of the earth.
+        /// The final earth argument to the constructor specifies an ellipsoid to allow geodetic coordinates to the 
+        /// transformed into the spherical coordinates used in the spherical harmonic sum.
+        /// </para>
+        /// <para>
+        /// If <paramref name="Nmax"/> ≥ 0 and <paramref name="Mmax"/> &lt; 0, then <paramref name="Mmax"/> is set to <paramref name="Nmax"/>.
+        /// After the model is loaded, the maximum degree and order of the model can be found by the <see cref="Degree"/> and <see cref="Order"/> methods.
+        /// </para>
+        /// </remarks>
+        public MagneticModel(
+            byte[] metadataBytes,
+            byte[] coefficientsBytes,
+            Geocentric earth = null,
+            int Nmax = -1,
+            int Mmax = -1)
+            : this(
+                 new MemoryStream(metadataBytes),
+                 new MemoryStream(coefficientsBytes),
+                 earth, Nmax, Mmax, leaveOpen: false)
+        {
+
+        }
+
+        private MagneticModel(Geocentric earth)
+        {
             _description = "NONE";
             _t0 = double.NaN;
             _dt0 = 1;
@@ -162,70 +298,25 @@ namespace GeographicLib
             _nmx = -1;
             _mmx = -1;
             _norm = Normalization.Schmidt;
-            _earth = earth;
-
-            if (string.IsNullOrEmpty(path))
-                _dir = DefaultMagneticPath;
-            bool truncate = Nmax >= 0 || Mmax >= 0;
-            if (truncate)
-            {
-                if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
-                if (Nmax < 0) Nmax = int.MaxValue;
-                if (Mmax < 0) Mmax = int.MaxValue;
-            }
-
-            ReadMetadata(_name,
-                ref _filename, ref _id, ref _name, ref _description, ref _date,
-                ref _a, ref _t0, ref _dt0, ref _tmin, ref _tmax, ref _hmin, ref _hmax,
-                ref _Nmodels, ref _Nconstants, ref _norm);
-
-            string coeff = _filename + ".cof";
-            using (var stream = File.OpenRead(coeff))
-            {
-                Span<byte> id = stackalloc byte[idlength_];
-                if (stream.Read(id) != idlength_)
-                    throw new GeographicException("No header in " + coeff);
-                if (MemoryMarshal.Cast<char, byte>(_id.AsSpan()).SequenceEqual(id))
-                    throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
-
-                for (int i = 0; i < _Nmodels + 1 + _Nconstants; ++i)
-                {
-                    int N = 0, M = 0;
-                    if (truncate) { N = Nmax; M = Mmax; }
-
-                    var c = SphericalEngine.Coeff.FromStream(stream, ref N, ref M, truncate);
-
-                    if (!(M < 0 || c.Cv(0) == 0))
-                        throw new GeographicException("A degree 0 term is not permitted");
-
-                    var sh = new SphericalHarmonic(c, _a, _norm);
-
-                    _harm.Add(sh);
-                    _nmx = Max(_nmx, sh.Coefficients.Nmx);
-                    _mmx = Max(_mmx, sh.Coefficients.Mmx);
-                }
-
-                if (stream.Position != stream.Length)
-                    throw new GeographicException("Extra data in " + coeff);
-            }
+            _earth = earth ?? Geocentric.WGS84;
         }
 
-        private void ReadMetadata(string name,
-            ref string _filename, ref string _id, ref string _name, ref string _description, ref DateTime? _date,
+        private void ReadMetadata(
+            string name,
+            Stream metadataStream, ref string _id, ref string _name, ref string _description, ref DateTime? _date,
             ref double _a, ref double _t0, ref double _dt0, ref double _tmin, ref double _tmax,
             ref double _hmin, ref double _hmax, ref int _Nmodels, ref int _Nconstants, ref Normalization _norm)
         {
-            _filename = _dir + "/" + name + ".wmm";
-
-            using (var metastr = File.OpenText(_filename))
+            name = name == null ? "metadata stream" : name;
+            using (var metastr = new StreamReader(metadataStream, Encoding.UTF8, true, bufferSize: 1024, leaveOpen: true))
             {
                 var line = metastr.ReadLine();
                 if (!(line.Length >= 6 && line.StartsWith("WMMF-")))
-                    throw new GeographicException(_filename + " does not contain WMMF-n signature");
+                    throw new GeographicException(name + " does not contain WMMF-n signature");
 
                 var parts = line.TrimEnd().Split(new[] { "WMMF-" }, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 0 || (parts[0] != "1" && parts[0] != "2"))
-                    throw new GeographicException("Unknown version in " + _filename + ": " + parts[0]);
+                    throw new GeographicException("Unknown version in " + name + ": " + parts[0]);
 
                 while ((line = metastr.ReadLine()) != null)
                 {
@@ -304,6 +395,44 @@ namespace GeographicLib
                         _dt0 = 1;
                 }
             }
+        }
+
+        private void ReadCoefficients(
+            string name,
+            Stream coefficientsStream,
+            bool truncate,
+            int Nmax,
+            int Mmax,
+            ref int _nmx,
+            ref int _mmx)
+        {
+            name = name == null ? "coefficients stream" : name;
+
+            Span<byte> id = stackalloc byte[idlength_];
+            if (coefficientsStream.Read(id) != idlength_)
+                throw new GeographicException("No header in " + name);
+            if (MemoryMarshal.Cast<char, byte>(_id.AsSpan()).SequenceEqual(id))
+                throw new GeographicException($"ID mismatch: {_id} vs {Encoding.ASCII.GetString(id.ToArray())}");
+
+            for (int i = 0; i < _Nmodels + 1 + _Nconstants; ++i)
+            {
+                int N = 0, M = 0;
+                if (truncate) { N = Nmax; M = Mmax; }
+
+                var c = SphericalEngine.Coeff.FromStream(coefficientsStream, ref N, ref M, truncate);
+
+                if (!(M < 0 || c.Cv(0) == 0))
+                    throw new GeographicException("A degree 0 term is not permitted");
+
+                var sh = new SphericalHarmonic(c, _a, _norm);
+
+                _harm.Add(sh);
+                _nmx = Max(_nmx, sh.Coefficients.Nmx);
+                _mmx = Max(_mmx, sh.Coefficients.Mmx);
+            }
+
+            if (coefficientsStream.Position != coefficientsStream.Length)
+                throw new GeographicException("Extra data in " + name);
         }
 
         private (double Bx, double By, double Bz) Field(double t, double lat, double lon, double h, bool diffp,
@@ -602,6 +731,10 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the full file name used to load the magnetic model.
         /// </summary>
+        /// <remarks>
+        /// This property returns <see langword="null"/> if the <see cref="MagneticModel"/> object
+        /// is constructed from <see cref="Stream"/> or <see cref="Byte"/> array.
+        /// </remarks>
         public string MagneticFile => _filename;
 
         /// <summary>
@@ -613,6 +746,10 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the directory used to load the magnetic model.
         /// </summary>
+        /// <remarks>
+        /// This property returns <see langword="null"/> if the <see cref="MagneticModel"/> object
+        /// is constructed from <see cref="Stream"/> or <see cref="Byte"/> array.
+        /// </remarks>
         public string MagneticModelDirectory => _dir;
     }
 }
