@@ -23,6 +23,7 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
 		<PublicSign>True</PublicSign>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0' or '$(TargetFramework)'=='net8.0'">
