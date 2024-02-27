@@ -160,6 +160,14 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
+### Version 2.3.1 (unreleased)
+- **NEW**
+  - Allow constructing `MagneticModel` and `GravityModel` from `Stream` and byte array. ([#30](https://github.com/noelex/GeographicLib.NET/issues/30))
+  - `AuxLatitude` now implements `IEllipsoid` interface.
+  - Parameter `p0` of `Intersect.Closest()` now defaults to `Point.Zero`.
+- **FIX**
+  - Fixed wrong `GravityFlags` handling in `GravityCircle` class.
+
 ### Version 2.3.0 (released 2024/02/23)
 - **NEW**
   - Target .NET 7.0 and .NET 8.0.
