@@ -1700,16 +1700,31 @@ namespace GeographicLib
                                      out double S12)
         {
             if (_exact)
+            {
                 return _geodexact.GenDirect(lat1, lon1, azi1, arcmode, s12_a12, outmask,
                                             out lat2, out lon2, out azi2,
                                              out s12, out m12, out M12, out M21, out S12);
+            }
+            else
+            {
+                return GenDirectPriv(lat1, lon1, azi1, arcmode, s12_a12, outmask,
+                                            out lat2, out lon2, out azi2,
+                                             out s12, out m12, out M12, out M21, out S12);
+            }
+        }
 
+        private double GenDirectPriv(double lat1, double lon1, double azi1,
+                                     bool arcmode, double s12_a12, GeodesicFlags outmask,
+                                     out double lat2, out double lon2, out double azi2,
+                                     out double s12, out double m12, out double M12, out double M21,
+                                     out double S12)
+        {
             // Automatically supply DISTANCE_IN if necessary
             if (!arcmode) outmask |= GeodesicFlags.DistanceIn;
 
-            return new GeodesicLine(this, lat1, lon1, azi1, outmask)
-              .                         // Note the dot!
-              GenPosition(arcmode, s12_a12, outmask,
+            var line = new GeodesicLine.Priv();
+            line.Init(this, lat1, lon1, azi1, outmask);
+            return line.GenPosition(arcmode, s12_a12, outmask,
                           out lat2, out lon2, out azi2, out s12, out m12, out M12, out M21, out S12);
         }
 

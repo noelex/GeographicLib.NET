@@ -1,6 +1,4 @@
-﻿using System;
-using static GeographicLib.MathEx;
-using static System.Math;
+﻿using static GeographicLib.MathEx;
 
 namespace GeographicLib
 {
@@ -53,32 +51,9 @@ namespace GeographicLib
     /// For more information on geodesics see <a href="https://geographiclib.sourceforge.io/html/geodesic.html">Geodesics on an ellipsoid of revolution</a>.
     /// </para>
     /// </remarks>
-    public class GeodesicLine : GeodesicLineBase
+    public partial class GeodesicLine : GeodesicLineBase
     {
-        private const int nC1_ = Geodesic.nC1_;
-        private const int nC1p_ = Geodesic.nC1p_;
-        private const int nC2_ = Geodesic.nC2_;
-        private const int nC3_ = Geodesic.nC3_;
-        private const int nC4_ = Geodesic.nC4_;
-
-        private readonly bool _exact;
-        private readonly double tiny_;
-        private readonly double _lat1, _lon1, _azi1;
-        private readonly double _a, _f, _b, _c2, _f1, _salp0, _calp0, _k2,
-          _salp1, _calp1, _ssig1, _csig1, _dn1, _stau1, _ctau1, _somg1, _comg1,
-          _A1m1, _A2m1, _A3c, _B11, _B21, _B31, _A4, _B41;
-
-        private double _a13, _s13;
-
-        // index zero elements of _C1a, _C1pa, _C2a, _C3a are unused
-        private readonly Memory<double>
-            _C1a = new double[nC1_ + 1],
-            _C1pa = new double[nC1p_ + 1],
-            _C2a = new double[nC2_ + 1],
-            _C3a = new double[nC3_],
-            _C4a = new double[nC4_];    // all the elements of _C4a are used
-
-        private readonly GeodesicFlags _caps;
+        private Priv _priv;
         private readonly GeodesicLineExact _lineexact;
 
         internal GeodesicLine(Geodesic g,
@@ -86,11 +61,15 @@ namespace GeographicLib
                  double azi1, double salp1, double calp1,
                  GeodesicFlags caps, bool arcmode, double s13_a13)
         {
-            LineInit(g, lat1, lon1, azi1, salp1, calp1, caps,
-                ref tiny_, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1, ref _a, ref _f, ref _b, ref _c2, ref _f1,
-                ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _somg1, ref _csig1, ref _comg1, ref _k2, ref _A1m1, ref _B11,
-                ref _stau1, ref _ctau1, ref _A2m1, ref _B21, ref _A3c, ref _B31, ref _A4, ref _B41, ref _caps, ref _exact, ref _lineexact);
-            SetDistance(arcmode, s13_a13);
+            if (g.IsExact)
+            {
+                _lineexact = new GeodesicLineExact(g.GeodesicExact, lat1, lon1, azi1, salp1, calp1, caps, arcmode, s13_a13);
+            }
+            else
+            {
+                _priv.Init(g, lat1, lon1, azi1, salp1, calp1, caps);
+                SetDistance(arcmode, s13_a13);
+            }
         }
 
         /// <summary>
@@ -133,375 +112,108 @@ namespace GeographicLib
         public GeodesicLine(Geodesic g, double lat1, double lon1, double azi1,
                  GeodesicFlags caps = GeodesicFlags.All)
         {
-            azi1 = AngNormalize(azi1);
-
-            // Guard against underflow in salp0.  Also -0 is converted to +0.
-            SinCosd(AngRound(azi1), out var salp1, out var calp1);
-            LineInit(g, lat1, lon1, azi1, salp1, calp1, caps,
-                ref tiny_, ref _lat1, ref _lon1, ref _azi1, ref _salp1, ref _calp1, ref _a, ref _f, ref _b, ref _c2, ref _f1,
-                ref _dn1, ref _salp0, ref _calp0, ref _ssig1, ref _somg1, ref _csig1, ref _comg1, ref _k2, ref _A1m1, ref _B11,
-                ref _stau1, ref _ctau1, ref _A2m1, ref _B21, ref _A3c, ref _B31, ref _A4, ref _B41, ref _caps, ref _exact, ref _lineexact);
-        }
-
-        private void LineInit(Geodesic g,
-                  double lat1, double lon1,
-                  double azi1, double salp1, double calp1,
-                  GeodesicFlags caps,
-                  ref double tiny_, ref double _lat1, ref double _lon1, ref double _azi1, ref double _salp1, ref double _calp1,
-                  ref double _a, ref double _f, ref double _b, ref double _c2, ref double _f1, ref double _dn1, ref double _salp0,
-                  ref double _calp0, ref double _ssig1, ref double _somg1, ref double _csig1, ref double _comg1, ref double _k2,
-                  ref double _A1m1, ref double _B11, ref double _stau1, ref double _ctau1, ref double _A2m1, ref double _B21,
-                  ref double _A3c, ref double _B31, ref double _A4, ref double _B41, ref GeodesicFlags _caps, ref bool exact,
-                  ref GeodesicLineExact geodesicLineExact)
-        {
-            tiny_ = g.tiny_;
-            _lat1 = LatFix(lat1);
-            _lon1 = lon1;
-            _azi1 = azi1;
-            _salp1 = salp1;
-            _calp1 = calp1;
-            _a = g._a;
-            _f = g._f;
-            _b = g._b;
-            _c2 = g._c2;
-            _f1 = g._f1;
-
-            // Always allow latitude and azimuth and unrolling of longitude
-            _caps = caps | GeodesicFlags.Latitude | GeodesicFlags.Azimuth | GeodesicFlags.LongUnroll;
-
-            SinCosd(AngRound(_lat1), out var sbet1, out var cbet1);
-            sbet1 *= _f1;
-
-            // Ensure cbet1 = +epsilon at poles
-            Norm(ref sbet1, ref cbet1);
-            cbet1 = Max(tiny_, cbet1);
-            _dn1 = Sqrt(1 + g._ep2 * Sq(sbet1));
-
-            // Evaluate alp0 from sin(alp1) * cos(bet1) = sin(alp0),
-            _salp0 = _salp1 * cbet1; // alp0 in [0, pi/2 - |bet1|]
-                                     // Alt: calp0 = hypot(sbet1, calp1 * cbet1).  The following
-                                     // is slightly better (consider the case salp1 = 0).
-            _calp0 = Hypot(_calp1, _salp1 * sbet1);
-            // Evaluate sig with tan(bet1) = tan(sig1) * cos(alp1).
-            // sig = 0 is nearest northward crossing of equator.
-            // With bet1 = 0, alp1 = pi/2, we have sig1 = 0 (equatorial line).
-            // With bet1 =  pi/2, alp1 = -pi, sig1 =  pi/2
-            // With bet1 = -pi/2, alp1 =  0 , sig1 = -pi/2
-            // Evaluate omg1 with tan(omg1) = sin(alp0) * tan(sig1).
-            // With alp0 in (0, pi/2], quadrants for sig and omg coincide.
-            // No atan2(0,0) ambiguity at poles since cbet1 = +epsilon.
-            // With alp0 = 0, omg1 = 0 for alp1 = 0, omg1 = pi for alp1 = pi.
-            _ssig1 = sbet1; _somg1 = _salp0 * sbet1;
-            _csig1 = _comg1 = sbet1 != 0 || _calp1 != 0 ? cbet1 * _calp1 : 1;
-            Norm(ref _ssig1, ref _csig1); // sig1 in (-pi, pi]
-                                          // Math::norm(_somg1, _comg1); -- don't need to normalize!
-
-            exact = g.IsExact;
-            if (_exact)
+            if (g.IsExact)
             {
-                geodesicLineExact = new GeodesicLineExact(g.GeodesicExact, lat1, lon1, azi1, salp1, calp1, caps);
-                return;
-            }
-
-            _k2 = Sq(_calp0) * g._ep2;
-            var eps = _k2 / (2 * (1 + Sqrt(1 + _k2)) + _k2);
-
-            if (_caps.Capabilities().HasFlag(GeodesicCapability.C1))
-            {
-                _A1m1 = Geodesic.A1m1f(eps);
-                Geodesic.C1f(eps, _C1a.Span);
-                _B11 = Geodesic.SinCosSeries(true, _ssig1, _csig1, _C1a.Span, nC1_);
-                double s = Sin(_B11), c = Cos(_B11);
-                // tau1 = sig1 + B11
-                _stau1 = _ssig1 * c + _csig1 * s;
-                _ctau1 = _csig1 * c - _ssig1 * s;
-                // Not necessary because C1pa reverts C1a
-                //    _B11 = -SinCosSeries(true, _stau1, _ctau1, _C1pa, nC1p_);
-            }
-
-            if (_caps.Capabilities().HasFlag(GeodesicCapability.C1p))
-                Geodesic.C1pf(eps, _C1pa.Span);
-
-            if (_caps.Capabilities().HasFlag(GeodesicCapability.C2))
-            {
-                _A2m1 = Geodesic.A2m1f(eps);
-                Geodesic.C2f(eps, _C2a.Span);
-                _B21 = Geodesic.SinCosSeries(true, _ssig1, _csig1, _C2a.Span, nC2_);
-            }
-
-            if (_caps.Capabilities().HasFlag(GeodesicCapability.C3))
-            {
-                g.C3f(eps, _C3a.Span);
-                _A3c = -_f * _salp0 * g.A3f(eps);
-                _B31 = Geodesic.SinCosSeries(true, _ssig1, _csig1, _C3a.Span, nC3_ - 1);
-            }
-
-            if (_caps.Capabilities().HasFlag(GeodesicCapability.C4))
-            {
-                g.C4f(eps, _C4a.Span);
-                // Multiplier = a^2 * e^2 * cos(alpha0) * sin(alpha0)
-                _A4 = Sq(_a) * _calp0 * _salp0 * g._e2;
-                _B41 = Geodesic.SinCosSeries(false, _ssig1, _csig1, _C4a.Span, nC4_);
-            }
-
-            _a13 = _s13 = double.NaN;
-        }
-
-        /// <inheritdoc/>
-        public override double GenPosition(bool arcmode, double s12_a12, GeodesicFlags outmask,
-                           out double lat2, out double lon2, out double azi2,
-                           out double s12, out double m12, out double M12, out double M21,
-                           out double S12)
-        {
-            if (_exact)
-                return _lineexact.GenPosition(arcmode, s12_a12, outmask,
-                                              out lat2, out lon2, out azi2,
-                                              out s12, out m12, out M12, out M21, out S12);
-
-            lat2 = lon2 = azi2 = s12 = m12 = M12 = M21 = S12 = double.NaN;
-            outmask &= _caps & (GeodesicFlags)GeodesicCapability.OutMask;
-            if (!(arcmode || _caps.HasAny(GeodesicFlags.DistanceIn)))
-                // Uninitialized or impossible distance calculation requested
-                return double.NaN;
-
-            // Avoid warning about uninitialized B12.
-            double sig12, ssig12, csig12, B12 = 0, AB1 = 0;
-            if (arcmode)
-            {
-                // Interpret s12_a12 as spherical arc length
-                sig12 = s12_a12 * Degree;
-                SinCosd(s12_a12, out ssig12, out csig12);
+                _lineexact = new GeodesicLineExact(g.GeodesicExact, lat1, lon1, azi1, caps);
             }
             else
             {
-                // Interpret s12_a12 as distance
-                double
-                  tau12 = s12_a12 / (_b * (1 + _A1m1)),
-                  s = Sin(tau12),
-                  c = Cos(tau12);
-                // tau2 = tau1 + tau12
-                B12 = -Geodesic.SinCosSeries(true,
-                                               _stau1 * c + _ctau1 * s,
-                                               _ctau1 * c - _stau1 * s,
-                                               _C1pa.Span, nC1p_);
-                sig12 = tau12 - (B12 - _B11);
-                ssig12 = Sin(sig12); csig12 = Cos(sig12);
-                if (Abs(_f) > 0.01)
-                {
-                    // Reverted distance series is inaccurate for |f| > 1/100, so correct
-                    // sig12 with 1 Newton iteration.  The following table shows the
-                    // approximate maximum error for a = WGS_a() and various f relative to
-                    // GeodesicExact.
-                    //     erri = the error in the inverse solution (nm)
-                    //     errd = the error in the direct solution (series only) (nm)
-                    //     errda = the error in the direct solution
-                    //             (series + 1 Newton) (nm)
-                    //
-                    //       f     erri  errd errda
-                    //     -1/5    12e6 1.2e9  69e6
-                    //     -1/10  123e3  12e6 765e3
-                    //     -1/20   1110 108e3  7155
-                    //     -1/50  18.63 200.9 27.12
-                    //     -1/100 18.63 23.78 23.37
-                    //     -1/150 18.63 21.05 20.26
-                    //      1/150 22.35 24.73 25.83
-                    //      1/100 22.35 25.03 25.31
-                    //      1/50  29.80 231.9 30.44
-                    //      1/20   5376 146e3  10e3
-                    //      1/10  829e3  22e6 1.5e6
-                    //      1/5   157e6 3.8e9 280e6
-                    double
-                      ssig2_ = _ssig1 * csig12 + _csig1 * ssig12,
-                      csig2_ = _csig1 * csig12 - _ssig1 * ssig12;
-                    B12 = Geodesic.SinCosSeries(true, ssig2_, csig2_, _C1a.Span, nC1_);
-                    double serr = (1 + _A1m1) * (sig12 + (B12 - _B11)) - s12_a12 / _b;
-                    sig12 = sig12 - serr / Sqrt(1 + _k2 * Sq(ssig2_));
-                    ssig12 = Sin(sig12); csig12 = Cos(sig12);
-                    // Update B12 below
-                }
+                _priv.Init(g, lat1, lon1, azi1, caps);
             }
-
-            double ssig2, csig2, sbet2, cbet2, salp2, calp2;
-            // sig2 = sig1 + sig12
-            ssig2 = _ssig1 * csig12 + _csig1 * ssig12;
-            csig2 = _csig1 * csig12 - _ssig1 * ssig12;
-            var dn2 = Sqrt(1 + _k2 * Sq(ssig2));
-            if (outmask.HasAny(GeodesicFlags.Distance | GeodesicFlags.ReducedLength | GeodesicFlags.GeodesicScale))
-            {
-                if (arcmode || Abs(_f) > 0.01)
-                    B12 = Geodesic.SinCosSeries(true, ssig2, csig2, _C1a.Span, nC1_);
-                AB1 = (1 + _A1m1) * (B12 - _B11);
-            }
-            // sin(bet2) = cos(alp0) * sin(sig2)
-            sbet2 = _calp0 * ssig2;
-            // Alt: cbet2 = hypot(csig2, salp0 * ssig2);
-            cbet2 = Hypot(_salp0, _calp0 * csig2);
-            if (cbet2 == 0)
-                // I.e., salp0 = 0, csig2 = 0.  Break the degeneracy in this case
-                cbet2 = csig2 = tiny_;
-            // tan(alp0) = cos(sig2)*tan(alp2)
-            salp2 = _salp0; calp2 = _calp0 * csig2; // No need to normalize
-
-            if (outmask.HasAny(GeodesicFlags.Distance))
-                s12 = arcmode ? _b * ((1 + _A1m1) * sig12 + AB1) : s12_a12;
-
-            if (outmask.HasAny(GeodesicFlags.Longitude))
-            {
-                // tan(omg2) = sin(alp0) * tan(sig2)
-                double somg2 = _salp0 * ssig2, comg2 = csig2,  // No need to normalize
-                  E = CopySign(1, _salp0);       // east-going?
-                                                 // omg12 = omg2 - omg1
-                var omg12 = outmask.HasAny(GeodesicFlags.LongUnroll)
-                  ? E * (sig12
-                         - (Atan2(ssig2, csig2) - Atan2(_ssig1, _csig1))
-                         + (Atan2(E * somg2, comg2) - Atan2(E * _somg1, _comg1)))
-                  : Atan2(somg2 * _comg1 - comg2 * _somg1,
-                          comg2 * _comg1 + somg2 * _somg1);
-                var lam12 = omg12 + _A3c *
-                  (sig12 + (Geodesic.SinCosSeries(true, ssig2, csig2, _C3a.Span, nC3_ - 1)
-                             - _B31));
-                var lon12 = lam12 / Degree;
-                lon2 = outmask.HasAny(GeodesicFlags.LongUnroll) ? _lon1 + lon12 :
-                  AngNormalize(AngNormalize(_lon1) + AngNormalize(lon12));
-            }
-
-            if (outmask.HasAny(GeodesicFlags.Latitude))
-                lat2 = Atan2d(sbet2, _f1 * cbet2);
-
-            if (outmask.HasAny(GeodesicFlags.Azimuth))
-                azi2 = Atan2d(salp2, calp2);
-
-            if (outmask.HasAny(GeodesicFlags.ReducedLength | GeodesicFlags.GeodesicScale))
-            {
-                double
-                  B22 = Geodesic.SinCosSeries(true, ssig2, csig2, _C2a.Span, nC2_),
-                  AB2 = (1 + _A2m1) * (B22 - _B21),
-                  J12 = (_A1m1 - _A2m1) * sig12 + (AB1 - AB2);
-                if (outmask.HasAny(GeodesicFlags.ReducedLength))
-                    // Add parens around (_csig1 * ssig2) and (_ssig1 * csig2) to ensure
-                    // accurate cancellation in the case of coincident points.
-                    m12 = _b * ((dn2 * (_csig1 * ssig2) - _dn1 * (_ssig1 * csig2))
-                                - _csig1 * csig2 * J12);
-                if (outmask.HasAny(GeodesicFlags.GeodesicScale))
-                {
-                    var t = _k2 * (ssig2 - _ssig1) * (ssig2 + _ssig1) / (_dn1 + dn2);
-                    M12 = csig12 + (t * ssig2 - csig2 * J12) * _ssig1 / _dn1;
-                    M21 = csig12 - (t * _ssig1 - _csig1 * J12) * ssig2 / dn2;
-                }
-            }
-
-            if (outmask.HasAny(GeodesicFlags.Area))
-            {
-                var
-                  B42 = Geodesic.SinCosSeries(false, ssig2, csig2, _C4a.Span, nC4_);
-                double salp12, calp12;
-                if (_calp0 == 0 || _salp0 == 0)
-                {
-                    // alp12 = alp2 - alp1, used in atan2 so no need to normalize
-                    salp12 = salp2 * _calp1 - calp2 * _salp1;
-                    calp12 = calp2 * _calp1 + salp2 * _salp1;
-                    // We used to include here some patch up code that purported to deal
-                    // with nearly meridional geodesics properly.  However, this turned out
-                    // to be wrong once _salp1 = -0 was allowed (via
-                    // Geodesic::InverseLine).  In fact, the calculation of {s,c}alp12
-                    // was already correct (following the IEEE rules for handling signed
-                    // zeros).  So the patch up code was unnecessary (as well as
-                    // dangerous).
-                }
-                else
-                {
-                    // tan(alp) = tan(alp0) * sec(sig)
-                    // tan(alp2-alp1) = (tan(alp2) -tan(alp1)) / (tan(alp2)*tan(alp1)+1)
-                    // = calp0 * salp0 * (csig1-csig2) / (salp0^2 + calp0^2 * csig1*csig2)
-                    // If csig12 > 0, write
-                    //   csig1 - csig2 = ssig12 * (csig1 * ssig12 / (1 + csig12) + ssig1)
-                    // else
-                    //   csig1 - csig2 = csig1 * (1 - csig12) + ssig12 * ssig1
-                    // No need to normalize
-                    salp12 = _calp0 * _salp0 *
-                      (csig12 <= 0 ? _csig1 * (1 - csig12) + ssig12 * _ssig1 :
-                       ssig12 * (_csig1 * ssig12 / (1 + csig12) + _ssig1));
-                    calp12 = Sq(_salp0) + Sq(_calp0) * _csig1 * csig2;
-                }
-                S12 = _c2 * Atan2(salp12, calp12) + _A4 * (B42 - _B41);
-            }
-
-            return arcmode ? s12_a12 : sig12 / Degree;
         }
 
         /// <inheritdoc/>
         public override void SetDistance(bool arcmode, double s13_a13)
         {
-            if (arcmode) Arc = s13_a13; else Distance = s13_a13;
+            if (_lineexact != null)
+            {
+                _lineexact.SetDistance(arcmode, s13_a13);
+            }
+            else
+            {
+                if (arcmode)
+                {
+                    _priv._a13 = s13_a13;
+                    // In case the GeodesicLine doesn't have the DISTANCE capability.
+                    _priv._s13 = double.NaN;
+
+                    GenPosition(true, _priv._a13, GeodesicFlags.Distance, out _, out _, out _, out _priv._s13, out _, out _, out _, out _);
+                }
+                else
+                {
+                    _priv._s13 = s13_a13;
+
+                    // This will set _a13 to NaN if the GeodesicLine doesn't have the
+                    // DISTANCE_IN capability.
+                    _priv._a13 = GenPosition(false, _priv._s13, 0u, out _, out _, out _, out _, out _, out _, out _, out _);
+                }
+            }
         }
 
         /// <inheritdoc/>
-        public override double GetDistance(bool arcmode) => (arcmode ? _a13 : _s13);
+        public override double GetDistance(bool arcmode) => _lineexact != null ? _lineexact.GetDistance(arcmode) : (arcmode ? _priv._a13 : _priv._s13);
+
+        /// <inheritdoc/>
+        public override double GenPosition(bool arcmode, double s12_a12, GeodesicFlags outmask, out double lat2, out double lon2, out double azi2, out double s12, out double m12, out double M12, out double M21, out double S12)
+        {
+            if (_lineexact != null)
+                return _lineexact.GenPosition(arcmode, s12_a12, outmask,
+                                              out lat2, out lon2, out azi2,
+                                              out s12, out m12, out M12, out M21, out S12);
+
+            return _priv.GenPosition(arcmode, s12_a12, outmask, out lat2, out lon2, out azi2, out s12, out m12, out M12, out M21, out S12);
+        }
 
         #region Public properties
 
         /// <inheritdoc/>
-        public override double Latitude => _lat1;
+        public override double Latitude => _lineexact != null ? _lineexact.Latitude : _priv._lat1;
 
         /// <inheritdoc/>
-        public override double Longitude => _lon1;
+        public override double Longitude => _lineexact != null ? _lineexact.Longitude : _priv._lon1;
 
         /// <inheritdoc/>
-        public override double Azimuth => _azi1;
+        public override double Azimuth => _lineexact != null ? _lineexact.Azimuth : _priv._azi1;
 
         /// <inheritdoc/>
-        public override double SineAzimuth => _salp1;
+        public override double SineAzimuth => _lineexact != null ? _lineexact.SineAzimuth : _priv._salp1;
 
         /// <inheritdoc/>
-        public override double CosineAzimuth => _calp1;
+        public override double CosineAzimuth => _lineexact != null ? _lineexact.CosineAzimuth : _priv._calp1;
 
         /// <inheritdoc/>
-        public override double EquatorialAzimuth => Atan2d(_salp0, _calp0);
+        public override double EquatorialAzimuth => _lineexact != null ? _lineexact.EquatorialAzimuth : Atan2d(_priv._salp0, _priv._calp0);
 
         /// <inheritdoc/>
-        public override double SineEquatorialAzimuth => _salp0;
+        public override double SineEquatorialAzimuth => _lineexact != null ? _lineexact.SineEquatorialAzimuth : _priv._salp0;
 
         /// <inheritdoc/>
-        public override double CosineEquatorialAzimuth => _calp0;
+        public override double CosineEquatorialAzimuth => _lineexact != null ? _lineexact.CosineEquatorialAzimuth : _priv._calp0;
 
         /// <inheritdoc/>
-        public override double EquatorialArc => Atan2d(_ssig1, _csig1);
+        public override double EquatorialArc => _lineexact != null ? _lineexact.EquatorialArc : Atan2d(_priv._ssig1, _priv._csig1);
 
         /// <inheritdoc/>
-        public override double EquatorialRadius => _a;
+        public override double EquatorialRadius => _lineexact != null ? _lineexact.EquatorialRadius : _priv._a;
 
         /// <inheritdoc/>
-        public override double Flattening => _f;
+        public override double Flattening => _lineexact != null ? _lineexact.Flattening : _priv._f;
 
         /// <inheritdoc/>
-        public override GeodesicFlags Capabilities => _caps;
+        public override GeodesicFlags Capabilities => _lineexact != null ? _lineexact.Capabilities : _priv._caps;
 
         /// <inheritdoc/>
         public override double Distance
         {
             get => GetDistance(false);
-            set
-            {
-                _s13 = value;
-
-                // This will set _a13 to NaN if the GeodesicLine doesn't have the
-                // DISTANCE_IN capability.
-                _a13 = GenPosition(false, _s13, 0u, out _, out _, out _, out _, out _, out _, out _, out _);
-            }
+            set => SetDistance(false, value);
         }
 
         /// <inheritdoc/>
         public override double Arc
         {
             get => GetDistance(true);
-            set
-            {
-                _a13 = value;
-                // In case the GeodesicLine doesn't have the DISTANCE capability.
-                _s13 = double.NaN;
-
-                GenPosition(true, _a13, GeodesicFlags.Distance, out _, out _, out _, out _s13, out _, out _, out _, out _);
-            }
+            set => SetDistance(true, value);
         }
 
         #endregion

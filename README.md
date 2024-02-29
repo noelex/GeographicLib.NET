@@ -114,45 +114,46 @@ GeographicLib uses several C mathematical functions that are not available in al
  - asinh (available since .NET Standard 2.1)
  - cbrt (available since .NET Standard 2.1)
 
-GeographicLib.NET provides managed implementations of these functions (ported from [musl libc](https://musl.libc.org/)).
+GeographicLib.NET provides managed implementations (ported from [musl libc](https://musl.libc.org/)) and platform dependent native C wrappers for these functions.
 
-`GeographicLib.MathEx` class will use implementations provided by .NET runtime whenever possible, and will fallback to managed implementations when not available in .NET runtime. 
+By default, the library will use the managed implementation when the corresponding math function is not provided by .NET runtime. 
+You can also force the library to use platform dependent native C wrappers, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
 
-You can also force `GeographicLib.MathEx` to fallback to platform dependent implementations provided by system C runtime libraries,
-rather than managed implementations, by setting `GeographicLib.MathEx.UseManagedCMath` property to `false`.
-Native C math implemenation may provide slightly better performance, but also produce inconsistent results on different platforms in some edge cases.
-
-In fact, the performance of different C math implementations are very close, managed implementation performs even better on newer runtimes. The following table shows the benchmark result of `Geodesic.WGS84.GenDirect` executed with/without manged C math:
-
-``` ini
+## Performance
+```ini
 BenchmarkDotNet v0.13.12, Windows 11 (10.0.22621.3155/22H2/2022Update/SunValley2)
 Intel Xeon CPU E5-2689 0 2.60GHz, 1 CPU, 16 logical and 8 physical cores
 .NET SDK 8.0.200
-  [Host]        : .NET 6.0.27 (6.0.2724.6912), X64 RyuJIT AVX
-  .NET 5.0      : .NET 5.0.17 (5.0.1722.21314), X64 RyuJIT AVX
-  .NET 6.0      : .NET 6.0.27 (6.0.2724.6912), X64 RyuJIT AVX
-  .NET 7.0      : .NET 7.0.16 (7.0.1624.6629), X64 RyuJIT AVX
-  .NET 8.0      : .NET 8.0.2 (8.0.224.6711), X64 RyuJIT AVX
-  .NET Core 2.1 : .NET Core 2.1.30 (CoreCLR 4.6.30411.01, CoreFX 4.6.30411.02), X64 RyuJIT AVX
-  .NET Core 3.1 : .NET Core 3.1.32 (CoreCLR 4.700.22.55902, CoreFX 4.700.22.56512), X64 RyuJIT AVX
+  [Host]   : .NET 6.0.27 (6.0.2724.6912), X64 RyuJIT AVX
+  .NET 6.0 : .NET 6.0.27 (6.0.2724.6912), X64 RyuJIT AVX
+  .NET 7.0 : .NET 7.0.16 (7.0.1624.6629), X64 RyuJIT AVX
+  .NET 8.0 : .NET 8.0.2 (8.0.224.6711), X64 RyuJIT AVX
 ```
-|  Method |           Job |       Runtime | UseManagedCMath |       Mean |    Error |   StdDev | Ratio | RatioSD |
-|-------- |-------------- |-------------- |--------------- |-----------:|---------:|---------:|------:|--------:|
-| Direct  | .NET 5.0      | .NET 5.0      | False           |   972.6 ns |  9.31 ns |  8.71 ns |  1.00 |    0.03 |
-| Direct  | .NET 6.0      | .NET 6.0      | False           |   971.7 ns | 19.16 ns | 22.80 ns |  1.00 |    0.00 |
-| **Direct**  | **.NET 7.0**      | **.NET 7.0**      | **False**           |   **925.1 ns** | **11.09 ns** | **10.37 ns** |  **0.95** |    **0.02** |
-| Direct  | .NET 8.0      | .NET 8.0      | False           |   960.2 ns | 14.22 ns | 11.87 ns |  0.98 |    0.02 |
-| Direct  | .NET Core 2.1 | .NET Core 2.1 | False           | 1,258.0 ns | 19.32 ns | 18.07 ns |  1.29 |    0.03 |
-| Direct  | .NET Core 3.1 | .NET Core 3.1 | False           | 1,203.9 ns | 16.11 ns | 14.28 ns |  1.23 |    0.03 |
-|         |               |               |                |            |          |          |       |         |
-| Direct  | .NET 5.0      | .NET 5.0      | True            |   971.2 ns | 19.21 ns | 21.36 ns |  1.03 |    0.03 |
-| Direct  | .NET 6.0      | .NET 6.0      | True            |   944.9 ns | 14.32 ns | 12.69 ns |  1.00 |    0.00 |
-| Direct  | .NET 7.0      | .NET 7.0      | True            |   922.4 ns | 17.88 ns | 21.96 ns |  0.98 |    0.02 |
-| **Direct**  | **.NET 8.0**      | **.NET 8.0**      | **True**            |   **908.2 ns** |  **5.44 ns** |  **4.54 ns** |  **0.96** |    **0.01** |
-| Direct  | .NET Core 2.1 | .NET Core 2.1 | True            | 1,284.7 ns | 14.19 ns | 13.28 ns |  1.36 |    0.02 |
-| Direct  | .NET Core 3.1 | .NET Core 3.1 | True            | 1,189.4 ns | 12.68 ns | 10.58 ns |  1.26 |    0.02 |
-
-Thus it's recommended to stick with managed C math until it becomes a performance bottleneck of your application, as it's more consistent as compared to native C math on different platforms.
+| Method  | Job      | Runtime  | Target        | Mean       | Error    | StdDev   | Ratio | RatioSD | Allocated | Alloc Ratio |
+|-------- |--------- |--------- |-------------- |-----------:|---------:|---------:|------:|--------:|----------:|------------:|
+| **Direct**  | **.NET 6.0** | **.NET 6.0** | **Geodesic**      |   **825.4 ns** |  **8.26 ns** |  **7.73 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
+| Direct  | .NET 7.0 | .NET 7.0 | Geodesic      |   784.0 ns |  7.40 ns |  6.56 ns |  0.95 |    0.01 |         - |          NA |
+| Direct  | .NET 8.0 | .NET 8.0 | Geodesic      |   806.5 ns |  9.23 ns |  8.63 ns |  0.98 |    0.01 |         - |          NA |
+|         |          |          |               |            |          |          |       |         |           |             |
+| Inverse | .NET 6.0 | .NET 6.0 | Geodesic      | 2,440.2 ns | 24.36 ns | 20.34 ns |  1.00 |    0.00 |         - |          NA |
+| Inverse | .NET 7.0 | .NET 7.0 | Geodesic      | 2,278.6 ns | 25.80 ns | 22.87 ns |  0.93 |    0.01 |         - |          NA |
+| Inverse | .NET 8.0 | .NET 8.0 | Geodesic      | 2,084.5 ns | 18.19 ns | 16.12 ns |  0.85 |    0.01 |         - |          NA |
+|         |          |          |               |            |          |          |       |         |           |             |
+| **Direct**  | **.NET 6.0** | **.NET 6.0** | **GeodesicExact** | **3,951.5 ns** | **35.64 ns** | **33.34 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
+| Direct  | .NET 7.0 | .NET 7.0 | GeodesicExact | 3,981.8 ns | 44.96 ns | 42.06 ns |  1.01 |    0.01 |         - |          NA |
+| Direct  | .NET 8.0 | .NET 8.0 | GeodesicExact | 3,862.5 ns | 43.32 ns | 40.52 ns |  0.98 |    0.01 |         - |          NA |
+|         |          |          |               |            |          |          |       |         |           |             |
+| Inverse | .NET 6.0 | .NET 6.0 | GeodesicExact | 6,057.7 ns | 50.90 ns | 47.61 ns |  1.00 |    0.00 |         - |          NA |
+| Inverse | .NET 7.0 | .NET 7.0 | GeodesicExact | 6,029.2 ns | 51.33 ns | 48.02 ns |  1.00 |    0.01 |         - |          NA |
+| Inverse | .NET 8.0 | .NET 8.0 | GeodesicExact | 5,947.1 ns | 31.88 ns | 28.26 ns |  0.98 |    0.01 |         - |          NA |
+|         |          |          |               |            |          |          |       |         |           |             |
+| **Direct**  | **.NET 6.0** | **.NET 6.0** | **Rhumb**         | **1,057.2 ns** | **12.27 ns** | **11.47 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
+| Direct  | .NET 7.0 | .NET 7.0 | Rhumb         | 1,046.5 ns | 16.96 ns | 15.04 ns |  0.99 |    0.02 |         - |          NA |
+| Direct  | .NET 8.0 | .NET 8.0 | Rhumb         |   943.8 ns |  7.27 ns |  6.07 ns |  0.89 |    0.01 |         - |          NA |
+|         |          |          |               |            |          |          |       |         |           |             |
+| Inverse | .NET 6.0 | .NET 6.0 | Rhumb         |   846.6 ns |  6.29 ns |  5.89 ns |  1.00 |    0.00 |         - |          NA |
+| Inverse | .NET 7.0 | .NET 7.0 | Rhumb         |   841.4 ns |  8.24 ns |  7.30 ns |  0.99 |    0.01 |         - |          NA |
+| Inverse | .NET 8.0 | .NET 8.0 | Rhumb         |   757.8 ns |  6.67 ns |  5.91 ns |  0.90 |    0.01 |         - |          NA |
 
 ## Change Log
 GeographicLib.NET adopts changes made in GeographicLib and aligns its version number with GeographicLib releases.
@@ -162,6 +163,7 @@ For changes adopted from GeographicLib, please refer the its change log [here](h
 
 ### Version 2.3.1 (unreleased)
 - **NEW**
+  - Improve performance of `Geodesic.Direct`, `Rhumb.Direct`, `GeodesicExact.Direct`, `GeodesicExact.Inverse` and their overloads/variants. These are now heap allocation free.
   - Allow constructing `MagneticModel` and `GravityModel` from `Stream` and byte array. ([#30](https://github.com/noelex/GeographicLib.NET/issues/30))
   - `AuxLatitude` now implements `IEllipsoid` interface.
   - Parameter `p0` of `Intersect.Closest()` now defaults to `Point.Zero`.

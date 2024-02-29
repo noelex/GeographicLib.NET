@@ -24,11 +24,9 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
 		<PublicSign>True</PublicSign>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(TargetFramework)'=='net6.0' or '$(TargetFramework)'=='net7.0' or '$(TargetFramework)'=='net8.0'">
-		<IsTrimmable>true</IsTrimmable>
-		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <IsAotCompatible>True</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -63,5 +61,6 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 			<PackagePath>\</PackagePath>
 			<Visible>false</Visible>
 		</None>
+		<None Include="GeodesicLine.Priv.cs" />
 	</ItemGroup>
 </Project>

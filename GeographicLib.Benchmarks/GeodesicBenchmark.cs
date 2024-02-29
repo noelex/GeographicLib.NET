@@ -3,26 +3,33 @@ using BenchmarkDotNet.Jobs;
 
 namespace GeographicLib.Benchmarks
 {
+    [MemoryDiagnoser]
     [SimpleJob(RuntimeMoniker.Net80)]
     [SimpleJob(RuntimeMoniker.Net70)]
     [SimpleJob(RuntimeMoniker.Net60, baseline: true)]
-    [SimpleJob(RuntimeMoniker.Net50)]
-    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
-    [SimpleJob(RuntimeMoniker.NetCoreApp21)]
     public class GeodesicBenchmark
     {
-        [Params(true, false)]
-        public bool UseManagedCMath { get => MathEx.UseManagedCMath; set => MathEx.UseManagedCMath = value; }
+        private static readonly IGeodesicLike
+            _wgs84 = Geodesic.WGS84,
+            _wgs84exact = new Geodesic(Geodesic.WGS84, exact: true),
+            _rhumb = Rhumb.WGS84;
 
+        [Params("Geodesic", "GeodesicExact", "Rhumb")]
+        public string Target { get; set; }
+
+        private IGeodesicLike Geod =>
+            Target == "Geodesic" ?
+                _wgs84 :
+                    Target == "GeodesicExact" ? _wgs84exact : _rhumb;
 
         [Benchmark]
         public double Direct()
-            => Geodesic.WGS84.GenDirect(1, 2, 3, false, 4,
+            => Geod.GenDirect(1, 2, 3, false, 4,
                 GeodesicFlags.Standard, out _, out _, out _, out _, out _, out _, out _, out _);
 
         [Benchmark]
         public double Inverse()
-            => Geodesic.WGS84.GenInverse(1, 2, 3, 4,
+            => Geod.GenInverse(1, 2, 3, 4,
                 GeodesicFlags.Standard, out _, out _, out _, out _, out _, out _, out _);
     }
 }

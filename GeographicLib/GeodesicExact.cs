@@ -457,7 +457,7 @@ namespace GeographicLib
             return k;
         }
 
-        private void Lengths(EllipticFunction E,
+        private void Lengths(ref EllipticFunction.Priv E,
                  double sig12,
                  double ssig1, double csig1, double dn1,
                  double ssig2, double csig2, double dn2,
@@ -506,7 +506,7 @@ namespace GeographicLib
             }
         }
 
-        private double InverseStart(EllipticFunction E,
+        private double InverseStart(ref EllipticFunction.Priv E,
                   double sbet1, double cbet1, double dn1,
                   double sbet2, double cbet2, double dn2,
                   double lam12, double slam12, double clam12,
@@ -594,7 +594,7 @@ namespace GeographicLib
                       bet12a = Atan2(sbet12a, cbet12a);
                     // In the case of lon12 = 180, this repeats a calculation made in
                     // Inverse.
-                    Lengths(E, PI + bet12a,
+                    Lengths(ref E, PI + bet12a,
                             sbet1, -cbet1, dn1, sbet2, cbet2, dn2,
                             cbet1, cbet2, GeodesicFlags.ReducedLength, out _, out var m12b, out var m0, out _, out _);
                     x = -1 + m12b / (cbet1 * cbet2 * m0 * PI);
@@ -678,7 +678,7 @@ namespace GeographicLib
                       double salp1, double calp1, double slam120, double clam120,
                       out double salp2, out double calp2, out double sig12,
                       out double ssig1, out double csig1, out double ssig2, out double csig2,
-                      EllipticFunction E,
+                      ref EllipticFunction.Priv E,
                       out double domg12, bool diffp, out double dlam12)
         {
             dlam12 = double.NaN;
@@ -757,7 +757,7 @@ namespace GeographicLib
                     dlam12 = -2 * _f1 * dn1 / sbet1;
                 else
                 {
-                    Lengths(E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
+                    Lengths(ref E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
                             cbet1, cbet2, GeodesicFlags.ReducedLength,
                             out _, out dlam12, out _, out _, out _);
                     dlam12 *= _f1 / (calp2 * cbet2);
@@ -821,7 +821,8 @@ namespace GeographicLib
             double s12x = 0, m12x = 0;
             // Initialize for the meridian.  No longitude calculation is done in this
             // case to let the parameter default to 0.
-            var E = new EllipticFunction(-_ep2);
+            var E = new EllipticFunction.Priv();
+            E.Reset(-_ep2);
 
             SinCosd(lat1, out var sbet1, out var cbet1); sbet1 *= _f1;
             // Ensure cbet1 = +epsilon at poles; doing the fix on beta means that sig12
@@ -879,7 +880,7 @@ namespace GeographicLib
                 sig12 = Atan2(Max(0, csig1 * ssig2 - ssig1 * csig2),
                                            csig1 * csig2 + ssig1 * ssig2);
                 {
-                    Lengths(E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
+                    Lengths(ref E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
                             cbet1, cbet2, outmask | GeodesicFlags.ReducedLength,
                             out s12x, out m12x, out _, out M12, out M21);
                 }
@@ -930,7 +931,7 @@ namespace GeographicLib
                 // meridian and geodesic is neither meridional or equatorial.
 
                 // Figure a starting point for Newton's method
-                sig12 = InverseStart(E, sbet1, cbet1, dn1, sbet2, cbet2, dn2,
+                sig12 = InverseStart(ref E, sbet1, cbet1, dn1, sbet2, cbet2, dn2,
                                      lam12, slam12, clam12,
                                      out salp1, out calp1, out salp2, out calp2, out var dnm);
 
@@ -991,7 +992,7 @@ namespace GeographicLib
                         var v = Lambda12(sbet1, cbet1, dn1, sbet2, cbet2, dn2, salp1, calp1,
                                           slam12, clam12,
                                           out salp2, out calp2, out sig12, out ssig1, out csig1, out ssig2, out csig2,
-                                          E, out domg12, numit < maxit1_, out dv);
+                                          ref E, out domg12, numit < maxit1_, out dv);
                         if (tripb ||
                             // Reversed test to allow escape with NaNs
                             !(Abs(v) >= (tripn ? 8 : 1) * tol0_) ||
@@ -1044,7 +1045,7 @@ namespace GeographicLib
                                  Abs(salp1 - salp1b) + (calp1 - calp1b) < tolb_);
                     }
                     {
-                        Lengths(E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
+                        Lengths(ref E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
                                 cbet1, cbet2, outmask, out s12x, out m12x, out _, out M12, out M21);
                     }
                     m12x *= _b;
@@ -1189,9 +1190,9 @@ namespace GeographicLib
             // Automatically supply DISTANCE_IN if necessary
             if (!arcmode) outmask |= GeodesicFlags.DistanceIn;
 
-            return new GeodesicLineExact(this, lat1, lon1, azi1, outmask)
-              .                         // Note the dot!
-              GenPosition(arcmode, s12_a12, outmask,
+            var line = new GeodesicLineExact.Priv();
+            line.Init(this, lat1, lon1, azi1, outmask);
+            return line.GenPosition(arcmode, s12_a12, outmask,
                           out lat2, out lon2, out azi2, out s12, out m12, out M12, out M21, out S12);
         }
 

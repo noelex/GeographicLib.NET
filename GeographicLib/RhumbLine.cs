@@ -1,7 +1,4 @@
-﻿using static GeographicLib.MathEx;
-using static System.Math;
-
-namespace GeographicLib
+﻿namespace GeographicLib
 {
     /// <summary>
     /// Find a sequence of points on a single rhumb line.
@@ -17,23 +14,13 @@ namespace GeographicLib
     /// The <see cref="Rhumb"/> object used to create a <see cref="RhumbLine"/> must stay in scope as long as the <see cref="RhumbLine"/>.
     /// </para>
     /// </remarks>
-    public class RhumbLine : IEllipsoid
+    public partial class RhumbLine : IEllipsoid
     {
-        private readonly Rhumb _rh;
-        private readonly double _lat1, _lon1, _azi12, _salp, _calp, _mu1, _psi1;
-        private readonly AuxAngle _phi1, _chi1;
+        private Priv _priv;
 
         internal RhumbLine(Rhumb rh, double lat1, double lon1, double azi12)
         {
-            (_rh, _lat1, _lon1, _azi12) = (rh, LatFix(lat1), lon1, AngNormalize(azi12));
-
-            SinCosd(_azi12, out _salp, out _calp);
-            _phi1 = AuxAngle.FromDegrees(lat1);
-            _mu1 = _rh._aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Mu,
-                                    _phi1, _rh.IsExact).Degrees;
-            _chi1 = _rh._aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Chi,
-                                     _phi1, _rh.IsExact);
-            _psi1 = _chi1.Lam;
+            _priv = new Priv(rh, lat1, lon1, azi12);
         }
 
         /// <summary>
@@ -62,45 +49,7 @@ namespace GeographicLib
         /// </remarks>
         public void GenPosition(double s12, GeodesicFlags outmask, out double lat2, out double lon2, out double S12)
         {
-            lat2 = lon2 = S12 = double.NaN;
-
-            double
-              r12 = s12 / (_rh._rm * Degree), // scaled distance in degrees
-              mu12 = r12 * _calp,
-              mu2 = _mu1 + mu12;
-            double lat2x, lon2x;
-            if (Abs(mu2) <= QD)
-            {
-                AuxAngle mu2a = AuxAngle.FromDegrees(mu2),
-                         phi2 = _rh._aux.Convert(AuxLatitudeType.Mu, AuxLatitudeType.Phi,
-                                              mu2a, _rh.IsExact),
-                         chi2 = _rh._aux.Convert(AuxLatitudeType.Phi, AuxLatitudeType.Chi,
-                                              phi2, _rh.IsExact);
-                lat2x = phi2.Degrees;
-                double dmudpsi = _rh.IsExact ?
-                  _rh._aux.DRectifying(_phi1, phi2) / _rh._aux.DIsometric(_phi1, phi2) :
-                  _rh._aux.DConvert(AuxLatitudeType.Chi, AuxLatitudeType.Mu, _chi1, chi2)
-                  / DAuxLatitude.Dlam(_chi1.Tan, chi2.Tan);
-                lon2x = r12 * _salp / dmudpsi;
-                if (outmask.HasFlag(GeodesicFlags.Area))
-                    S12 = _rh._c2 * lon2x * _rh.MeanSinXi(_chi1, chi2);
-                lon2x = outmask.HasFlag(GeodesicFlags.LongUnroll) ? _lon1 + lon2x :
-                  AngNormalize(AngNormalize(_lon1) + lon2x);
-            }
-            else
-            {
-                // Reduce to the interval [-180, 180)
-                mu2 = AngNormalize(mu2);
-                // Deal with points on the anti-meridian
-                if (Abs(mu2) > QD) mu2 = AngNormalize(HD - mu2);
-                lat2x = _rh._aux.Convert(AuxLatitudeType.Mu, AuxLatitudeType.Phi,
-                                         AuxAngle.FromDegrees(mu2), _rh.IsExact).Degrees;
-                lon2x = double.NaN;
-                if (outmask.HasFlag(GeodesicFlags.Area))
-                    S12 = double.NaN;
-            }
-            if (outmask.HasFlag(GeodesicFlags.Latitude)) lat2 = lat2x;
-            if (outmask.HasFlag(GeodesicFlags.Longitude)) lon2 = lon2x;
+            _priv.GenPosition(s12, outmask, out lat2, out lon2, out S12);
         }
 
         /// <summary>
@@ -175,22 +124,22 @@ namespace GeographicLib
         /// <summary>
         /// Gets a value representing the latitude of point 1 in degrees (<i>lat1</i>).
         /// </summary>
-        public double Latitude => _lat1;
+        public double Latitude => _priv._lat1;
 
         /// <summary>
         /// Gets a value representing the longitude of point 1 in degrees (<i>lon1</i>).
         /// </summary>
-        public double Longitude => _lon1;
+        public double Longitude => _priv._lon1;
 
         /// <summary>
         /// Gets a value representing the azimuth of the rhumb line in degrees (<i>azi12</i>).
         /// </summary>
-        public double Azimuth => _azi12;
+        public double Azimuth => _priv._azi12;
 
         /// <inheritdoc/>
-        public double EquatorialRadius => _rh.EquatorialRadius;
+        public double EquatorialRadius => _priv._rh.EquatorialRadius;
 
         /// <inheritdoc/>
-        public double Flattening => _rh.Flattening;
+        public double Flattening => _priv._rh.Flattening;
     }
 }

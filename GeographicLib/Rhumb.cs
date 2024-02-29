@@ -333,7 +333,7 @@ namespace GeographicLib
         /// </remarks>
         public void GenDirect(double lat1, double lon1, double azi12, double s12,
             GeodesicFlags outmask, out double lat2, out double lon2, out double S12)
-            => Line(lat1, lon1, azi12).GenPosition(s12, outmask, out lat2, out lon2, out S12);
+            => new RhumbLine.Priv(this, lat1, lon1, azi12).GenPosition(s12, outmask, out lat2, out lon2, out S12);
 
         /// <summary>
         /// Solve the direct rhumb problem.
