@@ -394,7 +394,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Find the intersection of two geodesic segments each defined by a <see cref="GeodesicLine"/>.
+        /// Find the intersection of two geodesic segments each defined by a <see cref="IGeodesicLine"/>.
         /// </summary>
         /// <param name="lineX">Segment <i>X</i>.</param>
         /// <param name="lineY">Segment <i>Y</i></param>
@@ -409,7 +409,7 @@ namespace GeographicLib
         /// The results are only well defined if there's a <i>unique</i> shortest geodesic between the endpoints of the two segments.
         /// <para>
         /// <paramref name="lineX"/> and <paramref name="lineY"/> should be created with minimum capabilities <see cref="LineCaps"/>.
-        /// The methods for creating a <see cref="GeodesicLine"/> include all these capabilities by default.
+        /// The methods for creating a <see cref="IGeodesicLine"/> include all these capabilities by default.
         /// </para>
         /// <para>
         /// <paramref name="segmode"/> codes up information about the closest intersection in the case where the segments intersect.
@@ -423,7 +423,7 @@ namespace GeographicLib
         /// </para>
         /// </remarks>
         public unsafe Point Segment(
-            GeodesicLine lineX, GeodesicLine lineY,
+            IGeodesicLine lineX, IGeodesicLine lineY,
             out int segmode, out int c)
         {
             c = 0;
@@ -496,7 +496,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Find the next closest intersection point to a given intersection, with each geodesic specified a <see cref="GeodesicLine"/>.
+        /// Find the next closest intersection point to a given intersection, with each geodesic specified a <see cref="IGeodesicLine"/>.
         /// </summary>
         /// <param name="lineX">Geodesic <i>X</i>.</param>
         /// <param name="lineY">Geodesic <i>Y</i>.</param>
@@ -510,15 +510,15 @@ namespace GeographicLib
         /// and [<paramref name="lineY"/>.Latitude, <paramref name="lineY"/>.Longitude] must be zero.
         /// <para>
         /// <paramref name="lineX"/> and <paramref name="lineY"/> should be created with minimum capabilities <see cref="LineCaps"/>.
-        /// The methods for creating a <see cref="GeodesicLine"/> include all these capabilities by default.
+        /// The methods for creating a <see cref="IGeodesicLine"/> include all these capabilities by default.
         /// </para>
         /// <para>
         /// Equidistant closest intersections are surprisingly common.
-        /// If this may be a problem, use <see cref="All(GeodesicLine, GeodesicLine, double, out int[], Point)"/> with a sufficiently large <i>maxdist</i> to capture close intersections.
+        /// If this may be a problem, use <see cref="All(IGeodesicLine, IGeodesicLine, double, out int[], Point)"/> with a sufficiently large <i>maxdist</i> to capture close intersections.
         /// </para>
         /// </remarks>
         public unsafe Point Next(
-            GeodesicLine lineX, GeodesicLine lineY, out int c)
+            IGeodesicLine lineX, IGeodesicLine lineY, out int c)
         {
             c = 0;
             fixed (int* pc = &c)
@@ -530,7 +530,7 @@ namespace GeographicLib
         }
 
         /// <summary>
-        /// Find the next closest intersection point to a given intersection, with each geodesic specified a <see cref="GeodesicLine"/>.
+        /// Find the next closest intersection point to a given intersection, with each geodesic specified a <see cref="IGeodesicLine"/>.
         /// </summary>
         /// <param name="lineX">Geodesic <i>X</i>.</param>
         /// <param name="lineY">Geodesic <i>Y</i>.</param>
@@ -543,15 +543,15 @@ namespace GeographicLib
         /// and [<paramref name="lineY"/>.Latitude, <paramref name="lineY"/>.Longitude] must be zero.
         /// <para>
         /// <paramref name="lineX"/> and <paramref name="lineY"/> should be created with minimum capabilities <see cref="LineCaps"/>.
-        /// The methods for creating a <see cref="GeodesicLine"/> include all these capabilities by default.
+        /// The methods for creating a <see cref="IGeodesicLine"/> include all these capabilities by default.
         /// </para>
         /// <para>
         /// Equidistant closest intersections are surprisingly common.
-        /// If this may be a problem, use <see cref="All(GeodesicLine, GeodesicLine, double, Point)"/> with a sufficiently large <i>maxdist</i> to capture close intersections.
+        /// If this may be a problem, use <see cref="All(IGeodesicLine, IGeodesicLine, double, Point)"/> with a sufficiently large <i>maxdist</i> to capture close intersections.
         /// </para>
         /// </remarks>
         public unsafe Point Next(
-            GeodesicLine lineX, GeodesicLine lineY)
+            IGeodesicLine lineX, IGeodesicLine lineY)
         {
             return Next(
                 lineX, lineY,
@@ -626,11 +626,11 @@ namespace GeographicLib
         /// The vector of returned intersections is sorted on the distance from <i>p0</i>.
         /// <para>
         /// <paramref name="lineX"/> and <paramref name="lineY"/> should be created with minimum capabilities <see cref="LineCaps"/>.
-        /// The methods for creating a <see cref="GeodesicLine"/> include all these capabilities by default.
+        /// The methods for creating a <see cref="IGeodesicLine"/> include all these capabilities by default.
         /// </para>
         /// </remarks>
         public Point[] All(
-                  GeodesicLine lineX, GeodesicLine lineY,
+                  IGeodesicLine lineX, IGeodesicLine lineY,
                   double maxdist, out int[] c, Point p0 = default)
         {
             return AllInternal(lineX, lineY, maxdist, p0, out c, true);
@@ -650,11 +650,11 @@ namespace GeographicLib
         /// The vector of returned intersections is sorted on the distance from <i>p0</i>.
         /// <para>
         /// <paramref name="lineX"/> and <paramref name="lineY"/> should be created with minimum capabilities <see cref="LineCaps"/>.
-        /// The methods for creating a <see cref="GeodesicLine"/> include all these capabilities by default.
+        /// The methods for creating a <see cref="IGeodesicLine"/> include all these capabilities by default.
         /// </para>
         /// </remarks>
         public Point[] All(
-                  GeodesicLine lineX, GeodesicLine lineY,
+                  IGeodesicLine lineX, IGeodesicLine lineY,
                   double maxdist, Point p0 = default)
         {
             return AllInternal(lineX, lineY, maxdist, p0, out _, false);
