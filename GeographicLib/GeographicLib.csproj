@@ -27,6 +27,7 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
     <IsAotCompatible>True</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -43,6 +44,10 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+		<PackageReference Include="PolySharp" Version="1.14.1">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">

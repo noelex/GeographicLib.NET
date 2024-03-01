@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using static GeographicLib.Macros;
 using static GeographicLib.MathEx;
 using static System.Math;
@@ -1713,9 +1714,7 @@ namespace GeographicLib
             }
         }
 
-#if NET5_0_OR_GREATER
-        [System.Runtime.CompilerServices.SkipLocalsInit]
-#endif
+        [SkipLocalsInit]
         private unsafe double GenDirectPriv(double lat1, double lon1, double azi1,
                                      bool arcmode, double s12_a12, GeodesicFlags outmask,
                                      out double lat2, out double lon2, out double azi2,
