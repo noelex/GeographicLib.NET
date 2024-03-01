@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using static GeographicLib.MathEx;
 using static System.Math;
 
@@ -1181,7 +1182,7 @@ namespace GeographicLib
         }
 
         /// <inheritdoc/>
-        public override double GenDirect(double lat1, double lon1, double azi1,
+        public unsafe override double GenDirect(double lat1, double lon1, double azi1,
                          bool arcmode, double s12_a12, GeodesicFlags outmask,
                          out double lat2, out double lon2, out double azi2,
                          out double s12, out double m12, out double M12, out double M21,
@@ -1190,10 +1191,18 @@ namespace GeographicLib
             // Automatically supply DISTANCE_IN if necessary
             if (!arcmode) outmask |= GeodesicFlags.DistanceIn;
 
-            var line = new GeodesicLineExact.Priv();
-            line.Init(this, lat1, lon1, azi1, outmask);
-            return line.GenPosition(arcmode, s12_a12, outmask,
-                          out lat2, out lon2, out azi2, out s12, out m12, out M12, out M21, out S12);
+            var ptr = Marshal.AllocHGlobal(sizeof(GeodesicLineExact.Priv));
+            try
+            {
+                var line = (GeodesicLineExact.Priv*)ptr.ToPointer();
+                line->Init(this, lat1, lon1, azi1, outmask);
+                return line->GenPosition(arcmode, s12_a12, outmask,
+                              out lat2, out lon2, out azi2, out s12, out m12, out M12, out M21, out S12);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
         }
 
         /// <inheritdoc/>

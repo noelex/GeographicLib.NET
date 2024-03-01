@@ -131,17 +131,17 @@ Intel Xeon CPU E5-2689 0 2.60GHz, 1 CPU, 16 logical and 8 physical cores
 ```
 | Method  | Job      | Runtime  | Target        | Mean       | Error    | StdDev   | Ratio | RatioSD | Allocated | Alloc Ratio |
 |-------- |--------- |--------- |-------------- |-----------:|---------:|---------:|------:|--------:|----------:|------------:|
-| **Direct**  | **.NET 6.0** | **.NET 6.0** | **Geodesic**      |   **825.4 ns** |  **8.26 ns** |  **7.73 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
-| Direct  | .NET 7.0 | .NET 7.0 | Geodesic      |   784.0 ns |  7.40 ns |  6.56 ns |  0.95 |    0.01 |         - |          NA |
-| Direct  | .NET 8.0 | .NET 8.0 | Geodesic      |   806.5 ns |  9.23 ns |  8.63 ns |  0.98 |    0.01 |         - |          NA |
+| **Direct**  | **.NET 6.0** | **.NET 6.0** | **Geodesic**      |   **814.7 ns** |  **15.27 ns** |  **17.59 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
+| Direct  | .NET 7.0 | .NET 7.0 | Geodesic      |   765.3 ns |  10.03 ns |   9.38 ns |  0.94 |    0.02 |         - |          NA |
+| Direct  | .NET 8.0 | .NET 8.0 | Geodesic      |   804.1 ns |  12.70 ns |  14.63 ns |  0.99 |    0.02 |         - |          NA |
 |         |          |          |               |            |          |          |       |         |           |             |
 | Inverse | .NET 6.0 | .NET 6.0 | Geodesic      | 2,440.2 ns | 24.36 ns | 20.34 ns |  1.00 |    0.00 |         - |          NA |
 | Inverse | .NET 7.0 | .NET 7.0 | Geodesic      | 2,278.6 ns | 25.80 ns | 22.87 ns |  0.93 |    0.01 |         - |          NA |
 | Inverse | .NET 8.0 | .NET 8.0 | Geodesic      | 2,084.5 ns | 18.19 ns | 16.12 ns |  0.85 |    0.01 |         - |          NA |
 |         |          |          |               |            |          |          |       |         |           |             |
-| **Direct**  | **.NET 6.0** | **.NET 6.0** | **GeodesicExact** | **3,951.5 ns** | **35.64 ns** | **33.34 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
-| Direct  | .NET 7.0 | .NET 7.0 | GeodesicExact | 3,981.8 ns | 44.96 ns | 42.06 ns |  1.01 |    0.01 |         - |          NA |
-| Direct  | .NET 8.0 | .NET 8.0 | GeodesicExact | 3,862.5 ns | 43.32 ns | 40.52 ns |  0.98 |    0.01 |         - |          NA |
+| **Direct**  | **.NET 6.0** | **.NET 6.0** | **GeodesicExact** | **2,414.8 ns** | **44.92 ns** | **44.12 ns** |  **1.00** |    **0.00** |         **-** |          **NA** |
+| Direct  | .NET 7.0 | .NET 7.0 | GeodesicExact | 2,335.3 ns | 19.53 ns | 17.31 ns |  0.97 |    0.02 |         - |          NA |
+| Direct  | .NET 8.0 | .NET 8.0 | GeodesicExact | 2,331.7 ns | 18.35 ns | 17.17 ns |  0.97 |    0.02 |         - |          NA |
 |         |          |          |               |            |          |          |       |         |           |             |
 | Inverse | .NET 6.0 | .NET 6.0 | GeodesicExact | 6,057.7 ns | 50.90 ns | 47.61 ns |  1.00 |    0.00 |         - |          NA |
 | Inverse | .NET 7.0 | .NET 7.0 | GeodesicExact | 6,029.2 ns | 51.33 ns | 48.02 ns |  1.00 |    0.01 |         - |          NA |

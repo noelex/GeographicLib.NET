@@ -1713,7 +1713,10 @@ namespace GeographicLib
             }
         }
 
-        private double GenDirectPriv(double lat1, double lon1, double azi1,
+#if NET5_0_OR_GREATER
+        [System.Runtime.CompilerServices.SkipLocalsInit]
+#endif
+        private unsafe double GenDirectPriv(double lat1, double lon1, double azi1,
                                      bool arcmode, double s12_a12, GeodesicFlags outmask,
                                      out double lat2, out double lon2, out double azi2,
                                      out double s12, out double m12, out double M12, out double M21,
@@ -1722,9 +1725,9 @@ namespace GeographicLib
             // Automatically supply DISTANCE_IN if necessary
             if (!arcmode) outmask |= GeodesicFlags.DistanceIn;
 
-            var line = new GeodesicLine.Priv();
-            line.Init(this, lat1, lon1, azi1, outmask);
-            return line.GenPosition(arcmode, s12_a12, outmask,
+            GeodesicLine.Priv* line = stackalloc GeodesicLine.Priv[1];
+            line->Init(this, lat1, lon1, azi1, outmask);
+            return line->GenPosition(arcmode, s12_a12, outmask,
                           out lat2, out lon2, out azi2, out s12, out m12, out M12, out M21, out S12);
         }
 
