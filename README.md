@@ -93,8 +93,8 @@ lineX.Position(point.X, out double latx, out double lonx);
 lineY.Position(point.Y, out double laty, out double lony);
 
 // (latx, lonx) and (laty, lony) should be pointing to the same location.
-// Assert.AreEqual(latx, laty, 1e-12);
-// Assert.AreEqual(lonx, lony, 1e-12);
+Assert.AreEqual(latx, laty, 1e-12);
+Assert.AreEqual(lonx, lony, 1e-12);
 ```
 
 ## Mathematical Functions
@@ -161,7 +161,7 @@ GeographicLib.NET adopts changes made in GeographicLib and aligns its version nu
 Bellow is a list of stable releases of GeographicLib.NET and changes made in .NET side in each release.
 For changes adopted from GeographicLib, please refer the its change log [here](https://geographiclib.sourceforge.io/C++/doc/changes.html).
 
-### Version 2.3.1 (unreleased)
+### Version 2.3.1 (released 2024/03/20)
 - **NEW**
   - Improve performance of `Geodesic.Direct`, `Rhumb.Direct`, `GeodesicExact.Direct`, `GeodesicExact.Inverse` and their overloads/variants. These are now heap allocation free.
   - Allow constructing `MagneticModel` and `GravityModel` from `Stream` and byte array. ([#30](https://github.com/noelex/GeographicLib.NET/issues/30))
