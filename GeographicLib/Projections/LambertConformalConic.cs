@@ -10,7 +10,7 @@ namespace GeographicLib.Projections
     /// Implementation taken from the report,
     /// <list type="bullet">
     /// <item>
-    /// J. P. Snyder, <a href="http://pubs.er.usgs.gov/usgspubs/pp/pp1395">Map Projections: A Working Manual</a>,
+    /// J. P. Snyder, <a href="https://pubs.usgs.gov/publication/pp1395">Map Projections: A Working Manual</a>,
     /// USGS Professional Paper 1395 (1987), pp. 107–109.
     /// </item>
     /// </list>
@@ -342,7 +342,7 @@ namespace GeographicLib.Projections
                   - Deatanhe(sphi2, sphi1) * Dsn(tphi2, tphi1, sphi2, sphi1);
                 _n = num / den;
 
-                if (_n < 1/4d)
+                if (_n < 1 / 4d)
                     _nc = Sqrt((1 - _n) * (1 + _n));
                 else
                 {
