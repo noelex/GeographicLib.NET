@@ -451,8 +451,8 @@ namespace GeographicLib
                          ReadOnlySpan<double> c, int K)
         {
             // Evaluate
-            // y = sum(c[k] * sin( (2*k+2) * zeta), i, 0, K-1) if  sinp
-            // y = sum(c[k] * cos( (2*k+2) * zeta), i, 0, K-1) if !sinp
+            // y = sum(c[k] * sin( (2*k+2) * zeta), k, 0, K-1) if  sinp
+            // y = sum(c[k] * cos( (2*k+2) * zeta), k, 0, K-1) if !sinp
             // Approx operation count = (K + 5) mult and (2 * K + 2) add
             int k = K;
             double u0 = 0, u1 = 0,        // accumulators for sum

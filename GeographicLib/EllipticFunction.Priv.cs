@@ -19,7 +19,8 @@ namespace GeographicLib
                 tolRF = Pow(3 * DBL_EPSILON * 0.01, 1 / 8d),
                 tolRG0 = 2.7 * Sqrt(DBL_EPSILON * 0.01),
                 tolRD = Pow(0.2 * (DBL_EPSILON * 0.01), 1 / 8d),
-                tolJAC = Sqrt(DBL_EPSILON * 0.01);
+                tolJAC = Sqrt(DBL_EPSILON * 0.01),
+                tolJAC_am = Pow(DBL_EPSILON, 0.75);
 
             /// <summary>
             /// Gets a value representing the square of the modulus <i>k</i>^2.
@@ -99,6 +100,11 @@ namespace GeographicLib
             /// </remarks>
             public double F(double phi)
             {
+                if (_k2 == 0)
+                    return phi;
+                else if (_kp2 == 0)
+                    return Asinh(Tan(phi));
+
                 double sn = Sin(phi), cn = Cos(phi), dn = Delta(sn, cn);
 
                 return Abs(phi) < PI ? F(sn, cn, dn) :
@@ -115,6 +121,13 @@ namespace GeographicLib
             /// </remarks>
             public double E(double phi)
             {
+                if (_k2 == 0)
+                    return phi;
+                // else if (_kp2 == 0)
+                // Despite DLMF Eq 19.6.9 this is probably wrong, since
+                // sqrt(1 - k^2*sin(phi)^2) -> abs(cos(phi)) in the limit k -> 1.
+                //      return sin(phi);
+
                 double sn = Sin(phi), cn = Cos(phi), dn = Delta(sn, cn);
 
                 return Abs(phi) < PI ? E(sn, cn, dn) :
@@ -481,6 +494,69 @@ namespace GeographicLib
                 return H(sn, cn, dn) * (PI / 2) / H() - Atan2(sn, cn);
             }
 
+            public double Am(double x)
+            {
+                // This implements DLMF Sec 22.20(ii).
+                // See also Sala (1989), https://doi.org/10.1137/0520100, Sec 5.
+                double k2 = _k2, kp2 = _kp2;
+                if (_k2 == 0)
+                    return x;
+                else if (_kp2 == 0)
+                {
+                    return Atan(Sinh(x));     // gd(x)
+                }
+                else if (_k2 < 0)
+                {
+                    // Sala Eq. 5.8
+                    k2 = -_k2 / _kp2; kp2 = 1 / _kp2;
+                    x *= Sqrt(_kp2);
+                }
+
+                Span<double>
+                    a = stackalloc double[num_],
+                    c = stackalloc double[num_];
+                double b;
+
+                a[0] = 1; b = Sqrt(kp2); c[0] = Sqrt(k2);
+                int l = 1;
+                for (; l < num_ || GEOGRAPHICLIB_PANIC;)
+                {
+                    a[l] = (a[l - 1] + b) / 2;
+                    c[l] = (a[l - 1] - b) / 2;
+                    b = Sqrt(a[l - 1] * b);
+                    if (!(c[l] > tolJAC_am * a[l])) break;
+                    ++l;
+                }
+                // Now a[l] = pi/(2*K)
+                double phi = a[l] * x * (1 << l), phi1 = double.NaN;
+                for (; l > 0; --l)
+                {
+                    phi1 = phi;
+                    phi = (phi + Asin(c[l] * Sin(phi) / a[l])) / 2;
+                }
+                // For k2 < 0, see Sala Eq. 5.8
+                return _k2 < 0 ? phi1 - phi : phi;
+            }
+
+            public double Am(double x, out double sn, out double cn, out double dn)
+            {
+                double phi = Am(x);
+                if (_kp2 == 0)
+                {
+                    // Could rely on sin(gd(x)) = tanh(x) and cos(gd(x)) = 1 / cosh(x).  But
+                    // this is more accurate for large |x|.
+                    sn = Tanh(x); cn = dn = 1 / Cosh(x);
+                }
+                else
+                {
+                    sn = Sin(phi); cn = Cos(phi);
+                    // See comment following DLMF Eq. 22.20.5
+                    // dn = cn / cos(phi1 - phi)
+                    dn = Delta(sn, cn);
+                }
+                return phi;
+            }
+
             /// <summary>
             /// The Jacobi elliptic functions.
             /// </summary>
@@ -502,6 +578,9 @@ namespace GeographicLib
                     double mc = _kp2, d = 0;
                     if (SignBit(_kp2))
                     {
+                        // This implements DLMF Eqs 22.17.2 - 22.17.4.  But this only
+                        // accomodates kp2 < 0 or k2 > 1 and these are outside the advertized
+                        // ranges for the contructor for this class.
                         d = 1 - mc;
                         mc /= -d;
                         d = Sqrt(d);
@@ -549,6 +628,7 @@ namespace GeographicLib
                         cn = c * sn;
                         if (SignBit(_kp2))
                         {
+                            // See DLMF Eqs 22.17.2 - 22.17.4
                             Swap(ref cn, ref dn);
                             sn /= d;
                         }

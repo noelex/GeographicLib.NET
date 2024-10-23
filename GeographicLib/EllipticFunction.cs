@@ -342,6 +342,24 @@
         public double DeltaH(double sn, double cn, double dn) => _priv.DeltaH(sn, cn, dn);
 
         /// <summary>
+        /// The Jacobi amplitude function.
+        /// </summary>
+        /// <param name="x">the argument.</param>
+        /// <returns>the value of am(<i>x</i>, <i>k</i>)</returns>
+        public double Am(double x) => _priv.Am(x);
+
+        /// <summary>
+        /// The Jacobi amplitude function and associated elliptic functions.
+        /// </summary>
+        /// <param name="x">the argument.</param>
+        /// <param name="sn">sn(<i>x</i>, <i>k</i>)</param>
+        /// <param name="cn">cn(<i>x</i>, <i>k</i>)</param>
+        /// <param name="dn">dn(<i>x</i>, <i>k</i>)</param>
+        /// <returns>the value of am(<i>x</i>, <i>k</i>)</returns>
+        public double Am(double x, out double sn, out double cn, out double dn)
+            => _priv.Am(x, out sn, out cn, out dn);
+
+        /// <summary>
         /// The Jacobi elliptic functions.
         /// </summary>
         /// <param name="x">the argument.</param>
@@ -352,6 +370,9 @@
         /// Implementation of methods given in
         /// <para>
         /// R. Bulirsch, Numerical Calculation of Elliptic Integrals and Elliptic Functions, Numericshe Mathematik 7, 78-90 (1965)
+        /// </para>
+        /// <para>
+        /// For this routine <i>k</i> is restricted to the interval [0, 1].
         /// </para>
         /// </remarks>
         public void Sncndn(double x, out double sn, out double cn, out double dn) => _priv.Sncndn(x, out sn, out cn, out dn);

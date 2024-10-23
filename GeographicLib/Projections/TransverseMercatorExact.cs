@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using static System.Math;
+﻿using static GeographicLib.Macros;
 using static GeographicLib.MathEx;
-using static GeographicLib.Macros;
+using static System.Math;
 
 namespace GeographicLib.Projections
 {
@@ -272,8 +268,8 @@ namespace GeographicLib.Projections
             // min iterations = 2, max iterations = 6; mean = 4.0
             for (int i = 0, trip = 0; i < numit_ || GEOGRAPHICLIB_PANIC; ++i)
             {
-                _Eu.Sncndn(u, out var snu, out var cnu, out var dnu);
-                _Ev.Sncndn(v, out var snv, out var cnv, out var dnv);
+                _Eu.Am(u, out var snu, out var cnu, out var dnu);
+                _Ev.Am(v, out var snv, out var cnv, out var dnv);
 
                 Zeta(u, snu, cnu, dnu, v, snv, cnv, dnv, out var tau1, out var lam1);
                 DwdZeta(u, snu, cnu, dnu, v, snv, cnv, dnv, out var du1, out var dv1);
@@ -380,8 +376,8 @@ namespace GeographicLib.Projections
             // min iterations = 2, max iterations = 7; mean = 3.9
             for (int i = 0, trip = 0; i < numit_ || GEOGRAPHICLIB_PANIC; ++i)
             {
-                _Eu.Sncndn(u, out var snu, out var cnu, out var dnu);
-                _Ev.Sncndn(v, out var snv, out var cnv, out var dnv);
+                _Eu.Am(u, out var snu, out var cnu, out var dnu);
+                _Ev.Am(v, out var snv, out var cnv, out var dnv);
 
                 Sigma(u, snu, cnu, dnu, v, snv, cnv, dnv, out var xi1, out var eta1);
                 DwdSigma(u, snu, cnu, dnu, v, snv, cnv, dnv, out var du1, out var dv1);
@@ -497,8 +493,8 @@ namespace GeographicLib.Projections
                 // tau = tan(phi), taup = sinh(psi)
                 ZetaInv(Taupf(tau, _e), lam, out u, out v);
 
-            _Eu.Sncndn(u, out var snu, out var cnu, out var dnu);
-            _Ev.Sncndn(v, out var snv, out var cnv, out var dnv);
+            _Eu.Am(u, out var snu, out var cnu, out var dnu);
+            _Ev.Am(v, out var snv, out var cnv, out var dnv);
 
             Sigma(u, snu, cnu, dnu, v, snv, cnv, dnv, out var xi, out var eta);
 
@@ -515,7 +511,7 @@ namespace GeographicLib.Projections
             else
             {
                 // Recompute (tau, lam) from (u, v) to improve accuracy of Scale
-                Zeta(u, snu, cnu, dnu, v, snv, cnv, dnv,out tau, out lam);
+                Zeta(u, snu, cnu, dnu, v, snv, cnv, dnv, out tau, out lam);
                 tau = Tauf(tau, _e);
                 Scale(tau, lam, snu, cnu, dnu, snv, cnv, dnv, out gamma, out k);
                 gamma /= Degree;
@@ -564,20 +560,20 @@ namespace GeographicLib.Projections
                 v = _Ev.K();
             }
             else
-                SigmaInv(xi, eta, out u,out v);
+                SigmaInv(xi, eta, out u, out v);
 
-            _Eu.Sncndn(u, out var snu, out var cnu, out var dnu);
-            _Ev.Sncndn(v, out var snv, out var cnv, out var dnv);
+            _Eu.Am(u, out var snu, out var cnu, out var dnu);
+            _Ev.Am(v, out var snv, out var cnv, out var dnv);
 
             double phi, lam, tau, lat, lon;
             if (v != 0 || u != _Eu.K())
             {
-                Zeta(u, snu, cnu, dnu, v, snv, cnv, dnv, out tau,out lam);
+                Zeta(u, snu, cnu, dnu, v, snv, cnv, dnv, out tau, out lam);
                 tau = Tauf(tau, _e);
                 phi = Atan(tau);
                 lat = phi / Degree;
                 lon = lam / Degree;
-                Scale(tau, lam, snu, cnu, dnu, snv, cnv, dnv, out gamma,out k);
+                Scale(tau, lam, snu, cnu, dnu, snv, cnv, dnv, out gamma, out k);
                 gamma /= Degree;
             }
             else
