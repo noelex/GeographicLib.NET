@@ -37,6 +37,10 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
+  <PropertyGroup Condition="!('$(TargetFramework)'=='netstandard2.0' or '$(TargetFramework)'=='netstandard2.1')">
+    <PublicSign>true</PublicSign>
+  </PropertyGroup>
+
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
