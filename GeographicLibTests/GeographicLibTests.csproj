@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!--
+      net10.0 tests the library's net10.0 build. net8.0 can't consume that build, so it
+      resolves the library's netstandard2.1 build instead and covers the CMath fallback paths.
+      The netstandard2.0 build would need a .NET Framework target (Windows only) to test.
+    -->
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <RootNamespace>GeographicLib.Tests</RootNamespace>
