@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+		<!--
+		  net10.0 uses System.Math where the runtime provides it (NET5_0_OR_GREATER) and is the
+		  only target annotated for trimming and Native AOT. The netstandard targets keep .NET
+		  Framework, Mono/Unity and older .NET apps working; .NET 8/9 apps also resolve
+		  netstandard2.1, which falls back to the managed/native CMath implementations.
+		-->
+		<TargetFrameworks>net10.0;netstandard2.1;netstandard2.0</TargetFrameworks>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\GeographicLib.xml</DocumentationFile>
 		<DefineConstants>x__FP_FAST_FMA,GEOGRAPHICLIB_AREA_DST</DefineConstants>
 		<PackageId>GeographicLib.NET</PackageId>
@@ -23,9 +29,6 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>SigningKey.snk</AssemblyOriginatorKeyFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <IsAotCompatible>True</IsAotCompatible>
-    <IsTrimmable>true</IsTrimmable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
@@ -36,6 +39,17 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
+
+  <!--
+    The trim/AOT analyzers only run on .NET (not netstandard); setting these for netstandard
+    targets only produces NETSDK1210/NETSDK1212 warnings. IsTrimmable implies EnableTrimAnalyzer,
+    and IsAotCompatible implies the trim, AOT and single-file analyzers. The version check
+    (rather than matching net10.0 exactly) keeps this applying to future .NET targets.
+  -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
 
   <PropertyGroup Condition="!('$(TargetFramework)'=='netstandard2.0' or '$(TargetFramework)'=='netstandard2.1')">
     <PublicSign>true</PublicSign>
@@ -55,7 +69,6 @@ GeographicLib.NET is a native .NET implementation of GeographicLib written in pu
 
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
 		<PackageReference Include="System.Memory" Version="4.5.5" />
-		<PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
 	</ItemGroup>
 
 	<ItemGroup>
